@@ -56,18 +56,13 @@ public class MainFrame extends JFrame {
         pnlNoiDung.add(new HomePanel(), "Trang chủ");
 
         pnlNoiDung.add(
-        	    new TraCuuPanel(),
-        	    "Tra cứu"
-        	);
-
-        pnlNoiDung.add(
             new HoSoBenhNhanPanel(),
             "Hồ sơ bệnh nhân"
         );
 
         pnlNoiDung.add(
-            new LichHenPanel(),
-            "Lịch hẹn"
+            new TaoHoaDonPanel(),
+            "Tạo hóa đơn"
         );
 
         pnlNoiDung.add(
@@ -116,32 +111,54 @@ public class MainFrame extends JFrame {
         );
 
         pnlNoiDung.add(
-            new HoaDonPanel(),
-            "Hóa đơn"
+            new TraCuuHoaDonPanel(),
+            "Tra cứu hóa đơn"
         );
-        pnlNoiDung.add(
-                new LichHenPanel(),
-                "Tạo hóa đơn"
-        );
-
-        pnlNoiDung.add(
-                new HoaDonPanel(),
-                "Tra cứu hóa đơn"
-        );
+        
         pnlNoiDung.add(
             new KhuyenMaiPanel(),
             "Khuyến mãi"
         );
 
         pnlNoiDung.add(
-            new ThongKePanel(),
-            "Thống kê"
+            new ThongKeDoanhThuPanel(),
+            "Thống kê doanh thu"
         );
 
         pnlNoiDung.add(
             new HoTroPanel(),
             "Hỗ trợ"
         );
+        
+        pnlNoiDung.add(
+                new ThongKeDoanhThuPanel(),
+                "Thống kê doanh thu"
+            );
+        
+        pnlNoiDung.add(
+                new ThongKeDoanhThuPanel(),
+                "Thống kê doanh thu"
+            );
+        
+        pnlNoiDung.add(taoManHinhTam("Thống kê dịch vụ"),
+        		"Thống kê dịch vụ"
+        		);
+        
+        pnlNoiDung.add(taoManHinhTam("Thống kê khách hàng"),
+        		"Thống kê khách hàng"
+        		);
+        
+        pnlNoiDung.add(taoManHinhTam("Tìm kiếm bệnh nhân"),
+        		"Tìm kiếm bệnh nhân"
+        		);
+        
+        pnlNoiDung.add(taoManHinhTam("Tìm kiếm nhân viên"),
+        		"Tìm kiếm nhân viên"
+        		);
+        
+        pnlNoiDung.add(taoManHinhTam("Tìm kiếm phòng điều trị"),
+        		"Tìm kiếm phòng điều trị"
+        		);
 
         add(pnlNoiDung, BorderLayout.CENTER);
 
