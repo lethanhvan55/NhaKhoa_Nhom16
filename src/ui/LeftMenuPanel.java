@@ -506,7 +506,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         }
         else if (o == btnCapNhatDichVu) {
             capNhatMauNut(btnCapNhatDichVu);
-            parentView.hienThiManHinh("Dich vụ");
+            parentView.hienThiManHinh("Dịch vụ");
         }
         else if (o == btnVatTu) {
             dangMoVatTu = !dangMoVatTu;
