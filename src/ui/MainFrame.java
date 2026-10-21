@@ -144,7 +144,7 @@ public class MainFrame extends JFrame {
                 "Thống kê dịch vụ"
         );
 
-        pnlNoiDung.add(taoManHinhTam("Thống kê khách hàng"),
+        pnlNoiDung.add(new ThongKeKhachHangPanel(),
                 "Thống kê khách hàng"
         );
 
@@ -156,7 +156,7 @@ public class MainFrame extends JFrame {
                 "Tìm kiếm nhân viên"
         );
 
-        pnlNoiDung.add(taoManHinhTam("Tìm kiếm phòng điều trị"),
+        pnlNoiDung.add(new TimKiemPhongDieuTriPanel(),
                 "Tìm kiếm phòng điều trị"
         );
 
