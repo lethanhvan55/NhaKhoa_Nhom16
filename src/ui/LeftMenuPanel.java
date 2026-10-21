@@ -42,6 +42,8 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
     private JPanel pnlMenuDieuTri;
     private JPanel pnlMenuHoaDon;
     private JPanel pnlMenuThongKe;
+    private JPanel pnlMenuDichVu;
+    private JPanel pnlMenuVatTu;
 
     private JLabel lblAvatar;
     private JLabel lblTenNguoiDung;
@@ -52,6 +54,8 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
     private JButton btnNhanVien;
     private JButton btnBenhNhan;
     private JButton btnDieuTri;
+    private JButton btnVatTu;
+    private JButton btnDichVu;
     private JButton btnHoaDon;
     private JButton btnHoTro;
     private JButton btnThoat;
@@ -74,8 +78,12 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
 
     private JButton btnTimKiemPhongDieuTri;
     private JButton btnQuanLyPhongDieuTri;
-    private JButton btnDichVu;
-    private JButton btnVatTu;
+    
+    private JButton btnTimKiemDichVu;
+    private JButton btnCapNhatDichVu;
+    
+    private JButton btnTimKiemVatTu;
+    private JButton btnCapNhatVatTu;
 
     private JButton btnTaoHoaDon;
     private JButton btnTraCuuHoaDon;
@@ -88,6 +96,8 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
     private boolean dangMoThongKe = false;
     private boolean dangMoBenhNhan = false;
     private boolean dangMoDieuTri = false;
+    private boolean dangMoDichVu = false;
+    private boolean dangMoVatTu = false;
     private boolean dangMoHoaDon = false;
 
     public LeftMenuPanel(MainFrame view) {
@@ -156,7 +166,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
 
         btnTrangChu = taoNutMenu("Trang chủ", FontAwesomeSolid.HOME);
 
-        btnLichHen = taoNutMenu("Lịch hẹn", FontAwesomeSolid.CALENDAR_ALT);
+        btnLichHen = taoNutMenu("Lịch hẹn ▼", FontAwesomeSolid.CALENDAR_ALT);
         btnTiepNhanLichHen = taoNutCon("Tiếp nhận lịch hẹn",FontAwesomeSolid.CALENDAR_CHECK);
         btnCheckIn = taoNutCon("Check In/Tìm kiếm",FontAwesomeSolid.CLIPBOARD_CHECK);
 
@@ -165,12 +175,12 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         pnlMenuLichHen.add(btnCheckIn);
         pnlMenuLichHen.setVisible(false);
 
-        btnNhanVien = taoNutMenu("Nhân viên", FontAwesomeSolid.USERS);
+        btnNhanVien = taoNutMenu("Nhân viên ▼", FontAwesomeSolid.USERS);
         btnTimKiemNhanVien = taoNutCon("Tìm kiếm nhân viên",FontAwesomeSolid.USER_SECRET);
         btnQuanLyNhanVien = taoNutCon("Cập nhật nhân viên",FontAwesomeSolid.USER_TIE);
         btnPhanCong = taoNutCon("Phân công nhân viên",FontAwesomeSolid.TASKS);
         btnTaiKhoan = taoNutCon("Tài khoản",FontAwesomeSolid.USER_CIRCLE);
-        btnThongKe = taoNutCon("Thống kê", FontAwesomeSolid.CHART_BAR);
+        btnThongKe = taoNutCon("Thống kê ▼", FontAwesomeSolid.CHART_BAR);
         btnThongKeDoanhThu = taoNutSubCon("Doanh thu",FontAwesomeSolid.MONEY_BILL);
         btnThongKeDichVu = taoNutSubCon("Thống kê Dịch vụ",FontAwesomeSolid.CALCULATOR);
         btnThongKeKhachHang = taoNutSubCon("Thống kê khách hàng",FontAwesomeSolid.USER_CIRCLE);
@@ -190,7 +200,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         pnlMenuNhanVien.setVisible(false);
 
 
-        btnBenhNhan = taoNutMenu("Bệnh nhân", FontAwesomeSolid.FOLDER_OPEN);
+        btnBenhNhan = taoNutMenu("Bệnh nhân ▼", FontAwesomeSolid.FOLDER_OPEN);
         btnTimKiemBenhNhan = taoNutCon("Tìm kiếm hồ sơ",FontAwesomeSolid.FOLDER_PLUS);
         btnHoSoBenhNhan = taoNutCon("Cập nhật hồ sơ",FontAwesomeSolid.FOLDER_OPEN);
         btnKeHoachDieuTri = taoNutCon("Kế hoạch điều trị",FontAwesomeSolid.CLIPBOARD_LIST);
@@ -201,20 +211,34 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         pnlMenuBenhNhan.add(btnKeHoachDieuTri);
         pnlMenuBenhNhan.setVisible(false);
 
-        btnDieuTri = taoNutMenu("Phòng điều trị", FontAwesomeSolid.HOSPITAL);
+        btnDieuTri = taoNutMenu("Phòng điều trị ▼", FontAwesomeSolid.HOSPITAL);
         btnTimKiemPhongDieuTri = taoNutCon("Tìm kiếm phòng điều trị",FontAwesomeSolid.HOSPITAL_USER);
         btnQuanLyPhongDieuTri = taoNutCon("Cập nhật phòng điều trị",FontAwesomeSolid.HOSPITAL);
-        btnDichVu = taoNutCon("Dịch vụ",FontAwesomeSolid.TOOTH);
-        btnVatTu = taoNutCon("Vật tư",FontAwesomeSolid.BOXES);
 
         pnlMenuDieuTri = taoPanelMenuCon();
         pnlMenuDieuTri.add(btnTimKiemPhongDieuTri);
         pnlMenuDieuTri.add(btnQuanLyPhongDieuTri);
-        pnlMenuDieuTri.add(btnDichVu);
-        pnlMenuDieuTri.add(btnVatTu);
         pnlMenuDieuTri.setVisible(false);
 
-        btnHoaDon = taoNutMenu("Hóa đơn", FontAwesomeSolid.FILE_INVOICE_DOLLAR);
+        btnDichVu = taoNutMenu("Dịch vụ ▼",FontAwesomeSolid.TOOTH);
+        btnTimKiemDichVu = taoNutCon("Tìm kiếm dịch vụ",FontAwesomeSolid.TEETH_OPEN);
+        btnCapNhatDichVu = taoNutCon("Cập nhật dịch vụ", FontAwesomeSolid.TOOTH);
+        
+        pnlMenuDichVu = taoPanelMenuCon();
+        pnlMenuDichVu.add(btnTimKiemDichVu);
+        pnlMenuDichVu.add(btnCapNhatDichVu);
+        pnlMenuDichVu.setVisible(false);
+        
+        btnVatTu = taoNutMenu("Vật tư ▼",FontAwesomeSolid.BOXES);
+        btnTimKiemVatTu = taoNutCon("Tìm kiếm vật tư",FontAwesomeSolid.SEARCH_PLUS);
+        btnCapNhatVatTu = taoNutCon("Cập nhật vật tư", FontAwesomeSolid.BOXES);
+        
+        pnlMenuVatTu = taoPanelMenuCon();
+        pnlMenuVatTu.add(btnTimKiemVatTu);
+        pnlMenuVatTu.add(btnCapNhatVatTu);
+        pnlMenuVatTu.setVisible(false);
+        
+        btnHoaDon = taoNutMenu("Hóa đơn ▼", FontAwesomeSolid.FILE_INVOICE_DOLLAR);
         btnTaoHoaDon = taoNutCon("Tạo hóa đơn", FontAwesomeSolid.CALENDAR_CHECK);
         btnTraCuuHoaDon = taoNutCon("Tra cứu hóa đơn",FontAwesomeSolid.SEARCH);
         btnKhuyenMai = taoNutCon("Khuyến mãi",FontAwesomeSolid.TAG);
@@ -244,6 +268,14 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
 
         pnlDanhSachManHinh.add(btnDieuTri);
         pnlDanhSachManHinh.add(pnlMenuDieuTri);
+        pnlDanhSachManHinh.add(taoDuongKe());
+        
+        pnlDanhSachManHinh.add(btnDichVu);
+        pnlDanhSachManHinh.add(pnlMenuDichVu);
+        pnlDanhSachManHinh.add(taoDuongKe());
+        
+        pnlDanhSachManHinh.add(btnVatTu);
+        pnlDanhSachManHinh.add(pnlMenuVatTu);
         pnlDanhSachManHinh.add(taoDuongKe());
 
         pnlDanhSachManHinh.add(btnHoaDon);
@@ -365,8 +397,9 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         pnlDanhSachManHinh.repaint();
     }
 
-    private void capNhatMenuCon(JPanel panel, JButton nut, boolean dangMo) {
+    private void capNhatMenuCon(JPanel panel, JButton nut, boolean dangMo, String tenGoc) {
         panel.setVisible(dangMo);
+        nut.setText(tenGoc + (dangMo ? "  ▲" : "  ▼"));
         pnlDanhSachManHinh.revalidate();
         pnlDanhSachManHinh.repaint();
     }
@@ -381,7 +414,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         }
         else if (o == btnLichHen) {
             dangMoLichHen = !dangMoLichHen;
-            capNhatMenuCon(pnlMenuLichHen, btnLichHen, dangMoLichHen);
+            capNhatMenuCon(pnlMenuLichHen, btnLichHen, dangMoLichHen, "Lịch hẹn");
             if (dangMoLichHen) capNhatMauNut(btnLichHen);
         }
        
@@ -395,7 +428,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         }
         else if (o == btnNhanVien) {
             dangMoNhanVien = !dangMoNhanVien;
-            capNhatMenuCon(pnlMenuNhanVien, btnNhanVien, dangMoNhanVien);
+            capNhatMenuCon(pnlMenuNhanVien, btnNhanVien, dangMoNhanVien, "Nhân viên");
             if (dangMoNhanVien) capNhatMauNut(btnNhanVien);
         }
         else if (o == btnQuanLyNhanVien) {
@@ -416,7 +449,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         }
         else if (o == btnThongKe) {
             dangMoThongKe = !dangMoThongKe;
-            capNhatMenuCon(pnlMenuThongKe, btnThongKe, dangMoThongKe);
+            capNhatMenuCon(pnlMenuThongKe, btnThongKe, dangMoThongKe, "Thống kê");
             if (dangMoThongKe) capNhatMauNut(btnThongKe);
         }
         else if (o == btnThongKeDoanhThu) {
@@ -433,7 +466,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         }
         else if (o == btnBenhNhan) {
             dangMoBenhNhan = !dangMoBenhNhan;
-            capNhatMenuCon(pnlMenuBenhNhan, btnBenhNhan, dangMoBenhNhan);
+            capNhatMenuCon(pnlMenuBenhNhan, btnBenhNhan, dangMoBenhNhan, "Bệnh nhân");
             if (dangMoBenhNhan) capNhatMauNut(btnBenhNhan);
         }
         else if (o == btnTimKiemBenhNhan) {
@@ -450,7 +483,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         }
         else if (o == btnDieuTri) {
             dangMoDieuTri = !dangMoDieuTri;
-            capNhatMenuCon(pnlMenuDieuTri, btnDieuTri, dangMoDieuTri);
+            capNhatMenuCon(pnlMenuDieuTri, btnDieuTri, dangMoDieuTri, "Phòng điều trị");
             if (dangMoDieuTri) capNhatMauNut(btnDieuTri);
         }
         else if (o == btnTimKiemPhongDieuTri) {
@@ -462,16 +495,36 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
             parentView.hienThiManHinh("Phòng điều trị");
         }
         else if (o == btnDichVu) {
-            capNhatMauNut(btnDichVu);
+            dangMoDichVu = !dangMoDichVu;
+            capNhatMenuCon(pnlMenuDichVu, btnDichVu, dangMoDichVu, "Dịch Vụ");
+            if (dangMoDichVu) capNhatMauNut(btnDichVu);
+        }
+       
+        else if (o == btnTimKiemDichVu) {
+            capNhatMauNut(btnTimKiemDichVu);
+            parentView.hienThiManHinh("Tìm kiếm dịch vụ");
+        }
+        else if (o == btnCapNhatDichVu) {
+            capNhatMauNut(btnCapNhatDichVu);
             parentView.hienThiManHinh("Dịch vụ");
         }
         else if (o == btnVatTu) {
-            capNhatMauNut(btnVatTu);
+            dangMoVatTu = !dangMoVatTu;
+            capNhatMenuCon(pnlMenuVatTu, btnVatTu, dangMoVatTu, "Vật tư");
+            if (dangMoVatTu) capNhatMauNut(btnVatTu);
+        }
+       
+        else if (o == btnTimKiemVatTu) {
+            capNhatMauNut(btnTimKiemVatTu);
+            parentView.hienThiManHinh("Tìm kiếm vật tư");
+        }
+        else if (o == btnCapNhatVatTu) {
+            capNhatMauNut(btnCapNhatVatTu);
             parentView.hienThiManHinh("Vật tư");
         }
         else if (o == btnHoaDon) {
             dangMoHoaDon = !dangMoHoaDon;
-            capNhatMenuCon(pnlMenuHoaDon, btnHoaDon, dangMoHoaDon);
+            capNhatMenuCon(pnlMenuHoaDon, btnHoaDon, dangMoHoaDon, "Hóa Đơn");
             if (dangMoHoaDon) capNhatMauNut(btnHoaDon);
         }
         else if (o == btnTaoHoaDon) {

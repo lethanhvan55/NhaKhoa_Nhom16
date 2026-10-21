@@ -1,286 +1,362 @@
-
 package ui;
+
+import utils.UIHelper;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.swing.FontIcon;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-public class HomePanel extends JPanel {
+import static utils.UIHelper.*;
 
-    private final Color MAU_CHU = new Color(35, 70, 110);
-    private final Color MAU_XANH = new Color(35, 105, 180);
-    private final Color MAU_NEN = new Color(245, 247, 250);
-    private final Color MAU_VIEN = new Color(224, 232, 241);
+public class HomePanel extends JPanel implements ActionListener {
+
+    private final Color MAU_CHU = NAVY;
+    private final Color MAU_NEN = BG;
+    private final Color MAU_VIEN = BORDER;
+
+    private JLabel lblDongHo;
+
+    private JLabel lblMaNV, lblTenNV, lblChucVu, lblCaTruc;
+
+    private JButton btnLamMoiDuLieu;
+    private JButton btnXemTatCaThongBao;
+    private JButton btnDangXuat;
 
     public HomePanel() {
-        setLayout(new BorderLayout(15, 18));
+        setLayout(new BorderLayout(15, 15));
         setBackground(MAU_NEN);
         setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        add(taoTieuDe(), BorderLayout.NORTH);
-        add(taoNoiDung(), BorderLayout.CENTER);
+        add(taoKhungDongHoVaThaoTacTop(), BorderLayout.NORTH);
+        add(taoNoiDungChinh(), BorderLayout.CENTER);
+
+        khoiDongDongHo();
+        dangKySuKien();
+        loadDuLieuTongQuanTuCSDL();
     }
 
-    private JPanel taoTieuDe() {
-        JPanel pnl = new JPanel(new BorderLayout());
-        pnl.setOpaque(false);
-        pnl.setBorder(new EmptyBorder(0, 0, 5, 0));
+    private JPanel taoKhungDongHoVaThaoTacTop() {
+        JPanel pnlTop = new JPanel(new BorderLayout());
+        pnlTop.setOpaque(false);
+        pnlTop.setBorder(new EmptyBorder(0, 0, 5, 0));
 
-        JLabel lblTieuDe = new JLabel("TRANG CHỦ");
-        lblTieuDe.setFont(new Font("Arial", Font.BOLD, 26));
-        lblTieuDe.setForeground(MAU_CHU);
+        JLabel lblTieuDeTrang = new JLabel("BẢNG ĐIỀU HÀNH TỔNG QUAN HỆ THỐNG");
+        lblTieuDeTrang.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTieuDeTrang.setForeground(MAU_CHU);
 
-        JLabel lblMoTa = new JLabel(
-            "Tổng quan hoạt động phòng khám nha khoa"
-        );
-        lblMoTa.setFont(new Font("Arial", Font.PLAIN, 13));
-        lblMoTa.setForeground(new Color(105, 120, 140));
+        JPanel pnlRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        pnlRight.setOpaque(false);
 
-        JPanel pnlBenTrai = new JPanel(new GridLayout(2, 1, 0, 5));
-        pnlBenTrai.setOpaque(false);
-        pnlBenTrai.add(lblTieuDe);
-        pnlBenTrai.add(lblMoTa);
+        JLabel lblIconClock = new JLabel(FontIcon.of(FontAwesomeSolid.CLOCK, 14, NAVY));
+        lblDongHo = new JLabel();
+        lblDongHo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblDongHo.setForeground(NAVY);
 
-        JLabel lblNgay = new JLabel(
-            "Hôm nay: "
-            + new SimpleDateFormat("dd/MM/yyyy").format(new Date())
-        );
-        lblNgay.setFont(new Font("Arial", Font.BOLD, 13));
-        lblNgay.setForeground(MAU_XANH);
-        lblNgay.setHorizontalAlignment(SwingConstants.RIGHT);
+        btnLamMoiDuLieu = new JButton("Làm mới");
+        styleButton(btnLamMoiDuLieu, true, FontAwesomeSolid.SYNC_ALT);
 
-        pnl.add(pnlBenTrai, BorderLayout.WEST);
-        pnl.add(lblNgay, BorderLayout.EAST);
+        pnlRight.add(lblIconClock);
+        pnlRight.add(lblDongHo);
+        pnlRight.add(new JLabel(" | "));
+        pnlRight.add(btnLamMoiDuLieu);
 
-        return pnl;
+        pnlTop.add(lblTieuDeTrang, BorderLayout.WEST);
+        pnlTop.add(pnlRight, BorderLayout.EAST);
+
+        return pnlTop;
     }
 
-    private JPanel taoNoiDung() {
+    private void khoiDongDongHo() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss");
+        ActionListener updateClock = e -> lblDongHo.setText(sdf.format(new Date()));
+        Timer timer = new Timer(1000, updateClock);
+        timer.setInitialDelay(0);
+        timer.start();
+    }
+
+    private JPanel taoNoiDungChinh() {
         JPanel pnl = new JPanel(new BorderLayout(15, 15));
         pnl.setOpaque(false);
 
-        pnl.add(taoThongKe(), BorderLayout.NORTH);
-        pnl.add(taoLichHen(), BorderLayout.CENTER);
-        pnl.add(taoHoatDong(), BorderLayout.SOUTH);
+        pnl.add(taoThongKeNoiBat(), BorderLayout.NORTH);
+
+        JPanel pnlCenter = new JPanel(new GridLayout(1, 2, 15, 0));
+        pnlCenter.setOpaque(false);
+        pnlCenter.add(taoKhuVucBieuDo());
+
+        // Sử dụng GridLayout(2, 1, 0, 12) để ép 2 khung cột phải có chiều rộng ngang bằng nhau hoàn toàn
+        JPanel pnlRightColumn = new JPanel(new GridLayout(2, 1, 0, 12));
+        pnlRightColumn.setOpaque(false);
+        pnlRightColumn.add(taoKhuVucThongBaoThuNho());
+        pnlRightColumn.add(taoKhungThongTinNhanVienToHon());
+
+        pnlCenter.add(pnlRightColumn);
+
+        pnl.add(pnlCenter, BorderLayout.CENTER);
 
         return pnl;
     }
 
-    private JPanel taoThongKe() {
+    private JPanel taoThongKeNoiBat() {
         JPanel pnl = new JPanel(new GridLayout(1, 4, 12, 0));
         pnl.setOpaque(false);
 
-        pnl.add(taoTheThongKe(
-            "BỆNH NHÂN",
-            "128",
-            "Tổng số bệnh nhân",
-            new Color(48, 125, 220)
-        ));
-
-        pnl.add(taoTheThongKe(
-            "LỊCH HẸN HÔM NAY",
-            "18",
-            "Lịch hẹn trong ngày",
-            new Color(15, 150, 137)
-        ));
-
-        pnl.add(taoTheThongKe(
-            "KẾ HOẠCH ĐIỀU TRỊ",
-            "12",
-            "Kế hoạch đang theo dõi",
-            new Color(140, 95, 200)
-        ));
-
-        pnl.add(taoTheThongKe(
-            "HÓA ĐƠN CHƯA THANH TOÁN",
-            "5",
-            "Cần kiểm tra thanh toán",
-            new Color(230, 155, 45)
-        ));
+        pnl.add(taoTheThongKe("TỔNG SỐ BỆNH NHÂN", "128", "Hồ sơ lưu trữ trên hệ thống", new Color(48, 125, 220), FontAwesomeSolid.USER_INJURED));
+        pnl.add(taoTheThongKe("LỊCH HẸN HÔM NAY", "18", "Cần tiếp nhận & khám", new Color(15, 150, 137), FontAwesomeSolid.CALENDAR_CHECK));
+        pnl.add(taoTheThongKe("KẾ HOẠCH ĐIỀU TRỊ", "12", "Đang theo dõi tiến trình", new Color(140, 95, 200), FontAwesomeSolid.PROCEDURES));
+        pnl.add(taoTheThongKe("HÓA ĐƠN CHỜ THU", "5", "Chưa hoàn tất thanh toán", new Color(230, 115, 35), FontAwesomeSolid.FILE_INVOICE_DOLLAR));
 
         return pnl;
     }
 
-    private JPanel taoTheThongKe(
-        String tieuDe,
-        String giaTri,
-        String moTa,
-        Color mau
-    ) {
-        JPanel pnl = new JPanel(new BorderLayout(5, 8));
-        pnl.setBackground(Color.WHITE);
+    private JPanel taoTheThongKe(String tieuDe, String giaTri, String moTa, Color mau, FontAwesomeSolid iconEnum) {
+        JPanel pnl = createCardPanel();
+        pnl.setLayout(new BorderLayout(5, 5));
         pnl.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(MAU_VIEN),
-            new EmptyBorder(12, 12, 12, 12)
+                new LineBorder(MAU_VIEN, 1, true),
+                new EmptyBorder(12, 15, 12, 15)
         ));
 
+        JPanel pnlHeaderCard = new JPanel(new BorderLayout());
+        pnlHeaderCard.setOpaque(false);
+
         JLabel lblTieuDe = new JLabel(tieuDe);
-        lblTieuDe.setFont(new Font("Arial", Font.BOLD, 11));
-        lblTieuDe.setForeground(new Color(100, 115, 135));
+        lblTieuDe.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTieuDe.setForeground(MUTED);
+
+        JLabel lblIcon = UIHelper.createIconLabel(iconEnum, 20, mau);
+
+        pnlHeaderCard.add(lblTieuDe, BorderLayout.WEST);
+        pnlHeaderCard.add(lblIcon, BorderLayout.EAST);
 
         JLabel lblGiaTri = new JLabel(giaTri);
-        lblGiaTri.setFont(new Font("Arial", Font.BOLD, 28));
+        lblGiaTri.setFont(new Font("Segoe UI", Font.BOLD, 32));
         lblGiaTri.setForeground(mau);
 
         JLabel lblMoTa = new JLabel(moTa);
-        lblMoTa.setFont(new Font("Arial", Font.PLAIN, 11));
-        lblMoTa.setForeground(new Color(120, 130, 145));
+        lblMoTa.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblMoTa.setForeground(MUTED);
 
-        pnl.add(lblTieuDe, BorderLayout.NORTH);
+        pnl.add(pnlHeaderCard, BorderLayout.NORTH);
         pnl.add(lblGiaTri, BorderLayout.CENTER);
         pnl.add(lblMoTa, BorderLayout.SOUTH);
-
-        pnl.setPreferredSize(new Dimension(180, 115));
+        pnl.setPreferredSize(new Dimension(180, 110));
 
         return pnl;
     }
 
-    private JPanel taoLichHen() {
-        JPanel pnl = new JPanel(new BorderLayout(10, 12));
-        pnl.setBackground(Color.WHITE);
+    private JPanel taoKhuVucBieuDo() {
+        JPanel pnl = new JPanel(new GridLayout(3, 1, 0, 12));
+        pnl.setOpaque(false);
+
+        pnl.add(taoKhungChart("Biểu đồ Doanh thu tháng này (VNĐ)", "pnlChartDoanhThu"));
+        pnl.add(taoKhungChart("Tỷ lệ Dịch vụ điều trị nhiều nhất", "pnlChartDichVu"));
+        pnl.add(taoKhungChart("Biểu đồ Khách hàng mới theo tuần", "pnlChartKhachHang"));
+
+        return pnl;
+    }
+
+    private JPanel taoKhungChart(String tenBieuDo, String nameIdentifier) {
+        JPanel pnl = createCardPanel();
+        pnl.setLayout(new BorderLayout(5, 5));
         pnl.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(MAU_VIEN),
-            new EmptyBorder(12, 12, 12, 12)
+                new LineBorder(MAU_VIEN, 1, true),
+                new EmptyBorder(10, 12, 10, 12)
         ));
 
-        JLabel lblTieuDe = new JLabel("LỊCH HẸN HÔM NAY");
-        lblTieuDe.setFont(new Font("Arial", Font.BOLD, 15));
+        JLabel lblTieuDe = new JLabel(tenBieuDo);
+        lblTieuDe.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblTieuDe.setForeground(MAU_CHU);
 
-        String[] cot = {
-            "Mã lịch hẹn",
-            "Bệnh nhân",
-            "Nha sĩ",
-            "Giờ hẹn",
-            "Phòng",
-            "Trạng thái"
-        };
+        JPanel pnlChartContainer = new JPanel(new BorderLayout());
+        pnlChartContainer.setBackground(new Color(248, 250, 253));
+        pnlChartContainer.setBorder(new LineBorder(new Color(230, 238, 248), 1, true));
+        pnlChartContainer.setName(nameIdentifier);
 
-        DefaultTableModel model = new DefaultTableModel(cot, 0) {
+        JLabel lblPlaceholder = new JLabel("Chờ tích hợp thư viện biểu đồ (JFreeChart / XChart)...", SwingConstants.CENTER);
+        lblPlaceholder.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        lblPlaceholder.setForeground(new Color(110, 125, 145));
+        pnlChartContainer.add(lblPlaceholder, BorderLayout.CENTER);
+
+        pnl.add(lblTieuDe, BorderLayout.NORTH);
+        pnl.add(pnlChartContainer, BorderLayout.CENTER);
+
+        return pnl;
+    }
+
+    private JPanel taoKhuVucThongBaoThuNho() {
+        JPanel pnlThongBao = createCardPanel();
+        pnlThongBao.setLayout(new BorderLayout(4, 4));
+        pnlThongBao.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(MAU_VIEN, 1, true),
+                new EmptyBorder(8, 10, 8, 10)
+        ));
+
+        JPanel pnlHeaderTB = new JPanel(new BorderLayout());
+        pnlHeaderTB.setOpaque(false);
+
+        JLabel lblTBTieuDe = new JLabel("THÔNG BÁO & NHẮC NHỞ QUAN TRỌNG");
+        lblTBTieuDe.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTBTieuDe.setForeground(MAU_CHU);
+
+        btnXemTatCaThongBao = new JButton("Xem tất cả");
+        styleButton(btnXemTatCaThongBao, false, FontAwesomeSolid.LIST_ALT);
+
+        pnlHeaderTB.add(lblTBTieuDe, BorderLayout.WEST);
+        pnlHeaderTB.add(btnXemTatCaThongBao, BorderLayout.EAST);
+        pnlThongBao.add(pnlHeaderTB, BorderLayout.NORTH);
+
+        String[] cot = {"STT", "Thời gian", "Nội dung thông báo", "Mức độ"};
+        DefaultTableModel modelTB = new DefaultTableModel(cot, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
 
-        model.addRow(new Object[] {
-            "LH0001", "Nguyễn Văn An",
-            "Nguyễn Minh Tuấn", "08:00",
-            "Phòng 1", "Đã xác nhận"
-        });
+        modelTB.addRow(new Object[]{"1", "08:30", "Lịch hẹn tái khám của BN Nguyễn Văn An.", "Quan trọng"});
+        modelTB.addRow(new Object[]{"2", "09:15", "Kho vật tư: Sắp hết dung dịch sát khuẩn.", "Cảnh báo"});
 
-        model.addRow(new Object[] {
-            "LH0002", "Trần Thị Bích",
-            "Trần Hoàng Nam", "09:00",
-            "Phòng 2", "Đang chờ"
-        });
+        JTable tblThongBao = new JTable(modelTB);
+        tblThongBao.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        tblThongBao.setForeground(TEXT);
+        tblThongBao.setRowHeight(22);
+        tblThongBao.setGridColor(new Color(230, 240, 250));
+        tblThongBao.setShowVerticalLines(false);
+        tblThongBao.setSelectionBackground(new Color(220, 235, 252));
+        tblThongBao.setSelectionForeground(MAU_CHU);
 
-        model.addRow(new Object[] {
-            "LH0003", "Lê Minh Hoàng",
-            "Lê Thị Mai", "10:30",
-            "Phòng 3", "Đã xác nhận"
-        });
+        tblThongBao.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
+        tblThongBao.getTableHeader().setBackground(MAU_CHU);
+        tblThongBao.getTableHeader().setForeground(Color.WHITE);
+        tblThongBao.getTableHeader().setPreferredSize(new Dimension(0, 22));
 
-        model.addRow(new Object[] {
-            "LH0004", "Phạm Thu Hà",
-            "Nguyễn Minh Tuấn", "14:00",
-            "Phòng 1", "Đang chờ"
-        });
+        tblThongBao.getColumnModel().getColumn(0).setPreferredWidth(30);
+        tblThongBao.getColumnModel().getColumn(1).setPreferredWidth(65);
+        tblThongBao.getColumnModel().getColumn(2).setPreferredWidth(215);
+        tblThongBao.getColumnModel().getColumn(3).setPreferredWidth(80);
 
-        JTable tblLichHen = new JTable(model);
-        tblLichHen.setRowHeight(30);
-        tblLichHen.setFont(new Font("Arial", Font.PLAIN, 12));
-        tblLichHen.setForeground(MAU_CHU);
-        tblLichHen.setSelectionBackground(new Color(215, 235, 250));
-        tblLichHen.setSelectionForeground(MAU_CHU);
-        tblLichHen.setGridColor(new Color(230, 235, 242));
-        tblLichHen.setShowVerticalLines(false);
-        tblLichHen.setFillsViewportHeight(true);
-        tblLichHen.setAutoCreateRowSorter(true);
+        JScrollPane scrTB = new JScrollPane(tblThongBao);
+        scrTB.setBorder(new LineBorder(MAU_VIEN, 1, true));
+        scrTB.getViewport().setBackground(Color.WHITE);
+        pnlThongBao.add(scrTB, BorderLayout.CENTER);
 
-        tblLichHen.getTableHeader().setFont(
-            new Font("Arial", Font.BOLD, 12)
-        );
-        tblLichHen.getTableHeader().setBackground(MAU_CHU);
-        tblLichHen.getTableHeader().setForeground(Color.WHITE);
-        tblLichHen.getTableHeader().setPreferredSize(
-            new Dimension(0, 32)
-        );
-
-        JScrollPane scr = new JScrollPane(tblLichHen);
-        scr.setBorder(BorderFactory.createEmptyBorder());
-
-        pnl.add(lblTieuDe, BorderLayout.NORTH);
-        pnl.add(scr, BorderLayout.CENTER);
-
-        return pnl;
+        return pnlThongBao;
     }
 
-    private JPanel taoHoatDong() {
-        JPanel pnl = new JPanel(new BorderLayout(10, 8));
-        pnl.setBackground(Color.WHITE);
-        pnl.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(MAU_VIEN),
-            new EmptyBorder(12, 12, 12, 12)
+    private JPanel taoKhungThongTinNhanVienToHon() {
+        JPanel pnlCard = createCardPanel();
+        pnlCard.setLayout(new BorderLayout(10, 10));
+        pnlCard.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(MAU_VIEN, 1, true),
+                new EmptyBorder(14, 16, 14, 16)
         ));
 
-        JLabel lblTieuDe = new JLabel("HOẠT ĐỘNG GẦN ĐÂY");
-        lblTieuDe.setFont(new Font("Arial", Font.BOLD, 14));
-        lblTieuDe.setForeground(MAU_CHU);
+        JLabel lblTieuDeNV = new JLabel("THÔNG TIN NHÂN VIÊN ĐĂNG NHẬP");
+        lblTieuDeNV.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblTieuDeNV.setForeground(MAU_CHU);
 
-        JPanel pnlNoiDung = new JPanel(new GridLayout(3, 1, 5, 5));
-        pnlNoiDung.setOpaque(false);
+        JPanel pnlDetails = new JPanel(new GridLayout(2, 2, 15, 8));
+        pnlDetails.setOpaque(false);
 
-        pnlNoiDung.add(taoDongHoatDong(
-            "08:15",
-            "Tiếp nhận bệnh nhân Nguyễn Văn An"
-        ));
+        lblMaNV = new JLabel("Mã NV: NV001");
+        lblMaNV.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblMaNV.setForeground(TEXT);
 
-        pnlNoiDung.add(taoDongHoatDong(
-            "09:00",
-            "Tạo lịch hẹn mới cho Trần Thị Bích"
-        ));
+        lblTenNV = new JLabel("Họ tên: Lê Thị Kim Vui");
+        lblTenNV.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTenNV.setForeground(TEAL);
 
-        pnlNoiDung.add(taoDongHoatDong("09:30","Cập nhật kế hoạch điều trị cho bệnh nhân"));
+        lblChucVu = new JLabel("Chức vụ: Lễ tân / Tiếp nhận");
+        lblChucVu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblChucVu.setForeground(TEXT);
 
-        pnl.add(lblTieuDe, BorderLayout.NORTH);
-        pnl.add(pnlNoiDung, BorderLayout.CENTER);
+        lblCaTruc = new JLabel("Trạng thái: Đang làm việc");
+        lblCaTruc.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblCaTruc.setForeground(MUTED);
 
-        pnl.setPreferredSize(new Dimension(500, 140));
+        pnlDetails.add(lblMaNV);
+        pnlDetails.add(lblTenNV);
+        pnlDetails.add(lblChucVu);
+        pnlDetails.add(lblCaTruc);
 
-        return pnl;
+        JPanel pnlBottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        pnlBottom.setOpaque(false);
+        pnlBottom.setBorder(new EmptyBorder(5, 0, 0, 0));
+
+        btnDangXuat = new JButton("Đăng xuất hệ thống");
+        styleButton(btnDangXuat, false, FontAwesomeSolid.SIGN_OUT_ALT);
+        pnlBottom.add(btnDangXuat);
+
+        pnlCard.add(lblTieuDeNV, BorderLayout.NORTH);
+        pnlCard.add(pnlDetails, BorderLayout.CENTER);
+        pnlCard.add(pnlBottom, BorderLayout.SOUTH);
+
+        return pnlCard;
     }
 
-    private JPanel taoDongHoatDong(String gio, String noiDung) {
-        JPanel pnl = new JPanel(new BorderLayout(12, 0));
-        pnl.setOpaque(false);
+    private void dangKySuKien() {
+        btnLamMoiDuLieu.addActionListener(this);
+        btnXemTatCaThongBao.addActionListener(this);
+        btnDangXuat.addActionListener(this);
+    }
 
-        JLabel lblGio = new JLabel(gio);
-        lblGio.setFont(new Font("Arial", Font.BOLD, 12));
-        lblGio.setForeground(MAU_XANH);
-        lblGio.setPreferredSize(new Dimension(65, 22));
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object source = e.getSource();
+        if (source.equals(btnLamMoiDuLieu)) {
+            xuLyLamMoiTrangChu();
+        } else if (source.equals(btnXemTatCaThongBao)) {
+            xuLyXemTatCaThongBao();
+        } else if (source.equals(btnDangXuat)) {
+            xuLyDangXuat();
+        }
+    }
 
-        JLabel lblNoiDung = new JLabel(noiDung);
-        lblNoiDung.setFont(new Font("Arial", Font.PLAIN, 12));
-        lblNoiDung.setForeground(MAU_CHU);
+    private void loadDuLieuTongQuanTuCSDL() {
+        try {
+            // TODO: Viết code gọi DAO truy vấn SQL Server
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-        pnl.add(lblGio, BorderLayout.WEST);
-        pnl.add(lblNoiDung, BorderLayout.CENTER);
+    private void xuLyLamMoiTrangChu() {
+        loadDuLieuTongQuanTuCSDL();
+        JOptionPane.showMessageDialog(this, "Đã cập nhật dữ liệu mới nhất cho trang chủ!");
+    }
 
-        return pnl;
+    private void xuLyXemTatCaThongBao() {
+        JOptionPane.showMessageDialog(this, "Mở cửa sổ xem tất cả thông báo hệ thống.");
+    }
+
+    private void xuLyDangXuat() {
+        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?", "Xác nhận đăng xuất", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            JOptionPane.showMessageDialog(this, "Đăng xuất thành công.");
+        }
     }
 }

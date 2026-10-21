@@ -1,235 +1,176 @@
 package ui;
 
+import utils.UIHelper;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class NhanVienPanel extends JPanel {
-    private static final Color NAVY = new Color(21, 48, 78);
-    private static final Color NAVY_HOVER = new Color(29, 66, 105);
-    private static final Color BLUE = new Color(31, 105, 210);
-    private static final Color BG = new Color(245, 249, 253);
-    private static final Color BORDER = new Color(218, 228, 238);
-    private static final Color TEXT = new Color(35, 55, 78);
-    private static final Color MUTED = new Color(105, 123, 142);
+public class NhanVienPanel extends JPanel implements ActionListener, MouseListener {
 
-    private JTextField codeField, name, phone, email, searchField;
-    private JComboBox<String> position, status;
+    private JTextField codeField;
+    private JTextField nameField;
+    private JTextField phoneField;
+    private JTextField emailField;
+
+    private JComboBox<String> positionCombo;
+    private JComboBox<String> statusCombo;
+
     private JTable table;
     private DefaultTableModel model;
-    private JLabel total;
-    private boolean adding = true;
+
+    private JLabel totalLabel;
+
+    private JButton addBtn;
+    private JButton saveBtn;
+    private JButton deleteBtn; // Khai báo nút Xóa
+    private JButton cancelBtn;
 
     public NhanVienPanel() {
         setLayout(new BorderLayout());
-        setBackground(BG);
+        setBackground(UIHelper.BG);
+        setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        add(createHeader(), BorderLayout.NORTH);
         add(createContent(), BorderLayout.CENTER);
-    }
 
-    private JPanel createHeader() {
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(Color.WHITE);
-        header.setPreferredSize(new Dimension(0, 76));
-        header.setBorder(new MatteBorder(0, 0, 1, 0, BORDER));
-
-        JLabel title = new JLabel("  ☰   ◇  Quản lý nhân viên");
-        title.setFont(new Font("SansSerif", Font.BOLD, 25));
-        title.setForeground(TEXT);
-        header.add(title, BorderLayout.WEST);
-
-        JPanel user = new JPanel(new FlowLayout(FlowLayout.RIGHT, 13, 18));
-        user.setBackground(Color.WHITE);
-        JLabel bell = new JLabel("♧");
-        bell.setFont(new Font("SansSerif", Font.BOLD, 22));
-        bell.setForeground(TEXT);
-        JLabel avatar = new JLabel("◉");
-        avatar.setFont(new Font("SansSerif", Font.BOLD, 25));
-        avatar.setForeground(new Color(116, 136, 158));
-        JLabel userName = new JLabel("<html><b>NV001</b><br><span style='font-size:10px'>Lễ tân</span></html>");
-        userName.setForeground(TEXT);
-        user.add(bell);
-        user.add(avatar);
-        user.add(userName);
-        user.add(new JLabel("⌄  "));
-        header.add(user, BorderLayout.EAST);
-        return header;
+        // Đăng ký sự kiện cho các nút bấm và bảng dữ liệu
+        addBtn.addActionListener(this);
+        saveBtn.addActionListener(this);
+        deleteBtn.addActionListener(this); // Đăng ký sự kiện nút Xóa
+        cancelBtn.addActionListener(this);
+        table.addMouseListener(this);
     }
 
     private JPanel createContent() {
-        JPanel outer = new JPanel(new BorderLayout());
-        outer.setBackground(BG);
-        outer.setBorder(new EmptyBorder(12, 12, 12, 12));
+        JPanel outer = new JPanel(new BorderLayout(15, 0));
+        outer.setBackground(UIHelper.BG);
 
         JPanel left = new JPanel(new BorderLayout(0, 12));
-        left.setBackground(BG);
-        left.add(createSearchPanel(), BorderLayout.NORTH);
+        left.setBackground(UIHelper.BG);
         left.add(createTablePanel(), BorderLayout.CENTER);
 
         JPanel right = createFormPanel();
-        right.setPreferredSize(new Dimension(420, 0));
+        right.setPreferredSize(new Dimension(380, 0));
 
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
-        split.setResizeWeight(0.69);
-        split.setDividerLocation(0.69);
-        split.setDividerSize(8);
+        split.setResizeWeight(0.72);
+        split.setDividerLocation(0.72);
+        split.setDividerSize(6);
         split.setBorder(null);
-        split.setBackground(BG);
+        split.setBackground(UIHelper.BG);
         split.setContinuousLayout(true);
+
         outer.add(split, BorderLayout.CENTER);
         return outer;
     }
 
-    private JPanel card() {
-        JPanel p = new JPanel();
-        p.setBackground(Color.WHITE);
-        p.setBorder(new CompoundBorder(new LineBorder(BORDER), new EmptyBorder(12, 12, 12, 12)));
-        return p;
-    }
-
-    private JPanel createSearchPanel() {
-        JPanel p = card();
-        p.setLayout(new BorderLayout(0, 10));
-
-        JPanel searchRow = new JPanel(new BorderLayout(8, 0));
-        searchRow.setOpaque(false);
-        searchField = new JTextField("Tìm kiếm mã nhân viên / tên nhân viên / SĐT...");
-        searchField.setForeground(MUTED);
-        styleTextField(searchField);
-        searchRow.add(searchField, BorderLayout.CENTER);
-
-        JButton add = new JButton("+  Thêm nhân viên");
-        styleButton(add, true);
-        add.setPreferredSize(new Dimension(150, 39));
-        searchRow.add(add, BorderLayout.EAST);
-        p.add(searchRow, BorderLayout.NORTH);
-
-        JPanel filters = new JPanel(new GridLayout(1, 2, 10, 0));
-        filters.setOpaque(false);
-        filters.add(createFilter("Chức vụ", new String[]{
-            "Tất cả", "Lễ tân", "Bác sĩ", "Phụ tá", "Quản lý"
-        }));
-        filters.add(createFilter("Trạng thái", new String[]{
-            "Tất cả", "Đang làm việc", "Tạm nghỉ", "Đã nghỉ việc"
-        }));
-        p.add(filters, BorderLayout.CENTER);
-
-        add.addActionListener(e -> clearForm());
-        searchField.addActionListener(e -> filter());
-        return p;
-    }
-
-    private JPanel createFilter(String label, String[] options) {
-        JPanel wrap = new JPanel(new BorderLayout(0, 5));
-        wrap.setOpaque(false);
-        JLabel l = new JLabel(label);
-        l.setFont(new Font("SansSerif", Font.BOLD, 12));
-        l.setForeground(TEXT);
-        JComboBox<String> combo = new JComboBox<>(options);
-        combo.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        combo.setForeground(TEXT);
-        combo.setBackground(Color.WHITE);
-        combo.setPreferredSize(new Dimension(100, 38));
-        combo.setBorder(new LineBorder(BORDER));
-        wrap.add(l, BorderLayout.NORTH);
-        wrap.add(combo, BorderLayout.CENTER);
-        return wrap;
-    }
-
     private JPanel createTablePanel() {
-        JPanel p = card();
-        p.setLayout(new BorderLayout(0, 10));
+        JPanel p = UIHelper.createCardPanel();
+        p.setLayout(new BorderLayout(0, 12));
+        p.setBorder(new CompoundBorder(new LineBorder(UIHelper.BORDER, 1, true), BorderFactory.createTitledBorder(
+                BorderFactory.createEmptyBorder(0, 0, 0, 0), "Danh sách nhân viên",
+                TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
+                new Font("Segoe UI", Font.BOLD, 14), UIHelper.NAVY)));
 
-        JLabel title = new JLabel("Danh sách nhân viên");
-        title.setFont(new Font("SansSerif", Font.BOLD, 16));
-        title.setForeground(TEXT);
-        p.add(title, BorderLayout.NORTH);
+        JPanel toolbar = new JPanel(new BorderLayout());
+        toolbar.setOpaque(false);
 
-        String[] cols = {"", "STT", "Mã nhân viên", "Họ và tên", "Số điện thoại", "Email", "Chức vụ", "Trạng thái"};
-        Object[][] rows = {
-            {"□", "1", "NV001", "Nguyễn Thị Lan", "0901234567", "lan@example.com", "Lễ tân", "Đang làm việc"},
-            {"□", "2", "NV002", "Trần Minh Tuấn", "0912345678", "tuan@example.com", "Bác sĩ", "Đang làm việc"},
-            {"□", "3", "NV003", "Lê Thu Hương", "0923456789", "huong@example.com", "Bác sĩ", "Đang làm việc"}
+        JLabel subTitle = new JLabel("Quản lý thông tin nhân sự phòng khám");
+        subTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        subTitle.setForeground(UIHelper.MUTED);
+        toolbar.add(subTitle, BorderLayout.WEST);
+
+        addBtn = new JButton("Thêm nhân viên");
+        UIHelper.styleButton(addBtn, true, FontAwesomeSolid.USER_PLUS);
+        toolbar.add(addBtn, BorderLayout.EAST);
+
+        p.add(toolbar, BorderLayout.NORTH);
+
+        String[] cols = {"STT", "Mã NV", "Họ và tên", "Số điện thoại", "Email", "Chức vụ", "Trạng thái"};
+
+        model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
-        model = new DefaultTableModel(rows, cols) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
+
         table = new JTable(model);
-        table.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        table.setForeground(TEXT);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setForeground(UIHelper.TEXT);
         table.setBackground(Color.WHITE);
-        table.setRowHeight(43);
-        table.setGridColor(new Color(225, 232, 239));
-        table.setShowGrid(true);
-        table.setSelectionBackground(new Color(222, 239, 255));
-        table.setSelectionForeground(TEXT);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 11));
-        table.getTableHeader().setForeground(TEXT);
-        table.getTableHeader().setBackground(new Color(239, 246, 252));
+        table.setRowHeight(42);
+        table.setGridColor(new Color(230, 240, 250));
+        table.setShowVerticalLines(false);
+        table.setSelectionBackground(new Color(220, 235, 252));
+        table.setSelectionForeground(UIHelper.NAVY);
+
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        table.getTableHeader().setForeground(Color.WHITE);
+        table.getTableHeader().setBackground(UIHelper.NAVY);
+        table.getTableHeader().setPreferredSize(new Dimension(0, 38));
         table.getTableHeader().setReorderingAllowed(false);
-        table.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && table.getSelectedRow() >= 0) loadRow();
-        });
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        table.getColumnModel().getColumn(0).setPreferredWidth(45);
+        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(1).setPreferredWidth(80);
+        table.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
 
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(new LineBorder(BORDER));
+        scroll.setBorder(new LineBorder(UIHelper.BORDER, 1, true));
         scroll.getViewport().setBackground(Color.WHITE);
         p.add(scroll, BorderLayout.CENTER);
 
         JPanel footer = new JPanel(new BorderLayout());
         footer.setOpaque(false);
-        total = new JLabel("Tổng số nhân viên: " + model.getRowCount());
-        total.setForeground(MUTED);
-        footer.add(total, BorderLayout.WEST);
-
-        JPanel pages = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-        pages.setOpaque(false);
-        for (String s : new String[]{"‹", "1", "2", "›"}) {
-            JButton b = new JButton(s);
-            stylePageButton(b, s.equals("1"));
-            pages.add(b);
-        }
-        footer.add(pages, BorderLayout.EAST);
+        totalLabel = new JLabel("Tổng số: 0 nhân viên");
+        totalLabel.setForeground(UIHelper.MUTED);
+        totalLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        footer.add(totalLabel, BorderLayout.WEST);
         p.add(footer, BorderLayout.SOUTH);
+
         return p;
     }
 
     private JPanel createFormPanel() {
-        JPanel p = card();
-        p.setLayout(new BorderLayout(0, 10));
-
-        JLabel title = new JLabel("◇  Thông tin nhân viên");
-        title.setFont(new Font("SansSerif", Font.BOLD, 17));
-        title.setForeground(TEXT);
-        p.add(title, BorderLayout.NORTH);
+        JPanel p = UIHelper.createCardPanel();
+        p.setLayout(new BorderLayout(0, 12));
+        p.setBorder(new CompoundBorder(new LineBorder(UIHelper.BORDER, 1, true), BorderFactory.createTitledBorder(
+                BorderFactory.createEmptyBorder(0, 0, 0, 0), "Thông tin chi tiết",
+                TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
+                new Font("Segoe UI", Font.BOLD, 14), UIHelper.NAVY)));
 
         JPanel form = new JPanel();
         form.setBackground(Color.WHITE);
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
 
-        codeField = new JTextField("NV004");
-        codeField.setEditable(false);
-        codeField.setBackground(new Color(242, 247, 252));
-        addField(form, "Mã nhân viên", codeField);
+        codeField = new JTextField();
+        addField(form, "Mã nhân viên *", codeField);
 
-        name = new JTextField();
-        addField(form, "Họ và tên *", name);
+        nameField = new JTextField();
+        addField(form, "Họ và tên *", nameField);
 
-        phone = new JTextField();
-        addField(form, "Số điện thoại *", phone);
+        phoneField = new JTextField();
+        addField(form, "Số điện thoại *", phoneField);
 
-        email = new JTextField();
-        addField(form, "Email", email);
+        emailField = new JTextField();
+        addField(form, "Email", emailField);
 
-        position = addCombo(form, "Chức vụ *", new String[]{
-            "Chọn chức vụ", "Lễ tân", "Bác sĩ", "Phụ tá", "Quản lý"
+        positionCombo = addCombo(form, "Chức vụ *", new String[]{
+                "Chọn chức vụ", "Lễ tân", "Bác sĩ", "Phụ tá", "Quản lý"
         });
 
-        status = addCombo(form, "Trạng thái", new String[]{
-            "Chọn trạng thái", "Đang làm việc", "Tạm nghỉ", "Đã nghỉ việc"
+        statusCombo = addCombo(form, "Trạng thái", new String[]{
+                "Chọn trạng thái", "Đang làm việc", "Tạm nghỉ", "Đã nghỉ việc"
         });
 
         JScrollPane scroll = new JScrollPane(form);
@@ -238,141 +179,152 @@ public class NhanVienPanel extends JPanel {
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         p.add(scroll, BorderLayout.CENTER);
 
-        JPanel actions = new JPanel(new GridLayout(1, 2, 8, 0));
+        // Chia thanh chứa nút thành 3 cột (Lưu, Xóa, Hủy) dùng GridLayout(1, 3)
+        JPanel actions = new JPanel(new GridLayout(1, 3, 6, 0));
         actions.setOpaque(false);
-        JButton save = new JButton("▣  Lưu");
-        JButton cancel = new JButton("×  Hủy");
-        styleButton(save, true);
-        styleButton(cancel, false);
-        actions.add(save);
-        actions.add(cancel);
+        actions.setBorder(new EmptyBorder(8, 0, 0, 0));
+
+        saveBtn = new JButton("Lưu");
+        deleteBtn = new JButton("Xóa");
+        cancelBtn = new JButton("Hủy");
+
+        UIHelper.styleButton(saveBtn, true, FontAwesomeSolid.SAVE);
+        UIHelper.styleButton(deleteBtn, false, FontAwesomeSolid.TRASH_ALT);
+        UIHelper.styleButton(cancelBtn, false, FontAwesomeSolid.TIMES);
+
+        // Thiết kế riêng màu chữ đỏ cảnh báo cho nút Xóa
+        deleteBtn.setForeground(new Color(215, 38, 56));
+
+        actions.add(saveBtn);
+        actions.add(deleteBtn);
+        actions.add(cancelBtn);
         p.add(actions, BorderLayout.SOUTH);
 
-        save.addActionListener(e -> saveRow());
-        cancel.addActionListener(e -> clearForm());
         return p;
     }
 
     private void addField(JPanel parent, String label, JTextField field) {
-        JPanel wrap = new JPanel(new BorderLayout(0, 5));
+        JPanel wrap = new JPanel(new BorderLayout(0, 4));
         wrap.setBackground(Color.WHITE);
-        wrap.setBorder(new EmptyBorder(3, 0, 5, 0));
+        wrap.setBorder(new EmptyBorder(0, 0, 10, 0));
         wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel l = new JLabel(label);
-        l.setFont(new Font("SansSerif", Font.BOLD, 12));
-        l.setForeground(TEXT);
-        styleTextField(field);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        l.setForeground(UIHelper.TEXT);
+        UIHelper.styleTextField(field);
         wrap.add(l, BorderLayout.NORTH);
         wrap.add(field, BorderLayout.CENTER);
-        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 61));
+        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
         parent.add(wrap);
     }
 
     private JComboBox<String> addCombo(JPanel parent, String label, String[] options) {
-        JPanel wrap = new JPanel(new BorderLayout(0, 5));
+        JPanel wrap = new JPanel(new BorderLayout(0, 4));
         wrap.setBackground(Color.WHITE);
-        wrap.setBorder(new EmptyBorder(3, 0, 5, 0));
+        wrap.setBorder(new EmptyBorder(0, 0, 10, 0));
         wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel l = new JLabel(label);
-        l.setFont(new Font("SansSerif", Font.BOLD, 12));
-        l.setForeground(TEXT);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        l.setForeground(UIHelper.TEXT);
         JComboBox<String> combo = new JComboBox<>(options);
-        combo.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        combo.setForeground(TEXT);
-        combo.setBackground(Color.WHITE);
-        combo.setPreferredSize(new Dimension(100, 37));
-        combo.setBorder(new LineBorder(BORDER));
+        UIHelper.styleComboBox(combo);
         wrap.add(l, BorderLayout.NORTH);
         wrap.add(combo, BorderLayout.CENTER);
-        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 61));
+        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
         parent.add(wrap);
         return combo;
     }
 
-    private void styleTextField(JTextField field) {
-        field.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        if (field.getForeground() == null) field.setForeground(TEXT);
-        field.setBackground(Color.WHITE);
-        field.setBorder(new CompoundBorder(new LineBorder(BORDER), new EmptyBorder(7, 9, 7, 9)));
-        field.setPreferredSize(new Dimension(100, 39));
-    }
-
-    private void styleButton(JButton button, boolean primary) {
-        button.setFont(new Font("SansSerif", Font.BOLD, 12));
-        button.setForeground(primary ? Color.WHITE : new Color(34, 92, 150));
-        button.setBackground(primary ? BLUE : Color.WHITE);
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
-        button.setBorder(new CompoundBorder(
-                new LineBorder(primary ? BLUE : new Color(165, 193, 218)),
-                new EmptyBorder(8, 8, 8, 8)));
-        button.setFocusPainted(false);
-    }
-
-    private void stylePageButton(JButton button, boolean selected) {
-        button.setFont(new Font("SansSerif", Font.BOLD, 12));
-        button.setForeground(selected ? Color.WHITE : TEXT);
-        button.setBackground(selected ? BLUE : Color.WHITE);
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
-        button.setBorder(new LineBorder(BORDER));
-        button.setFocusPainted(false);
-        button.setPreferredSize(new Dimension(32, 32));
-    }
-
-    private void clearForm() {
-        adding = true;
+    public void clearForm() {
         table.clearSelection();
-        codeField.setText(String.format("NV%03d", model.getRowCount() + 1));
-        name.setText("");
-        phone.setText("");
-        email.setText("");
-        position.setSelectedIndex(0);
-        status.setSelectedIndex(0);
+        codeField.setText("");
+        nameField.setText("");
+        phoneField.setText("");
+        emailField.setText("");
+        positionCombo.setSelectedIndex(0);
+        statusCombo.setSelectedIndex(0);
+        codeField.requestFocus();
     }
 
-    private void loadRow() {
+    private void hienThiThongTinLenForm() {
         int r = table.convertRowIndexToModel(table.getSelectedRow());
-        adding = false;
-        codeField.setText(String.valueOf(model.getValueAt(r, 2)));
-        name.setText(String.valueOf(model.getValueAt(r, 3)));
-        phone.setText(String.valueOf(model.getValueAt(r, 4)));
-        email.setText(String.valueOf(model.getValueAt(r, 5)));
-        position.setSelectedItem(String.valueOf(model.getValueAt(r, 6)));
-        status.setSelectedItem(String.valueOf(model.getValueAt(r, 7)));
+        codeField.setText(String.valueOf(model.getValueAt(r, 1)));
+        nameField.setText(String.valueOf(model.getValueAt(r, 2)));
+        phoneField.setText(String.valueOf(model.getValueAt(r, 3)));
+        emailField.setText(String.valueOf(model.getValueAt(r, 4)));
+        positionCombo.setSelectedItem(String.valueOf(model.getValueAt(r, 5)));
+        statusCombo.setSelectedItem(String.valueOf(model.getValueAt(r, 6)));
     }
 
-    private void saveRow() {
-        if (name.getText().trim().isEmpty() || phone.getText().trim().isEmpty() || position.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ các trường bắt buộc.", "Thiếu thông tin", JOptionPane.WARNING_MESSAGE);
-            return;
+    // =========================================================================
+    // XỬ LÝ SỰ KIỆN NÚT BẤM (ACTIONLISTENER)
+    // =========================================================================
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object source = e.getSource();
+        if (source.equals(addBtn)) {
+            clearForm();
+        } else if (source.equals(saveBtn)) {
+            xuLyLuuNhanVien();
+        } else if (source.equals(deleteBtn)) {
+            xuLyXoaNhanVien(); // Xử lý khi nhấn nút Xóa
+        } else if (source.equals(cancelBtn)) {
+            clearForm();
         }
-        Object[] row = new Object[]{"□", model.getRowCount() + 1, codeField.getText(), name.getText().trim(), phone.getText().trim(), email.getText().trim(), position.getSelectedItem(), status.getSelectedItem()};
-        if (!adding && table.getSelectedRow() >= 0) {
-            int r = table.convertRowIndexToModel(table.getSelectedRow());
-            for (int c = 2; c < row.length; c++) model.setValueAt(row[c], r, c);
-        } else {
-            model.addRow(row);
-        }
-        total.setText("Tổng số nhân viên: " + model.getRowCount());
-        clearForm();
     }
 
-    private void filter() {
-        String q = searchField.getText().trim().toLowerCase();
-        if (q.isEmpty() || q.equals("tìm kiếm mã nhân viên / tên nhân viên / sđt...")) {
-            table.clearSelection();
+    // =========================================================================
+    // XỬ LÝ SỰ KIỆN CHUỘT TRÊN BẢNG (MOUSELISTENER)
+    // =========================================================================
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        int row = table.getSelectedRow();
+        if (row >= 0) {
+            hienThiThongTinLenForm();
+        }
+    }
+
+    @Override public void mousePressed(MouseEvent e) {}
+    @Override public void mouseReleased(MouseEvent e) {}
+    @Override public void mouseEntered(MouseEvent e) {}
+    @Override public void mouseExited(MouseEvent e) {}
+
+    private void xuLyLuuNhanVien() {
+        String maNV = codeField.getText().trim();
+        String hoTen = nameField.getText().trim();
+        String sdt = phoneField.getText().trim();
+
+        if (maNV.isEmpty() || hoTen.isEmpty() || sdt.isEmpty() || positionCombo.getSelectedIndex() == 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ các trường bắt buộc (*).", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        for (int r = 0; r < model.getRowCount(); r++) {
-            for (int c = 1; c < model.getColumnCount(); c++) {
-                if (String.valueOf(model.getValueAt(r, c)).toLowerCase().contains(q)) {
-                    table.setRowSelectionInterval(r, r);
-                    table.scrollRectToVisible(table.getCellRect(r, 0, true));
-                    return;
-                }
-            }
+
+        JOptionPane.showMessageDialog(this, "Khung logic lưu dữ liệu sẵn sàng.");
+    }
+
+    // Khung hàm xử lý sự kiện Xóa nhân viên
+    private void xuLyXoaNhanVien() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần xóa từ bảng!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-        JOptionPane.showMessageDialog(this, "Không tìm thấy dữ liệu phù hợp.");
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc chắn muốn xóa nhân viên này không?",
+                "Xác nhận xóa",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // TODO: Viết lệnh DAO / SQL Server để xóa dữ liệu ở đây
+
+            // Xóa dòng trên giao diện bảng tạm thời
+            model.removeRow(row);
+            clearForm();
+            JOptionPane.showMessageDialog(this, "Đã xóa nhân viên thành công.");
+        }
     }
 }

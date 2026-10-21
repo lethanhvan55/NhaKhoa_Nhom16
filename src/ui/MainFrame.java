@@ -159,6 +159,14 @@ public class MainFrame extends JFrame {
         pnlNoiDung.add(taoManHinhTam("Tìm kiếm phòng điều trị"),
         		"Tìm kiếm phòng điều trị"
         		);
+        
+        pnlNoiDung.add(taoManHinhTam("Tìm kiếm dịch vụ"),
+        		"Tìm kiếm dịch vụ"
+        		);
+        
+        pnlNoiDung.add(taoManHinhTam("Tìm kiếm vật tư"),
+        		"Tìm kiếm vật tư"
+        		);
 
         add(pnlNoiDung, BorderLayout.CENTER);
 
