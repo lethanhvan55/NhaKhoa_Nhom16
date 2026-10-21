@@ -22,9 +22,9 @@ public class MainFrame extends JFrame {
 
     private LeftMenuPanel pnlMenu;
 
-	private JLabel lblTenNguoiDung;
+    private JLabel lblTenNguoiDung;
 
-	private JLabel lblVaiTro;
+    private JLabel lblVaiTro;
 
     public MainFrame() {
         khoiTaoCuaSo();
@@ -56,117 +56,117 @@ public class MainFrame extends JFrame {
         pnlNoiDung.add(new HomePanel(), "Trang chủ");
 
         pnlNoiDung.add(
-            new HoSoBenhNhanPanel(),
-            "Hồ sơ bệnh nhân"
+                new HoSoBenhNhanPanel(),
+                "Hồ sơ bệnh nhân"
         );
 
         pnlNoiDung.add(
-            new TaoHoaDonPanel(),
-            "Tạo hóa đơn"
+                new TaoHoaDonPanel(),
+                "Tạo hóa đơn"
         );
 
         pnlNoiDung.add(
-            new TiepNhanLichHenPanel(),
-            "Tiếp nhận lịch hẹn"
+                new TiepNhanLichHenPanel(),
+                "Tiếp nhận lịch hẹn"
         );
 
         pnlNoiDung.add(
-            new CheckInPanel(),
-            "Check In"
+                new CheckInPanel(),
+                "Check In"
         );
 
         pnlNoiDung.add(
-            new KeHoachDieuTriPanel(),
-            "Kế hoạch điều trị"
+                new KeHoachDieuTriPanel(),
+                "Kế hoạch điều trị"
         );
 
         pnlNoiDung.add(
-            new DichVuPanel(),
-            "Dịch vụ"
+                new DichVuPanel(),
+                "Dịch vụ"
         );
 
         pnlNoiDung.add(
-            new PhongDieuTriPanel(),
-            "Phòng điều trị"
+                new PhongDieuTriPanel(),
+                "Phòng điều trị"
         );
 
         pnlNoiDung.add(
-            new VatTuPanel(),
-            "Vật tư"
+                new VatTuPanel(),
+                "Vật tư"
         );
 
         pnlNoiDung.add(
-            new NhanVienPanel(),
-            "Nhân viên"
+                new NhanVienPanel(),
+                "Nhân viên"
         );
 
         pnlNoiDung.add(
-            new TaiKhoanPanel(),
-            "Tài khoản"
+                new TaiKhoanPanel(),
+                "Tài khoản"
         );
 
         pnlNoiDung.add(
-            new PhanCongNhanVienPanel(),
-            "Phân công nhân viên"
+                new PhanCongNhanVienPanel(),
+                "Phân công nhân viên"
         );
 
         pnlNoiDung.add(
-            new TraCuuHoaDonPanel(),
-            "Tra cứu hóa đơn"
-        );
-        
-        pnlNoiDung.add(
-            new KhuyenMaiPanel(),
-            "Khuyến mãi"
+                new TraCuuHoaDonPanel(),
+                "Tra cứu hóa đơn"
         );
 
         pnlNoiDung.add(
-            new ThongKeDoanhThuPanel(),
-            "Thống kê doanh thu"
+                new KhuyenMaiPanel(),
+                "Khuyến mãi"
         );
 
-        pnlNoiDung.add(
-            new HoTroPanel(),
-            "Hỗ trợ"
-        );
-        
         pnlNoiDung.add(
                 new ThongKeDoanhThuPanel(),
                 "Thống kê doanh thu"
-            );
-        
+        );
+
+        pnlNoiDung.add(
+                new HoTroPanel(),
+                "Hỗ trợ"
+        );
+
         pnlNoiDung.add(
                 new ThongKeDoanhThuPanel(),
                 "Thống kê doanh thu"
-            );
-        
+        );
+
+        pnlNoiDung.add(
+                new ThongKeDoanhThuPanel(),
+                "Thống kê doanh thu"
+        );
+
         pnlNoiDung.add(taoManHinhTam("Thống kê dịch vụ"),
-        		"Thống kê dịch vụ"
-        		);
-        
+                "Thống kê dịch vụ"
+        );
+
         pnlNoiDung.add(taoManHinhTam("Thống kê khách hàng"),
-        		"Thống kê khách hàng"
-        		);
-        
+                "Thống kê khách hàng"
+        );
+
         pnlNoiDung.add(taoManHinhTam("Tìm kiếm bệnh nhân"),
-        		"Tìm kiếm bệnh nhân"
-        		);
-        
-        pnlNoiDung.add(taoManHinhTam("Tìm kiếm nhân viên"),
-        		"Tìm kiếm nhân viên"
-        		);
-        
+                "Tìm kiếm bệnh nhân"
+        );
+
+        pnlNoiDung.add(new TimKiemNhanVienPanel(),
+                "Tìm kiếm nhân viên"
+        );
+
         pnlNoiDung.add(taoManHinhTam("Tìm kiếm phòng điều trị"),
-        		"Tìm kiếm phòng điều trị"
-        		);
-        
-        pnlNoiDung.add(taoManHinhTam("Tìm kiếm dịch vụ"),
-        		"Tìm kiếm dịch vụ"
-        		);
-        
-        pnlNoiDung.add(taoManHinhTam("Tìm kiếm vật tư"),
-        		"Tìm kiếm vật tư"
-        		);
+                "Tìm kiếm phòng điều trị"
+        );
+
+        pnlNoiDung.add(new TimKiemDichVuPanel(),
+                "Tìm kiếm dịch vụ"
+        );
+
+        pnlNoiDung.add(new TimKiemVatTuPanel(),
+                "Tìm kiếm vật tư"
+        );
 
         add(pnlNoiDung, BorderLayout.CENTER);
 
@@ -185,12 +185,12 @@ public class MainFrame extends JFrame {
         pnlTam.setBackground(new Color(245, 247, 250));
 
         pnlTam.setBorder(
-            BorderFactory.createEmptyBorder(25, 25, 25, 25)
+                BorderFactory.createEmptyBorder(25, 25, 25, 25)
         );
 
         JLabel lblTenManHinh = new JLabel(tenManHinh);
         lblTenManHinh.setFont(
-            new Font("Arial", Font.BOLD, 24)
+                new Font("Arial", Font.BOLD, 24)
         );
         lblTenManHinh.setForeground(mauMenu);
 
