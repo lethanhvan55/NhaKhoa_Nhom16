@@ -445,27 +445,7 @@ public class TimKiemPhongDieuTriPanel extends JPanel {
         tableModel.setRowCount(0);
 
         // Dữ liệu minh họa giao diện
-        Object[][] duLieuMau = {
-                { "PDT001", "Phòng điều trị 1",
-                        "G001", "Phòng điều trị",
-                        "Tầng 1", "Trống" },
-
-                { "PDT002", "Phòng điều trị 2",
-                        "G002", "Phòng điều trị",
-                        "Tầng 1", "Đang sử dụng" },
-
-                { "PDT003", "Phòng khám tổng quát",
-                        "G003", "Phòng khám",
-                        "Tầng 2", "Trống" },
-
-                { "PDT004", "Phòng phẫu thuật",
-                        "G004", "Phòng phẫu thuật",
-                        "Tầng 2", "Bảo trì" },
-
-                { "PDT005", "Phòng điều trị 5",
-                        "G005", "Phòng điều trị",
-                        "Tầng 3", "Đang sử dụng" }
-        };
+        Object[][] duLieuMau = {};
 
         int stt = 1;
 
