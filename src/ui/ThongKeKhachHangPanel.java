@@ -1,5 +1,5 @@
 
-        package ui;
+package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -10,6 +10,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -29,23 +30,10 @@ import com.toedter.calendar.JDateChooser;
 
 public class ThongKeKhachHangPanel extends JPanel {
 
-    private static final Color MAU_CHU =
-            new Color(35, 65, 95);
-
-    private static final Color MAU_XANH =
-            new Color(15, 150, 137);
-
-    private static final Color MAU_NEN =
-            new Color(243, 247, 251);
-
-    private static final Color MAU_XANH_DUONG =
-            new Color(47, 105, 180);
-
-    private static final Color MAU_CAM =
-            new Color(230, 150, 55);
-
-    private static final Color MAU_TIM =
-            new Color(120, 90, 180);
+    private static final Color MAU_CHU = new Color(35, 65, 95);
+    private static final Color MAU_XANH = new Color(15, 150, 137);
+    private static final Color MAU_NEN = new Color(243, 247, 251);
+    private static final Color MAU_XANH_DUONG = new Color(47, 105, 180);
 
     private JDateChooser dcTuNgay;
     private JDateChooser dcDenNgay;
@@ -56,7 +44,6 @@ public class ThongKeKhachHangPanel extends JPanel {
     private JTable tblKhachHang;
 
     public ThongKeKhachHangPanel() {
-
         setLayout(new BorderLayout(15, 15));
         setBackground(MAU_NEN);
         setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -70,16 +57,11 @@ public class ThongKeKhachHangPanel extends JPanel {
     // =====================================================
 
     private JPanel taoTieuDe() {
-
         JPanel pnlTieuDe = new JPanel(new BorderLayout());
         pnlTieuDe.setOpaque(false);
 
-        JLabel lblMoTa = new JLabel(
-                "Tổng quan khách hàng");
-
-        lblMoTa.setFont(
-                new Font("Arial", Font.PLAIN, 15));
-
+        JLabel lblMoTa = new JLabel("Tổng quan khách hàng");
+        lblMoTa.setFont(new Font("Arial", Font.PLAIN, 15));
         lblMoTa.setForeground(MAU_CHU);
 
         pnlTieuDe.add(lblMoTa, BorderLayout.WEST);
@@ -89,11 +71,10 @@ public class ThongKeKhachHangPanel extends JPanel {
     }
 
     // =====================================================
-    // 2. BỘ LỌC NGÀY THỐNG KÊ
+    // 2. BỘ LỌC NGÀY
     // =====================================================
 
     private JPanel taoBoLoc() {
-
         JPanel pnlBoLoc = new JPanel(
                 new FlowLayout(FlowLayout.RIGHT, 8, 5));
 
@@ -102,18 +83,15 @@ public class ThongKeKhachHangPanel extends JPanel {
         dcTuNgay = new JDateChooser();
         dcTuNgay.setDateFormatString("dd/MM/yyyy");
         dcTuNgay.setDate(layNgayDauThang());
-        dcTuNgay.setPreferredSize(
-                new Dimension(125, 34));
+        dcTuNgay.setPreferredSize(new Dimension(125, 34));
 
         dcDenNgay = new JDateChooser();
         dcDenNgay.setDateFormatString("dd/MM/yyyy");
         dcDenNgay.setDate(new Date());
-        dcDenNgay.setPreferredSize(
-                new Dimension(125, 34));
+        dcDenNgay.setPreferredSize(new Dimension(125, 34));
 
         btnThongKe = taoNut("Thống kê", MAU_XANH);
-        btnXuatBaoCao = taoNut(
-                "Xuất báo cáo", MAU_XANH_DUONG);
+        btnXuatBaoCao = taoNut("Xuất báo cáo", MAU_XANH_DUONG);
 
         btnThongKe.addActionListener(e -> xuLyThongKe());
 
@@ -137,7 +115,6 @@ public class ThongKeKhachHangPanel extends JPanel {
     }
 
     private Date layNgayDauThang() {
-
         Calendar lich = Calendar.getInstance();
 
         lich.set(Calendar.DAY_OF_MONTH, 1);
@@ -154,30 +131,24 @@ public class ThongKeKhachHangPanel extends JPanel {
     // =====================================================
 
     private void xuLyThongKe() {
-
         Date tuNgay = dcTuNgay.getDate();
         Date denNgay = dcDenNgay.getDate();
 
         if (tuNgay == null || denNgay == null) {
-
             JOptionPane.showMessageDialog(
                     this,
-                    "Vui lòng chọn đầy đủ ngày bắt đầu "
-                            + "và ngày kết thúc!",
+                    "Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc!",
                     "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
-
             return;
         }
 
         if (tuNgay.after(denNgay)) {
-
             JOptionPane.showMessageDialog(
                     this,
                     "Từ ngày không được lớn hơn đến ngày!",
                     "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
-
             return;
         }
 
@@ -187,10 +158,8 @@ public class ThongKeKhachHangPanel extends JPanel {
         JOptionPane.showMessageDialog(
                 this,
                 "Khoảng thời gian thống kê khách hàng:\n"
-                        + "Từ ngày: "
-                        + dinhDang.format(tuNgay)
-                        + "\nĐến ngày: "
-                        + dinhDang.format(denNgay),
+                        + "Từ ngày: " + dinhDang.format(tuNgay)
+                        + "\nĐến ngày: " + dinhDang.format(denNgay),
                 "Thông tin thống kê",
                 JOptionPane.INFORMATION_MESSAGE);
     }
@@ -200,7 +169,6 @@ public class ThongKeKhachHangPanel extends JPanel {
     // =====================================================
 
     private JPanel taoNoiDung() {
-
         JPanel pnlNoiDung = new JPanel(
                 new BorderLayout(15, 15));
 
@@ -211,30 +179,25 @@ public class ThongKeKhachHangPanel extends JPanel {
                 new GridLayout(1, 2, 15, 0));
 
         pnlBieuDo.setOpaque(false);
-        pnlBieuDo.setPreferredSize(
-                new Dimension(0, 360));
+        pnlBieuDo.setPreferredSize(new Dimension(0, 360));
 
         pnlBieuDo.add(taoBieuDoKhachHang());
-        pnlBieuDo.add(taoBieuDoPhanLoai());
+        pnlBieuDo.add(taoBieuDoDuongTheoNam());
 
         // Bảng chi tiết phía dưới
         JPanel pnlDuoi = taoBangKhachHang();
 
-        pnlNoiDung.add(
-                pnlBieuDo, BorderLayout.NORTH);
-
-        pnlNoiDung.add(
-                pnlDuoi, BorderLayout.CENTER);
+        pnlNoiDung.add(pnlBieuDo, BorderLayout.NORTH);
+        pnlNoiDung.add(pnlDuoi, BorderLayout.CENTER);
 
         return pnlNoiDung;
     }
 
     // =====================================================
-    // 5. BIỂU ĐỒ CỘT SỐ LƯỢNG KHÁCH HÀNG
+    // 5. BIỂU ĐỒ CỘT THEO THÁNG
     // =====================================================
 
     private JPanel taoBieuDoKhachHang() {
-
         JPanel pnlBieuDo =
                 taoKhung("SỐ LƯỢNG KHÁCH HÀNG THEO THÁNG");
 
@@ -246,27 +209,26 @@ public class ThongKeKhachHangPanel extends JPanel {
     }
 
     // =====================================================
-    // 6. BIỂU ĐỒ TRÒN PHÂN LOẠI KHÁCH HÀNG
+    // 6. BIỂU ĐỒ ĐƯỜNG THỐNG KÊ THEO NĂM
     // =====================================================
 
-    private JPanel taoBieuDoPhanLoai() {
-
+    private JPanel taoBieuDoDuongTheoNam() {
         JPanel pnlBieuDo =
-                taoKhung("TỶ LỆ PHÂN LOẠI KHÁCH HÀNG");
+                taoKhung("XU HƯỚNG KHÁCH HÀNG THEO NĂM");
 
         pnlBieuDo.add(
-                new BieuDoTronPanel(),
+                new BieuDoDuongPanel(),
                 BorderLayout.CENTER);
 
         return pnlBieuDo;
     }
 
     // =====================================================
-    // 7. BẢNG CHI TIẾT THỐNG KÊ KHÁCH HÀNG
+    // 7. BẢNG CHI TIẾT KHÁCH HÀNG
+    // ĐÃ BỎ CỘT PHÂN LOẠI
     // =====================================================
 
     private JPanel taoBangKhachHang() {
-
         JPanel pnlBang =
                 taoKhung("CHI TIẾT THỐNG KÊ KHÁCH HÀNG");
 
@@ -275,29 +237,14 @@ public class ThongKeKhachHangPanel extends JPanel {
                 "Mã khách hàng",
                 "Tên khách hàng",
                 "Số lần khám",
-                "Tổng chi tiêu",
-                "Phân loại"
+                "Tổng chi tiêu"
         };
 
-        Object[][] duLieu = {
-                {1, "KH001", "Nguyễn Văn An",
-                        12, "19.500.000 đ", "Thân thiết"},
-
-                {2, "KH002", "Trần Thị Bình",
-                        8, "12.000.000 đ", "Thân thiết"},
-
-                {3, "KH003", "Lê Hoàng Nam",
-                        5, "6.500.000 đ", "Thường"},
-
-                {4, "KH004", "Phạm Thu Hà",
-                        15, "28.000.000 đ", "VIP"},
-
-                {5, "KH005", "Võ Minh Tuấn",
-                        3, "3.200.000 đ", "Thường"}
-        };
+       Object[][] duLieu = {};
 
         DefaultTableModel model =
                 new DefaultTableModel(duLieu, cot) {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public boolean isCellEditable(
@@ -309,34 +256,31 @@ public class ThongKeKhachHangPanel extends JPanel {
         tblKhachHang = new JTable(model);
 
         tblKhachHang.setRowHeight(32);
-
         tblKhachHang.setFont(
                 new Font("Arial", Font.PLAIN, 13));
+
+        tblKhachHang.setForeground(Color.BLACK);
+        tblKhachHang.setBackground(Color.WHITE);
 
         tblKhachHang.setSelectionBackground(
                 new Color(204, 245, 238));
 
         tblKhachHang.setSelectionForeground(MAU_CHU);
-
-        tblKhachHang.setGridColor(
-                new Color(230, 235, 242));
-
+        tblKhachHang.setGridColor(new Color(230, 235, 242));
         tblKhachHang.setShowVerticalLines(false);
+        tblKhachHang.setFillsViewportHeight(true);
+        tblKhachHang.setAutoCreateRowSorter(true);
 
         tblKhachHang.getTableHeader().setFont(
                 new Font("Arial", Font.BOLD, 13));
 
-        tblKhachHang.getTableHeader().setBackground(
-                MAU_CHU);
-
-        tblKhachHang.getTableHeader().setForeground(
-                Color.WHITE);
+        tblKhachHang.getTableHeader().setBackground(MAU_CHU);
+        tblKhachHang.getTableHeader().setForeground(Color.WHITE);
 
         tblKhachHang.getTableHeader().setPreferredSize(
                 new Dimension(0, 36));
 
-        tblKhachHang.getTableHeader()
-                .setReorderingAllowed(false);
+        tblKhachHang.getTableHeader().setReorderingAllowed(false);
 
         JScrollPane scrKhachHang =
                 new JScrollPane(tblKhachHang);
@@ -344,11 +288,9 @@ public class ThongKeKhachHangPanel extends JPanel {
         scrKhachHang.setBorder(
                 BorderFactory.createEmptyBorder());
 
-        scrKhachHang.getViewport().setBackground(
-                Color.WHITE);
+        scrKhachHang.getViewport().setBackground(Color.WHITE);
 
-        pnlBang.add(
-                scrKhachHang, BorderLayout.CENTER);
+        pnlBang.add(scrKhachHang, BorderLayout.CENTER);
 
         return pnlBang;
     }
@@ -358,7 +300,6 @@ public class ThongKeKhachHangPanel extends JPanel {
     // =====================================================
 
     private JPanel taoKhung(String tieuDe) {
-
         JPanel pnlKhung = new JPanel(
                 new BorderLayout(10, 12));
 
@@ -377,8 +318,7 @@ public class ThongKeKhachHangPanel extends JPanel {
 
         lblTieuDe.setForeground(MAU_CHU);
 
-        pnlKhung.add(
-                lblTieuDe, BorderLayout.NORTH);
+        pnlKhung.add(lblTieuDe, BorderLayout.NORTH);
 
         return pnlKhung;
     }
@@ -388,12 +328,9 @@ public class ThongKeKhachHangPanel extends JPanel {
     // =====================================================
 
     private JButton taoNut(String ten, Color mau) {
-
         JButton btn = new JButton(ten);
 
-        btn.setFont(
-                new Font("Arial", Font.BOLD, 12));
-
+        btn.setFont(new Font("Arial", Font.BOLD, 12));
         btn.setForeground(Color.WHITE);
         btn.setBackground(mau);
         btn.setFocusPainted(false);
@@ -403,17 +340,18 @@ public class ThongKeKhachHangPanel extends JPanel {
         btn.setCursor(new java.awt.Cursor(
                 java.awt.Cursor.HAND_CURSOR));
 
-        btn.setPreferredSize(
-                new Dimension(120, 34));
+        btn.setPreferredSize(new Dimension(120, 34));
 
         return btn;
     }
 
     // =====================================================
-    // 10. BIỂU ĐỒ CỘT
+    // 10. BIỂU ĐỒ CỘT SỐ LƯỢNG KHÁCH HÀNG THEO THÁNG
     // =====================================================
 
     private class BieuDoCotPanel extends JPanel {
+
+        private static final long serialVersionUID = 1L;
 
         private final int[] giaTri = {
                 45, 55, 48, 72, 65, 85,
@@ -427,16 +365,12 @@ public class ThongKeKhachHangPanel extends JPanel {
         };
 
         public BieuDoCotPanel() {
-
             setBackground(Color.WHITE);
-
-            setPreferredSize(
-                    new Dimension(400, 260));
+            setPreferredSize(new Dimension(400, 260));
         }
 
         @Override
         protected void paintComponent(Graphics g) {
-
             super.paintComponent(g);
 
             Graphics2D g2 = (Graphics2D) g.create();
@@ -457,35 +391,25 @@ public class ThongKeKhachHangPanel extends JPanel {
                 return;
             }
 
-            g2.setFont(
-                    new Font("Arial", Font.PLAIN, 10));
+            g2.setFont(new Font("Arial", Font.PLAIN, 10));
 
-            // Các đường kẻ ngang
+            // Đường kẻ ngang và nhãn trục Y
             for (int i = 0; i <= 5; i++) {
-
                 int y = tren + cao * i / 5;
 
-                g2.setColor(
-                        new Color(232, 237, 243));
+                g2.setColor(new Color(232, 237, 243));
+                g2.drawLine(trai, y, trai + rong, y);
 
-                g2.drawLine(
-                        trai, y, trai + rong, y);
-
-                g2.setColor(
-                        new Color(110, 125, 140));
-
+                g2.setColor(new Color(110, 125, 140));
                 g2.drawString(
                         String.valueOf(150 - i * 30),
-                        5,
-                        y + 4);
+                        5, y + 4);
             }
 
             int buoc = rong / 12;
             int rongCot = Math.max(4, buoc - 8);
 
-            // Vẽ các cột
             for (int i = 0; i < giaTri.length; i++) {
-
                 int x = trai + i * buoc
                         + (buoc - rongCot) / 2;
 
@@ -493,48 +417,49 @@ public class ThongKeKhachHangPanel extends JPanel {
                 int y = tren + cao - h;
 
                 g2.setColor(MAU_XANH);
-
                 g2.fillRoundRect(
                         x, y, rongCot, h, 7, 7);
 
-                g2.setColor(
-                        new Color(90, 110, 130));
-
+                g2.setColor(new Color(90, 110, 130));
                 g2.drawString(
                         thang[i],
-                        x,
+                        x + (rongCot - g2.getFontMetrics()
+                                .stringWidth(thang[i])) / 2,
                         tren + cao + 18);
             }
 
-            g2.setColor(
-                    new Color(110, 125, 140));
-
-            g2.drawString(
-                    "Số lượng khách hàng",
-                    trai,
-                    15);
+            g2.setColor(new Color(110, 125, 140));
+            g2.drawString("Số lượng khách hàng", trai, 15);
 
             g2.dispose();
         }
     }
 
     // =====================================================
-    // 11. BIỂU ĐỒ TRÒN
+    // 11. BIỂU ĐỒ ĐƯỜNG THỐNG KÊ THEO NĂM
     // =====================================================
 
-    private class BieuDoTronPanel extends JPanel {
+    private class BieuDoDuongPanel extends JPanel {
 
-        public BieuDoTronPanel() {
+        private static final long serialVersionUID = 1L;
 
+        // Dữ liệu minh họa số lượng khách hàng từng năm
+        private final int[] giaTri = {
+                320, 410, 390, 520, 610, 740, 860
+        };
+
+        private final String[] nam = {
+                "2020", "2021", "2022", "2023",
+                "2024", "2025", "2026"
+        };
+
+        public BieuDoDuongPanel() {
             setBackground(Color.WHITE);
-
-            setPreferredSize(
-                    new Dimension(400, 260));
+            setPreferredSize(new Dimension(400, 260));
         }
 
         @Override
         protected void paintComponent(Graphics g) {
-
             super.paintComponent(g);
 
             Graphics2D g2 = (Graphics2D) g.create();
@@ -543,85 +468,113 @@ public class ThongKeKhachHangPanel extends JPanel {
                     RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // Dữ liệu minh họa
-            int[] giaTri = {
-                    45, 30, 15, 10
-            };
+            int trai = 42;
+            int phai = 18;
+            int tren = 35;
+            int duoi = 38;
 
-            String[] ten = {
-                    "Khách hàng thường",
-                    "Khách hàng thân thiết",
-                    "Khách hàng VIP",
-                    "Khách hàng mới"
-            };
+            int rong = getWidth() - trai - phai;
+            int cao = getHeight() - tren - duoi;
 
-            Color[] mau = {
-                    MAU_XANH,
-                    MAU_XANH_DUONG,
-                    MAU_CAM,
-                    MAU_TIM
-            };
-
-            int kichThuoc = Math.min(
-                    190,
-                    Math.min(
-                            getHeight() - 20,
-                            getWidth() / 2));
-
-            if (kichThuoc <= 0) {
+            if (rong <= 0 || cao <= 0) {
                 g2.dispose();
                 return;
             }
 
-            int x = 15;
+            int giaTriMax = 1000;
+            int soMoc = 5;
 
-            int y = Math.max(
-                    5, (getHeight() - kichThuoc) / 2);
+            g2.setFont(new Font("Arial", Font.PLAIN, 10));
 
-            int gocBatDau = 90;
+            // Vẽ đường lưới và nhãn trục Y
+            for (int i = 0; i <= soMoc; i++) {
+                int y = tren + cao * i / soMoc;
+                int nhan = giaTriMax
+                        - i * giaTriMax / soMoc;
 
-            // Vẽ biểu đồ tròn
-            for (int i = 0; i < giaTri.length; i++) {
+                g2.setColor(new Color(232, 237, 243));
+                g2.drawLine(
+                        trai, y,
+                        trai + rong, y);
 
-                int goc = giaTri[i] * 360 / 100;
-
-                g2.setColor(mau[i]);
-
-                g2.fillArc(
-                        x,
-                        y,
-                        kichThuoc,
-                        kichThuoc,
-                        gocBatDau,
-                        -goc);
-
-                gocBatDau -= goc;
+                g2.setColor(new Color(110, 125, 140));
+                g2.drawString(
+                        String.valueOf(nhan),
+                        3, y + 4);
             }
 
-            // Chú thích bên phải
-            int xChu = x + kichThuoc + 15;
+            // Tiêu đề trục
+            g2.setColor(new Color(110, 125, 140));
+            g2.drawString("Số lượng khách hàng", trai, 15);
 
-            int yChu = Math.max(
-                    25, getHeight() / 2 - 45);
+            int[] toaDoX = new int[giaTri.length];
+            int[] toaDoY = new int[giaTri.length];
 
-            g2.setFont(
-                    new Font("Arial", Font.PLAIN, 11));
+            int buoc = rong / (giaTri.length - 1);
 
-            for (int i = 0; i < ten.length; i++) {
+            // Tính tọa độ các điểm dữ liệu
+            for (int i = 0; i < giaTri.length; i++) {
+                toaDoX[i] = trai + i * buoc;
 
-                int yy = yChu + i * 28;
+                toaDoY[i] = tren + cao
+                        - (int) ((double) giaTri[i]
+                        / giaTriMax * cao);
+            }
 
-                g2.setColor(mau[i]);
+            // Vẽ đường nối các năm
+            g2.setColor(MAU_XANH);
+            g2.setStroke(
+                    new java.awt.BasicStroke(
+                            2.5f,
+                            java.awt.BasicStroke.CAP_ROUND,
+                            java.awt.BasicStroke.JOIN_ROUND));
 
-                g2.fillRoundRect(
-                        xChu, yy - 9, 12, 12, 3, 3);
+            for (int i = 0; i < giaTri.length - 1; i++) {
+                g2.drawLine(
+                        toaDoX[i], toaDoY[i],
+                        toaDoX[i + 1], toaDoY[i + 1]);
+            }
 
-                g2.setColor(MAU_CHU);
+            // Vẽ các điểm dữ liệu và nhãn năm
+            for (int i = 0; i < giaTri.length; i++) {
+
+                g2.setColor(MAU_XANH);
+
+                g2.fill(new Ellipse2D.Double(
+                        toaDoX[i] - 4,
+                        toaDoY[i] - 4,
+                        8, 8));
+
+                g2.setColor(Color.WHITE);
+
+                g2.fill(new Ellipse2D.Double(
+                        toaDoX[i] - 2,
+                        toaDoY[i] - 2,
+                        4, 4));
+
+                g2.setColor(MAU_XANH);
+
+                String nhanGiaTri = String.valueOf(giaTri[i]);
+
+                int rongNhan = g2.getFontMetrics()
+                        .stringWidth(nhanGiaTri);
 
                 g2.drawString(
-                        ten[i] + " (" + giaTri[i] + "%)",
-                        xChu + 19,
-                        yy + 1);
+                        nhanGiaTri,
+                        toaDoX[i] - rongNhan / 2,
+                        toaDoY[i] - 10);
+
+                g2.setColor(new Color(90, 110, 130));
+
+                String nhanNam = nam[i];
+
+                int rongNam = g2.getFontMetrics()
+                        .stringWidth(nhanNam);
+
+                g2.drawString(
+                        nhanNam,
+                        toaDoX[i] - rongNam / 2,
+                        tren + cao + 20);
             }
 
             g2.dispose();

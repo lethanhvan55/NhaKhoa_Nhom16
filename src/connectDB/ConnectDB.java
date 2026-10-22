@@ -73,10 +73,7 @@ public class ConnectDB {
     }
 
     public void connect() throws SQLException {
-    /*	String url = "jdbc:sqlserver://LAPTOP-0M1UU0DE\\SA;databaseName=QL_NK;encrypt=false";
-        String user = "sa";
-        String password = "123"; */
-        String url = "jdbc:sqlserver://localhost:1433;databaseName=QL_NK;encrypt=false";
+    	String url = "jdbc:sqlserver://LAPTOP-0M1UU0DE\\SA;databaseName=QL_NK;encrypt=false";
         String user = "sa";
         String password = "123";
 

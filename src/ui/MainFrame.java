@@ -121,11 +121,6 @@ public class MainFrame extends JFrame {
         );
 
         pnlNoiDung.add(
-                new ThongKeDoanhThuPanel(),
-                "Thống kê doanh thu"
-        );
-
-        pnlNoiDung.add(
                 new HoTroPanel(),
                 "Hỗ trợ"
         );
@@ -136,11 +131,7 @@ public class MainFrame extends JFrame {
         );
 
         pnlNoiDung.add(
-                new ThongKeDoanhThuPanel(),
-                "Thống kê doanh thu"
-        );
-
-        pnlNoiDung.add(taoManHinhTam("Thống kê dịch vụ"),
+                new ThongKeDichVuPanel(),
                 "Thống kê dịch vụ"
         );
 
@@ -148,7 +139,7 @@ public class MainFrame extends JFrame {
                 "Thống kê khách hàng"
         );
 
-        pnlNoiDung.add(taoManHinhTam("Tìm kiếm bệnh nhân"),
+        pnlNoiDung.add(new TimKiemBenhNhanPanel(),
                 "Tìm kiếm bệnh nhân"
         );
 
