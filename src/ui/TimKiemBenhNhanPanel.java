@@ -37,14 +37,12 @@ public class TimKiemBenhNhanPanel extends JPanel implements ActionListener, Mous
     private JTable tblBenhNhan;
     private DefaultTableModel dtm;
 
-    // Các thành phần bộ lọc nâng cao phía trên
     private JTextField txtTimMaBN;
     private JTextField txtTimHoTen;
     private JTextField txtTimSDT;
     private JComboBox<String> cboTimGioiTinh;
     private JButton btnTimKiem, btnLamMoi;
 
-    // Chi tiết phía dưới (các tab)
     private JTextField txtMaBN, txtHoTen, txtNgaySinh, txtGioiTinhChiTiet, txtSDT, txtDiaChi;
     private JTextArea txtGhiChu;
 
@@ -58,11 +56,7 @@ public class TimKiemBenhNhanPanel extends JPanel implements ActionListener, Mous
         setLayout(new BorderLayout(10, 10));
         setBackground(mauNen);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-        // Thanh bộ lọc nâng cao ở trên cùng
         add(taoThanhBoLocMoRong(), BorderLayout.NORTH);
-
-        // Chia đôi màn hình: Bảng danh sách kết quả (Trái) & Chi tiết tab (Phải)
         JPanel pnlDanhSach = taoBangKetQua();
         JPanel pnlChiTiet = taoCacTabChiTiet();
 
@@ -87,7 +81,6 @@ public class TimKiemBenhNhanPanel extends JPanel implements ActionListener, Mous
         gbc.insets = new Insets(5, 8, 5, 8);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Hàng 1: Mã bệnh nhân, Họ tên
         gbc.gridx = 0; gbc.gridy = 0;
         pnlFilter.add(new JLabel("Mã bệnh nhân:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
@@ -102,7 +95,6 @@ public class TimKiemBenhNhanPanel extends JPanel implements ActionListener, Mous
         txtTimHoTen.setPreferredSize(new Dimension(150, 28));
         pnlFilter.add(txtTimHoTen, gbc);
 
-        // Hàng 2: Số điện thoại, Giới tính
         gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0.0;
         pnlFilter.add(new JLabel("Số điện thoại:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
@@ -117,7 +109,6 @@ public class TimKiemBenhNhanPanel extends JPanel implements ActionListener, Mous
         cboTimGioiTinh.setPreferredSize(new Dimension(150, 28));
         pnlFilter.add(cboTimGioiTinh, gbc);
 
-        // Cụm nút tìm kiếm & làm mới đặt ở cột bên phải
         JPanel pnlNut = new JPanel();
         pnlNut.setBackground(mauTrang);
         btnTimKiem = GiaoDienStyle.taoNut("Tìm kiếm", GiaoDienStyle.MAU_NAVY, 110);
@@ -276,13 +267,5 @@ public class TimKiemBenhNhanPanel extends JPanel implements ActionListener, Mous
 
     private void loadDuLieuTimKiem() {
         dtm.setRowCount(0);
-        Object[][] data = {
-                {"BN0001", "Nguyễn Văn An", "20/05/2003", "Nam", "0912345678", "Gò Vấp"},
-                {"BN0002", "Trần Thị Bích", "15/08/2002", "Nữ", "0987654321", "Quận 12"},
-                {"BN0003", "Lê Minh Hoàng", "12/04/2000", "Nam", "0901234567", "Tân Bình"}
-        };
-        for (Object[] r : data) {
-            dtm.addRow(r);
-        }
     }
 }

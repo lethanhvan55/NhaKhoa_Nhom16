@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -64,6 +65,7 @@ public class VatTuPanel extends JPanel implements ActionListener {
 
         taoGiaoDien();
         dangKySuKien();
+        taiDanhSachVatTuTuCSDL();
         setEditableForm(false);
     }
 
@@ -111,8 +113,6 @@ public class VatTuPanel extends JPanel implements ActionListener {
         pnlLuoianhVatTu = new JPanel(new GridLayout(0, 2, 12, 12));
         pnlLuoianhVatTu.setOpaque(false);
 
-        taiDanhSachVatTuDangTheAnh();
-
         JScrollPane scroll = new JScrollPane(pnlLuoianhVatTu);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(MAU_TRANG);
@@ -123,29 +123,15 @@ public class VatTuPanel extends JPanel implements ActionListener {
 
         return pnlBenTrai;
     }
-
-    private void taiDanhSachVatTuDangTheAnh() {
+    private void taiDanhSachVatTuTuCSDL() {
         pnlLuoianhVatTu.removeAll();
-        Object[][] data = {
-            {"VT0001", "Găng tay y tế Nitrile", "Hộp", "150", "125.000 đ", "Còn hàng", new Color(222, 239, 255), "GĂNG TAY"},
-            {"VT0002", "Khẩu trang y tế 4 lớp", "Hộp", "45", "45.000 đ", "Tồn thấp", new Color(229, 245, 239), "KHẨU TRANG"},
-            {"VT0003", "Thuốc tê Lidocaine 2%", "Hộp", "0", "180.000 đ", "Hết hàng", new Color(255, 235, 230), "THUỐC TÊ"},
-            {"VT0004", "Kim tiêm nha khoa 30G", "Hộp", "15", "95.000 đ", "Tồn thấp", new Color(250, 241, 213), "KIM TIÊM"},
-            {"VT0005", "Composite trám răng A2", "Thỏi", "60", "220.000 đ", "Còn hàng", new Color(239, 232, 255), "COMPOSITE"}
-        };
-
-        for (Object[] row : data) {
-            JPanel cardItem = productCard(
-                String.valueOf(row[0]),
-                String.valueOf(row[1]),
-                String.valueOf(row[2]),
-                String.valueOf(row[3]),
-                String.valueOf(row[4]),
-                String.valueOf(row[5]),
-                (Color) row[6],
-                String.valueOf(row[7])
-            );
-            pnlLuoianhVatTu.add(cardItem);
+        
+        try {
+            // TODO: Gọi DAO để lấy danh sách từ cơ sở dữ liệu
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi khi tải danh sách vật tư từ cơ sở dữ liệu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
 
         pnlLuoianhVatTu.revalidate();
@@ -201,27 +187,6 @@ public class VatTuPanel extends JPanel implements ActionListener {
 
         product.add(details, BorderLayout.CENTER);
         product.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        product.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                dangThem = false;
-                setEditableForm(true);
-                txtMaVT.setText(code);
-                txtTenVT.setText(name);
-                cboDonViTinh.setSelectedItem(unit);
-                txtSoLuongTon.setText(stock);
-                txtTonToiThieu.setText("20");
-                txtGiaBan.setText(price.replace(" đ", "").replace(".", ""));
-                txtHanSuDung.setText("31/12/2027");
-                txtNhaCungCap.setText("Công ty Thiết bị Y tế MedEquip");
-            }
-            @Override public void mousePressed(MouseEvent e) {}
-            @Override public void mouseReleased(MouseEvent e) {}
-            @Override public void mouseEntered(MouseEvent e) {}
-            @Override public void mouseExited(MouseEvent e) {}
-        });
-
         return product;
     }
 
@@ -239,7 +204,6 @@ public class VatTuPanel extends JPanel implements ActionListener {
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            int w = getWidth();
             int h = getHeight();
 
             g2.setColor(new Color(100, 115, 130));
@@ -356,7 +320,8 @@ public class VatTuPanel extends JPanel implements ActionListener {
             dangThem = true;
             setEditableForm(true);
             clearForm();
-            txtMaVT.setText("VT0006");
+            // TODO: Gọi hàm sinh mã tự động từ CSDL (Ví dụ: vatTuDAO.phatSinhMaMoi())
+            txtMaVT.setText("VT000X"); 
             txtTenVT.requestFocus();
         } else if (source.equals(btnLuu)) {
             xuLyLuuVatTu();
@@ -373,10 +338,23 @@ public class VatTuPanel extends JPanel implements ActionListener {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ tên vật tư và giá bán!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        JOptionPane.showMessageDialog(this, dangThem ? "Thêm vật tư mới thành công!" : "Cập nhật thông tin vật tư thành công!");
-        taiDanhSachVatTuDangTheAnh();
-        setEditableForm(false);
-        clearForm();
+
+        try {
+            if (dangThem) {
+                // TODO: Gọi DAO thêm mới vào CSDL
+                JOptionPane.showMessageDialog(this, "Thêm vật tư mới thành công!");
+            } else {
+                // TODO: Gọi DAO cập nhật thông tin trong CSDL
+                JOptionPane.showMessageDialog(this, "Cập nhật thông tin vật tư thành công!");
+            }
+            
+            taiDanhSachVatTuTuCSDL();
+            setEditableForm(false);
+            clearForm();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi khi lưu dữ liệu vào cơ sở dữ liệu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void xuLyXoaVatTu() {
@@ -385,12 +363,20 @@ public class VatTuPanel extends JPanel implements ActionListener {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn vật tư cần xóa từ danh mục!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int confirm = JOptionPane.showConfirmDialog(this, "Xác nhận xóa vật tư này khỏi kho?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Xác nhận xóa vật tư này khỏi cơ sở dữ liệu?", "Xác nhận", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            JOptionPane.showMessageDialog(this, "Đã xóa vật tư thành công!");
-            clearForm();
-            setEditableForm(false);
-            taiDanhSachVatTuDangTheAnh();
+            try {
+                // TODO: Gọi DAO xóa khỏi CSDL
+                // vatTuDAO.xoaVatTu(maVT);
+                
+                JOptionPane.showMessageDialog(this, "Đã xóa vật tư thành công!");
+                clearForm();
+                setEditableForm(false);
+                taiDanhSachVatTuTuCSDL();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi khi xóa dữ liệu từ cơ sở dữ liệu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

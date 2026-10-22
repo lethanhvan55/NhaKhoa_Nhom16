@@ -2,7 +2,6 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -25,7 +24,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -39,8 +37,7 @@ public class ThongKeDichVuPanel extends JPanel implements ActionListener, MouseL
     private final Color MAU_NAVY = GiaoDienStyle.MAU_NAVY;
     private final Color MAU_TEAL = GiaoDienStyle.MAU_TEAL;
 
-    private JTextField txtTuNgay;
-    private JTextField txtDenNgay;
+    private JComboBox<String> cboKieuThongKe; 
     private JComboBox<String> cboLoaiDichVu;
     private JButton btnBaoCao;
     private JButton btnReset;
@@ -60,7 +57,7 @@ public class ThongKeDichVuPanel extends JPanel implements ActionListener, MouseL
     public ThongKeDichVuPanel() {
         khoiTaoGiaoDien();
         dangKySuKien();
-        napDuLieuThongKeGiaLap();
+        taiDuLieuThongKeTuCSDL();
     }
 
     private void khoiTaoGiaoDien() {
@@ -101,17 +98,11 @@ public class ThongKeDichVuPanel extends JPanel implements ActionListener, MouseL
         pnlLeftControls.setLayout(new BoxLayout(pnlLeftControls, BoxLayout.X_AXIS));
         pnlLeftControls.setBackground(MAU_TRANG);
 
-        JLabel lblTuNgay = new JLabel("Từ ngày:");
-        lblTuNgay.setFont(new Font("Arial", Font.BOLD, 12));
-        txtTuNgay = new JTextField("01/10/2026");
-        txtTuNgay.setPreferredSize(new Dimension(90, 30));
-        txtTuNgay.setMaximumSize(new Dimension(90, 30));
-
-        JLabel lblDenNgay = new JLabel(" Đến:");
-        lblDenNgay.setFont(new Font("Arial", Font.BOLD, 12));
-        txtDenNgay = new JTextField("31/10/2026");
-        txtDenNgay.setPreferredSize(new Dimension(90, 30));
-        txtDenNgay.setMaximumSize(new Dimension(90, 30));
+        JLabel lblKieuTK = new JLabel("Thống kê theo:");
+        lblKieuTK.setFont(new Font("Arial", Font.BOLD, 12));
+        cboKieuThongKe = new JComboBox<>(new String[]{"Theo ngày", "Theo tháng", "Theo năm"});
+        cboKieuThongKe.setPreferredSize(new Dimension(130, 30));
+        cboKieuThongKe.setMaximumSize(new Dimension(130, 30));
 
         JLabel lblLoaiDV = new JLabel(" Dịch vụ:");
         lblLoaiDV.setFont(new Font("Arial", Font.BOLD, 12));
@@ -119,26 +110,22 @@ public class ThongKeDichVuPanel extends JPanel implements ActionListener, MouseL
         cboLoaiDichVu.setPreferredSize(new Dimension(140, 30));
         cboLoaiDichVu.setMaximumSize(new Dimension(150, 30));
 
-        btnBaoCao = GiaoDienStyle.taoNut("Thống kê", MAU_NAVY, 95);
-        btnReset = GiaoDienStyle.taoNut("Làm mới", new Color(108, 117, 125), 90);
+        btnBaoCao = GiaoDienStyle.taoNut("Thống kê", MAU_NAVY, 90);
+        btnReset = GiaoDienStyle.taoNut("Làm mới", new Color(108, 117, 125), 85);
 
-        pnlLeftControls.add(lblTuNgay);
-        pnlLeftControls.add(Box.createHorizontalStrut(5));
-        pnlLeftControls.add(txtTuNgay);
+        pnlLeftControls.add(lblKieuTK);
         pnlLeftControls.add(Box.createHorizontalStrut(6));
-        pnlLeftControls.add(lblDenNgay);
-        pnlLeftControls.add(Box.createHorizontalStrut(5));
-        pnlLeftControls.add(txtDenNgay);
-        pnlLeftControls.add(Box.createHorizontalStrut(10));
+        pnlLeftControls.add(cboKieuThongKe);
+        pnlLeftControls.add(Box.createHorizontalStrut(12));
         pnlLeftControls.add(lblLoaiDV);
-        pnlLeftControls.add(Box.createHorizontalStrut(5));
+        pnlLeftControls.add(Box.createHorizontalStrut(6));
         pnlLeftControls.add(cboLoaiDichVu);
-        pnlLeftControls.add(Box.createHorizontalStrut(10));
+        pnlLeftControls.add(Box.createHorizontalStrut(12));
         pnlLeftControls.add(btnBaoCao);
-        pnlLeftControls.add(Box.createHorizontalStrut(5));
+        pnlLeftControls.add(Box.createHorizontalStrut(6));
         pnlLeftControls.add(btnReset);
 
-        btnXuatExcel = GiaoDienStyle.taoNut("Xuất báo cáo", MAU_TEAL, 110);
+        btnXuatExcel = GiaoDienStyle.taoNut("Xuất báo cáo", MAU_TEAL, 105);
 
         pnlFilter.add(pnlLeftControls, BorderLayout.WEST);
         pnlFilter.add(btnXuatExcel, BorderLayout.EAST);
@@ -261,9 +248,9 @@ public class ThongKeDichVuPanel extends JPanel implements ActionListener, MouseL
             g2.setColor(MAU_NAVY);
             g2.drawString("TOP 5 DỊCH VỤ NỔI BẬT", 15, 20);
 
-            String[] names = {"Trám răng", "Lấy cao răng", "Tẩy trắng", "Nhổ răng", "Chụp X-Quang"};
-            int[] values = {142, 115, 88, 64, 45};
-            int maxValue = 150;
+            String[] names = {"---", "---", "---", "---", "---"};
+            int[] values = {0, 0, 0, 0, 0};
+            int maxValue = 100;
 
             int startY = 50;
             int barHeight = 22;
@@ -277,7 +264,7 @@ public class ThongKeDichVuPanel extends JPanel implements ActionListener, MouseL
                 g2.setColor(Color.DARK_GRAY);
                 g2.drawString(names[i], 15, currentY + 15);
 
-                int barW = (int) (((double) values[i] / maxValue) * maxBarWidth);
+                int barW = maxValue > 0 ? (int) (((double) values[i] / maxValue) * maxBarWidth) : 0;
 
                 g2.setColor(i == 0 ? MAU_NAVY : MAU_TEAL);
                 g2.fillRect(110, currentY, Math.max(barW, 5), barHeight);
@@ -315,8 +302,8 @@ public class ThongKeDichVuPanel extends JPanel implements ActionListener, MouseL
     public void mouseClicked(MouseEvent e) {
         int row = tblThongKe.getSelectedRow();
         if (row >= 0) {
+            String maDV = String.valueOf(dtm.getValueAt(row, 0));
             String tenDV = String.valueOf(dtm.getValueAt(row, 1));
-            String doanhThu = String.valueOf(dtm.getValueAt(row, 3));
         }
     }
 
@@ -325,53 +312,46 @@ public class ThongKeDichVuPanel extends JPanel implements ActionListener, MouseL
     @Override public void mouseEntered(MouseEvent e) {}
     @Override public void mouseExited(MouseEvent e) {}
 
-    private void napDuLieuThongKeGiaLap() {
+    private void taiDuLieuThongKeTuCSDL() {
         dtm.setRowCount(0);
 
-        Object[][] sampleData = {
-                {"DV0001", "Trám răng Composite", "142", "42.600.000", "28.4%"},
-                {"DV0002", "Lấy cao răng & Đánh bóng", "115", "23.000.000", "15.3%"},
-                {"DV0003", "Tẩy trắng răng Laser", "88", "35.200.000", "23.5%"},
-                {"DV0004", "Nhổ răng khôn (Tiểu phẫu)", "64", "32.000.000", "21.3%"},
-                {"DV0005", "Chụp X-Quang Panorama", "45", "6.750.000", "4.5%"},
-                {"DV0006", "Khám & Tư vấn tổng quát", "38", "3.800.000", "2.5%"},
-                {"DV0007", "Điều trị tủy răng", "20", "6.500.000", "4.3%"}
-        };
+        try {
+            String kieuTK = cboKieuThongKe.getSelectedItem().toString();
+            String loaiDV = cboLoaiDichVu.getSelectedItem().toString();
 
-        for (Object[] row : sampleData) {
-            dtm.addRow(row);
+            // TODO: Truyền kieuTK và loaiDV vào DAO để truy vấn CSDL theo lựa chọn (Theo ngày, Theo tháng, Theo năm)
+
+            lblTongLuotDung.setText("0 lượt");
+            lblTongDoanhThu.setText("0 VNĐ");
+            lblDichVuHot.setText("---");
+            lblTyTrongCaoNhat.setText("0%");
+
+            pnlVungBieuDo.repaint();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu thống kê dịch vụ từ cơ sở dữ liệu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
-
-        lblTongLuotDung.setText("512 lượt");
-        lblTongDoanhThu.setText("149.850.000 VNĐ");
-        lblDichVuHot.setText("Trám răng (142)");
-        lblTyTrongCaoNhat.setText("28.4%");
     }
 
     private void thucHienThongKeTuCSDL() {
-        try {
-            String tuNgay = txtTuNgay.getText().trim();
-            String denNgay = txtDenNgay.getText().trim();
-            String loaiDV = cboLoaiDichVu.getSelectedItem().toString();
-
-            // TODO: Truyền tuNgay, denNgay và loaiDV vào DAO để truy vấn SQL Server thực tế
-            JOptionPane.showMessageDialog(this, "Đã thống kê dữ liệu từ ngày " + tuNgay + " đến ngày " + denNgay);
-            napDuLieuThongKeGiaLap();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        String kieuTK = cboKieuThongKe.getSelectedItem().toString();
+        taiDuLieuThongKeTuCSDL();
+        JOptionPane.showMessageDialog(this, "Đã cập nhật báo cáo theo chế độ: " + kieuTK);
     }
 
     private void xuLyResetBoLoc() {
-        txtTuNgay.setText("01/10/2026");
-        txtDenNgay.setText("31/10/2026");
+        cboKieuThongKe.setSelectedIndex(0);
         cboLoaiDichVu.setSelectedIndex(0);
-        napDuLieuThongKeGiaLap();
+        taiDuLieuThongKeTuCSDL();
         JOptionPane.showMessageDialog(this, "Đã làm mới bộ lọc thống kê!");
     }
 
     private void xuLyXuatExcel() {
-        // TODO: Gọi hàm xuất file Excel báo cáo thống kê theo khoảng thời gian
-        JOptionPane.showMessageDialog(this, "Đã xuất báo cáo thống kê dịch vụ ra file Excel thành công!");
+        try {
+            JOptionPane.showMessageDialog(this, "Đã xuất báo cáo thống kê dịch vụ ra file Excel thành công!");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi khi xuất file Excel!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

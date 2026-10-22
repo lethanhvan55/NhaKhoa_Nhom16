@@ -296,15 +296,6 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         modelBenhNhan.setRowCount(0);
         try {
             // TODO: Kết nối DAO lấy dữ liệu từ SQL Server
-            Object[][] duLieuMau = {
-                    {"BN0001", "Nguyễn Văn An", "20/05/2003", "Nam", "0912345678", "Gò Vấp"},
-                    {"BN0002", "Trần Thị Bích", "15/08/2002", "Nữ", "0987654321", "Quận 12"},
-                    {"BN0003", "Lê Minh Hoàng", "12/04/2000", "Nam", "0901234567", "Tân Bình"},
-                    {"BN0004", "Phạm Thu Hà", "30/09/1999", "Nữ", "0934567890", "Gò Vấp"}
-            };
-            for (Object[] row : duLieuMau) {
-                modelBenhNhan.addRow(row);
-            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }

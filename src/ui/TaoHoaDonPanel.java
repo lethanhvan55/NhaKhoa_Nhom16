@@ -402,17 +402,7 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
         modelLichHen.setRowCount(0);
         try {
             // TODO: Kết nối DAO truy vấn danh sách lịch hẹn từ Cơ sở dữ liệu SQL Server
-            // List<LichHen> list = lichHenDao.getLichHenChoThanhToan();
-            
-            // Dữ liệu mẫu giả lập tích hợp sẵn
-            Object[][] duLieuMau = {
-                    {"LH0001", "Nguyễn Minh Anh", "0901234567", "19/10/2026", "08:00", "Đã xác nhận"},
-                    {"LH0002", "Trần Quốc", "0391234242", "19/10/2026", "09:00", "Chờ xác nhận"},
-                    {"LH0003", "Lê Hoàng Nam", "0912345678", "19/10/2026", "10:00", "Đã xác nhận"}
-            };
-            for (Object[] row : duLieuMau) {
-                modelLichHen.addRow(row);
-            }
+           
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -421,37 +411,7 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
     private void taiThongTinChiTietLichHenTuCSDL(String maLH) {
         try {
             // TODO: Gọi DAO truy vấn thông tin chi tiết khách hàng và dịch vụ theo maLH từ CSDL
-            // ThongTinKhachHangDTO kh = khachHangDao.getByMaLichHen(maLH);
-            // List<ChiTietDichVuDTO> dsDV = dichVuDao.getByMaLichHen(maLH);
-
-            // Gán dữ liệu giả lập lên form bên phải dựa vào dòng được chọn
-            txtMaLichHen.setText(maLH);
-            txtMaBenhNhan.setText("BN00" + maLH.substring(2));
-            txtTenKhachHang.setText(String.valueOf(modelLichHen.getValueAt(tblLichHen.getSelectedRow(), 1)));
-            txtSoDienThoai.setText(String.valueOf(modelLichHen.getValueAt(tblLichHen.getSelectedRow(), 2)));
-            txtNgayHen.setText(String.valueOf(modelLichHen.getValueAt(tblLichHen.getSelectedRow(), 3)));
-            txtGioHen.setText(String.valueOf(modelLichHen.getValueAt(tblLichHen.getSelectedRow(), 4)));
-            txtSoKhach.setText("1");
-            txtGhiChu.setText("Khám và điều trị dịch vụ nha khoa tổng quát.");
-
-            // Đổ dữ liệu dịch vụ vào bảng chi tiết bên dưới
-            modelDichVu.setRowCount(0);
-            Object[][] dsDichVuMau = {
-                {"1", "Khám răng tổng quát", "1", "100.000", "100.000"},
-                {"2", "Lấy cao răng", "1", "200.000", "200.000"},
-                {"3", "Chụp X-quang răng", "1", "150.000", "150.000"}
-            };
-            for (Object[] dv : dsDichVuMau) {
-                modelDichVu.addRow(dv);
-            }
-
-            // Tính toán tự động các khoản tiền hóa đơn
-            txtTongTien.setText("450.000 VNĐ");
-            txtChietKhau.setText("0 VNĐ");
-            txtThue.setText("45.000 VNĐ");
-            txtTienCoc.setText("100.000 VNĐ");
-            txtCanThanhToan.setText("395.000 VNĐ");
-
+            
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -466,10 +426,7 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
         try {
             // TODO: Kiểm tra mã giảm giá từ CSDL và tính toán lại tiền chiết khấu, cần thanh toán
             // KhuyenMai km = khuyenMaiDao.getByMa(maGiamGia);
-            
-            JOptionPane.showMessageDialog(this, "Áp dụng mã giảm giá thành công!");
-            txtChietKhau.setText("50.000 VNĐ");
-            txtCanThanhToan.setText("345.000 VNĐ");
+           
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -490,35 +447,12 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
                 // 2. INSERT vào bảng CHITIETHOADON
                 // 3. UPDATE trạng thái LICHHEN thành 'Đã hoàn thành' hoặc 'Đã thanh toán'
                 // hoaDonDao.luuHoaDon(...);
-
-                JOptionPane.showMessageDialog(this, "Lập hóa đơn và lưu cơ sở dữ liệu thành công!");
-                
-                // Reset form sau khi thanh toán thành công
-                taiDanhSachLichHenTuCSDL();
-                modelDichVu.setRowCount(0);
-                txtMaLichHen.setText("");
-                txtMaBenhNhan.setText("");
-                txtTenKhachHang.setText("");
-                txtSoDienThoai.setText("");
-                txtNgayHen.setText("");
-                txtGioHen.setText("");
-                txtSoKhach.setText("");
-                txtGhiChu.setText("");
-                txtTongTien.setText("0 VNĐ");
-                txtChietKhau.setText("0 VNĐ");
-                txtThue.setText("0 VNĐ");
-                txtTienCoc.setText("0 VNĐ");
-                txtCanThanhToan.setText("0 VNĐ");
-                txtMaGiamGia.setText("");
-
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Lỗi khi lưu hóa đơn vào CSDL: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
                 ex.printStackTrace();
             }
         }
     }
-
-    // ==================== HÀM DÙNG CHUNG ====================
 
     private JPanel taoPanelTrang() {
         JPanel pnl = new JPanel();
