@@ -349,20 +349,10 @@ public class ThongKeKhachHangPanel extends JPanel {
     // 10. BIỂU ĐỒ CỘT SỐ LƯỢNG KHÁCH HÀNG THEO THÁNG
     // =====================================================
 
+
     private class BieuDoCotPanel extends JPanel {
 
         private static final long serialVersionUID = 1L;
-
-        private final int[] giaTri = {
-                45, 55, 48, 72, 65, 85,
-                78, 95, 82, 110, 100, 125
-        };
-
-        private final String[] thang = {
-                "T1", "T2", "T3", "T4",
-                "T5", "T6", "T7", "T8",
-                "T9", "T10", "T11", "T12"
-        };
 
         public BieuDoCotPanel() {
             setBackground(Color.WHITE);
@@ -393,7 +383,7 @@ public class ThongKeKhachHangPanel extends JPanel {
 
             g2.setFont(new Font("Arial", Font.PLAIN, 10));
 
-            // Đường kẻ ngang và nhãn trục Y
+            // Vẽ đường lưới và nhãn trục Y, không vẽ cột dữ liệu
             for (int i = 0; i <= 5; i++) {
                 int y = tren + cao * i / 5;
 
@@ -406,52 +396,45 @@ public class ThongKeKhachHangPanel extends JPanel {
                         5, y + 4);
             }
 
+            // Hiển thị nhãn các tháng
+            String[] thang = {
+                    "T1", "T2", "T3", "T4",
+                    "T5", "T6", "T7", "T8",
+                    "T9", "T10", "T11", "T12"
+            };
+
             int buoc = rong / 12;
-            int rongCot = Math.max(4, buoc - 8);
 
-            for (int i = 0; i < giaTri.length; i++) {
-                int x = trai + i * buoc
-                        + (buoc - rongCot) / 2;
+            g2.setColor(new Color(90, 110, 130));
 
-                int h = cao * giaTri[i] / 150;
-                int y = tren + cao - h;
+            for (int i = 0; i < thang.length; i++) {
+                int x = trai + i * buoc + buoc / 2;
 
-                g2.setColor(MAU_XANH);
-                g2.fillRoundRect(
-                        x, y, rongCot, h, 7, 7);
+                int rongNhan = g2.getFontMetrics()
+                        .stringWidth(thang[i]);
 
-                g2.setColor(new Color(90, 110, 130));
                 g2.drawString(
                         thang[i],
-                        x + (rongCot - g2.getFontMetrics()
-                                .stringWidth(thang[i])) / 2,
+                        x - rongNhan / 2,
                         tren + cao + 18);
             }
 
-            g2.setColor(new Color(110, 125, 140));
+            // Tiêu đề trục
             g2.drawString("Số lượng khách hàng", trai, 15);
 
             g2.dispose();
         }
     }
 
+
     // =====================================================
     // 11. BIỂU ĐỒ ĐƯỜNG THỐNG KÊ THEO NĂM
     // =====================================================
 
+
     private class BieuDoDuongPanel extends JPanel {
 
         private static final long serialVersionUID = 1L;
-
-        // Dữ liệu minh họa số lượng khách hàng từng năm
-        private final int[] giaTri = {
-                320, 410, 390, 520, 610, 740, 860
-        };
-
-        private final String[] nam = {
-                "2020", "2021", "2022", "2023",
-                "2024", "2025", "2026"
-        };
 
         public BieuDoDuongPanel() {
             setBackground(Color.WHITE);
@@ -489,6 +472,7 @@ public class ThongKeKhachHangPanel extends JPanel {
             // Vẽ đường lưới và nhãn trục Y
             for (int i = 0; i <= soMoc; i++) {
                 int y = tren + cao * i / soMoc;
+
                 int nhan = giaTriMax
                         - i * giaTriMax / soMoc;
 
@@ -507,77 +491,29 @@ public class ThongKeKhachHangPanel extends JPanel {
             g2.setColor(new Color(110, 125, 140));
             g2.drawString("Số lượng khách hàng", trai, 15);
 
-            int[] toaDoX = new int[giaTri.length];
-            int[] toaDoY = new int[giaTri.length];
+            // Hiển thị nhãn năm, không vẽ đường dữ liệu
+            String[] nam = {
+                    "2020", "2021", "2022", "2023",
+                    "2024", "2025", "2026"
+            };
 
-            int buoc = rong / (giaTri.length - 1);
+            int buoc = rong / (nam.length - 1);
 
-            // Tính tọa độ các điểm dữ liệu
-            for (int i = 0; i < giaTri.length; i++) {
-                toaDoX[i] = trai + i * buoc;
-
-                toaDoY[i] = tren + cao
-                        - (int) ((double) giaTri[i]
-                        / giaTriMax * cao);
-            }
-
-            // Vẽ đường nối các năm
-            g2.setColor(MAU_XANH);
-            g2.setStroke(
-                    new java.awt.BasicStroke(
-                            2.5f,
-                            java.awt.BasicStroke.CAP_ROUND,
-                            java.awt.BasicStroke.JOIN_ROUND));
-
-            for (int i = 0; i < giaTri.length - 1; i++) {
-                g2.drawLine(
-                        toaDoX[i], toaDoY[i],
-                        toaDoX[i + 1], toaDoY[i + 1]);
-            }
-
-            // Vẽ các điểm dữ liệu và nhãn năm
-            for (int i = 0; i < giaTri.length; i++) {
-
-                g2.setColor(MAU_XANH);
-
-                g2.fill(new Ellipse2D.Double(
-                        toaDoX[i] - 4,
-                        toaDoY[i] - 4,
-                        8, 8));
-
-                g2.setColor(Color.WHITE);
-
-                g2.fill(new Ellipse2D.Double(
-                        toaDoX[i] - 2,
-                        toaDoY[i] - 2,
-                        4, 4));
-
-                g2.setColor(MAU_XANH);
-
-                String nhanGiaTri = String.valueOf(giaTri[i]);
+            for (int i = 0; i < nam.length; i++) {
+                int x = trai + i * buoc;
 
                 int rongNhan = g2.getFontMetrics()
-                        .stringWidth(nhanGiaTri);
-
-                g2.drawString(
-                        nhanGiaTri,
-                        toaDoX[i] - rongNhan / 2,
-                        toaDoY[i] - 10);
+                        .stringWidth(nam[i]);
 
                 g2.setColor(new Color(90, 110, 130));
-
-                String nhanNam = nam[i];
-
-                int rongNam = g2.getFontMetrics()
-                        .stringWidth(nhanNam);
-
                 g2.drawString(
-                        nhanNam,
-                        toaDoX[i] - rongNam / 2,
+                        nam[i],
+                        x - rongNhan / 2,
                         tren + cao + 20);
             }
 
             g2.dispose();
         }
     }
+
 }
