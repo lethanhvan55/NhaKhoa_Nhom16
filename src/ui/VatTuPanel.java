@@ -1,276 +1,468 @@
 package ui;
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.table.*;
-import java.awt.*;
-import java.net.URL;
-public class VatTuPanel extends JPanel {
-    private final Color NAVY = new Color(35, 68, 105);
-    private final Color BLUE = new Color(35, 119, 224);
-    private final Color BG = new Color(243, 246, 251);
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+
+public class VatTuPanel extends JPanel implements ActionListener {
+
+    private final Color MAU_NAVY = GiaoDienStyle.MAU_NAVY;
+    private final Color MAU_NEN = GiaoDienStyle.MAU_NEN;
+    private final Color MAU_TRANG = GiaoDienStyle.MAU_TRANG;
+    private final Color MAU_TEAL = GiaoDienStyle.MAU_TEAL;
+    private final Color MAU_DO = GiaoDienStyle.MAU_DO;
     private final Color TEXT = new Color(45, 55, 68);
 
+    private JTextField txtMaVT;
+    private JTextField txtTenVT;
+    private JComboBox<String> cboDonViTinh;
+    private JTextField txtSoLuongTon;
+    private JTextField txtTonToiThieu;
+    private JTextField txtGiaBan;
+    private JTextField txtHanSuDung;
+    private JTextField txtNhaCungCap;
+
+    private JButton btnThem;   
+    private JButton btnLuu;     
+    private JButton btnXoa;     
+    private JButton btnHuyBo;   
+
+    private JPanel pnlLuoianhVatTu;
+    private boolean dangThem = false;
+
     public VatTuPanel() {
-        setLayout(new BorderLayout());
-        setBackground(BG);
-        add(createMainContent(), BorderLayout.CENTER);
+        setLayout(new BorderLayout(10, 10));
+        setBackground(MAU_NEN);
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        taoGiaoDien();
+        dangKySuKien();
+        setEditableForm(false);
     }
 
-    private JPanel createMainContent() {
-        JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(BG);
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(Color.WHITE);
-        header.setBorder(new EmptyBorder(17, 24, 17, 24));
-        JLabel title = new JLabel("   Quản lý vật tư");
-        title.setFont(new Font("Arial", Font.BOLD, 22));
-        title.setForeground(new Color(35, 45, 58));
-        JLabel user = new JLabel("   NV001   Lễ tân");
-        user.setFont(new Font("Arial", Font.BOLD, 13)); user.setForeground(TEXT);
-        header.add(title, BorderLayout.WEST); header.add(user, BorderLayout.EAST);
-        main.add(header, BorderLayout.NORTH);
+    private void taoGiaoDien() {
+        JPanel pnlBenTrai = taoBenTrai();
+        JPanel pnlBenPhai = taoBenPhai();
+       
+        pnlBenPhai.setPreferredSize(new Dimension(420, 0));
 
-        JPanel content = new JPanel(new BorderLayout(18, 0));
-        content.setBackground(BG); content.setBorder(new EmptyBorder(22, 22, 22, 22));
-        JPanel left = new JPanel(new BorderLayout(0, 18)); left.setBackground(BG);
-        left.add(createSearchFilterPanel(), BorderLayout.NORTH);
-        left.add(createProductPanel(), BorderLayout.CENTER);
-        JPanel right = createInfoPanel(); right.setPreferredSize(new Dimension(370, 0));
-        content.add(left, BorderLayout.CENTER); content.add(right, BorderLayout.EAST);
-        main.add(content, BorderLayout.CENTER);
-        return main;
+        JSplitPane splitTong = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                pnlBenTrai,
+                pnlBenPhai
+        );
+        splitTong.setResizeWeight(0.52);
+        splitTong.setDividerLocation(500);
+        splitTong.setDividerSize(8);
+        splitTong.setBorder(null);
+        splitTong.setBackground(MAU_NEN);
+
+        add(splitTong, BorderLayout.CENTER);
     }
 
-    private JPanel createCard() {
-        JPanel panel = new JPanel(); panel.setBackground(Color.WHITE);
-        panel.setBorder(new CompoundBorder(new LineBorder(new Color(226, 231, 238)),
-            new EmptyBorder(16, 16, 16, 16)));
-        return panel;
-    }
-    private JPanel createSearchFilterPanel() {
-        JPanel card = createCard(); card.setLayout(new BorderLayout(0, 16));
-        JPanel searchRow = new JPanel(new BorderLayout(12, 0)); searchRow.setOpaque(false);
-        JTextField search = new JTextField("  Tìm kiếm mã vật tư, tên vật tư...");
-        styleField(search); searchRow.add(search, BorderLayout.CENTER);
-        JButton addButton = makeButton("  Thêm vật tư", BLUE, Color.WHITE);
-        addButton.setPreferredSize(new Dimension(150, 38));
-        searchRow.add(addButton, BorderLayout.EAST); card.add(searchRow, BorderLayout.NORTH);
-        JPanel filters = new JPanel(new GridLayout(1, 3, 12, 0)); filters.setOpaque(false);
-        filters.add(filterCombo("Danh mục vật tư", new String[]{"Tất cả danh mục", "Vật tư tiêu hao", "Thuốc nha khoa", "Dụng cụ"}));
-        filters.add(filterCombo("Trạng thái kho", new String[]{"Tất cả", "Còn hàng", "Tồn thấp", "Hết hàng"}));
-        filters.add(filterCombo("Sắp xếp theo", new String[]{"Tên vật tư", "Giá tăng dần", "Giá giảm dần"}));
-        card.add(filters, BorderLayout.CENTER); return card;
-    }
+    private JPanel taoBenTrai() {
+        JPanel pnlBenTrai = new JPanel(new BorderLayout(0, 10));
+        pnlBenTrai.setBackground(MAU_NEN);
 
-    private JPanel filterCombo(String label, String[] options) {
-        JPanel p = new JPanel(new BorderLayout(0, 5)); p.setOpaque(false);
-        p.add(fieldLabel(label), BorderLayout.NORTH);
-        JComboBox<String> combo = new JComboBox<>(options); styleCombo(combo);
-        p.add(combo, BorderLayout.CENTER); return p;
-    }
+        JPanel pnlCard = new JPanel(new BorderLayout(0, 10));
+        pnlCard.setBackground(MAU_TRANG);
+        pnlCard.setBorder(new CompoundBorder(
+                new LineBorder(new Color(220, 225, 232)),
+                new EmptyBorder(12, 12, 12, 12)
+        ));
 
-    private JPanel createProductPanel() {
-        JPanel card = createCard(); card.setLayout(new BorderLayout(0, 14));
-        JPanel titleRow = new JPanel(new BorderLayout()); titleRow.setOpaque(false);
-        JLabel title = new JLabel("Vật tư nha khoa");
-        title.setFont(new Font("Arial", Font.BOLD, 18)); title.setForeground(TEXT);
-        JLabel total = new JLabel("  5 sản phẩm  ");
-        total.setFont(new Font("Arial", Font.PLAIN, 12)); total.setForeground(new Color(100, 110, 122));
-        total.setOpaque(true); total.setBackground(new Color(244, 246, 249));
-        total.setBorder(new EmptyBorder(7, 8, 7, 8));
-        titleRow.add(title, BorderLayout.WEST); titleRow.add(total, BorderLayout.EAST);
-        card.add(titleRow, BorderLayout.NORTH);
+        JPanel pnlTieuDe = new JPanel(new BorderLayout());
+        pnlTieuDe.setOpaque(false);
 
-        JPanel products = new JPanel(new GridLayout(0, 2, 12, 12)); products.setOpaque(false);
-        products.add(productCard("VT0001", "Găng tay y tế Nitrile", "Hộp 100 chiếc", "125.000 đ",
-            "Còn hàng", new Color(222, 239, 255), "GĂNG TAY", "/img/gangtay.jpg"));
-        products.add(productCard("VT0002", "Khẩu trang y tế 4 lớp", "Hộp 50 chiếc", "45.000 đ",
-            "Tồn thấp", new Color(229, 245, 239), "KHẨU TRANG", "/img/khautrang.jpg"));
-        products.add(productCard("VT0003", "Thuốc tê Lidocaine 2%", "Hộp 50 ống", "180.000 đ",
-            "Hết hàng", new Color(255, 235, 230), "THUỐC TÊ", "/img/thuocte.jpg"));
-        products.add(productCard("VT0004", "Kim tiêm nha khoa 30G", "Hộp 100 chiếc", "95.000 đ",
-            "Tồn thấp", new Color(250, 241, 213), "KIM TIÊM", "/img/kimtiem.jpg"));
-        products.add(productCard("VT0005", "Composite trám răng A2", "Thỏi 4 g", "220.000 đ",
-            "Còn hàng", new Color(239, 232, 255), "COMPOSITE", "/img/composite.jpg"));
-        JScrollPane scroll = new JScrollPane(products);
+        JLabel lblTieuDe = taoTieuDe("Danh mục vật tư y tế");
+        btnThem = taoNut("Thêm vật tư", MAU_NAVY, 120);
+
+        pnlTieuDe.add(lblTieuDe, BorderLayout.WEST);
+        pnlTieuDe.add(btnThem, BorderLayout.EAST);
+        pnlCard.add(pnlTieuDe, BorderLayout.NORTH);
+
+        pnlLuoianhVatTu = new JPanel(new GridLayout(0, 2, 12, 12));
+        pnlLuoianhVatTu.setOpaque(false);
+
+        taiDanhSachVatTuDangTheAnh();
+
+        JScrollPane scroll = new JScrollPane(pnlLuoianhVatTu);
         scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.getViewport().setBackground(Color.WHITE);
+        scroll.getViewport().setBackground(MAU_TRANG);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
-        card.add(scroll, BorderLayout.CENTER);
-        JPanel bottom = new JPanel(new BorderLayout()); bottom.setOpaque(false);
-        JLabel showing = new JLabel("Hiển thị 5 vật tư");
-        showing.setForeground(new Color(130, 140, 150)); showing.setFont(new Font("Arial", Font.PLAIN, 12));
-        bottom.add(showing, BorderLayout.WEST);
-        JButton more = makeButton("Xem thêm vật tư  ", Color.WHITE, BLUE);
-        more.setBorder(new LineBorder(new Color(210, 220, 232)));
-        bottom.add(more, BorderLayout.EAST); card.add(bottom, BorderLayout.SOUTH);
-        return card;
+
+        pnlCard.add(scroll, BorderLayout.CENTER);
+        pnlBenTrai.add(pnlCard, BorderLayout.CENTER);
+
+        return pnlBenTrai;
     }
 
-    private JPanel productCard(String code, String name, String unit, String price,
-            String status, Color imageBg, String illustrationText, String imagePath) {
-        JPanel product = new JPanel(new BorderLayout(0, 8));
-        product.setBackground(Color.WHITE);
+    private void taiDanhSachVatTuDangTheAnh() {
+        pnlLuoianhVatTu.removeAll();
+        Object[][] data = {
+            {"VT0001", "Găng tay y tế Nitrile", "Hộp", "150", "125.000 đ", "Còn hàng", new Color(222, 239, 255), "GĂNG TAY"},
+            {"VT0002", "Khẩu trang y tế 4 lớp", "Hộp", "45", "45.000 đ", "Tồn thấp", new Color(229, 245, 239), "KHẨU TRANG"},
+            {"VT0003", "Thuốc tê Lidocaine 2%", "Hộp", "0", "180.000 đ", "Hết hàng", new Color(255, 235, 230), "THUỐC TÊ"},
+            {"VT0004", "Kim tiêm nha khoa 30G", "Hộp", "15", "95.000 đ", "Tồn thấp", new Color(250, 241, 213), "KIM TIÊM"},
+            {"VT0005", "Composite trám răng A2", "Thỏi", "60", "220.000 đ", "Còn hàng", new Color(239, 232, 255), "COMPOSITE"}
+        };
+
+        for (Object[] row : data) {
+            JPanel cardItem = productCard(
+                String.valueOf(row[0]),
+                String.valueOf(row[1]),
+                String.valueOf(row[2]),
+                String.valueOf(row[3]),
+                String.valueOf(row[4]),
+                String.valueOf(row[5]),
+                (Color) row[6],
+                String.valueOf(row[7])
+            );
+            pnlLuoianhVatTu.add(cardItem);
+        }
+
+        pnlLuoianhVatTu.revalidate();
+        pnlLuoianhVatTu.repaint();
+    }
+
+    private JPanel productCard(String code, String name, String unit, String stock, String price,
+            String status, Color imageBg, String illustrationText) {
+        JPanel product = new JPanel(new BorderLayout(0, 6));
+        product.setBackground(MAU_TRANG);
         product.setBorder(new CompoundBorder(new LineBorder(new Color(226, 231, 238)),
-            new EmptyBorder(8, 8, 10, 8)));
-        ProductIllustration image = new ProductIllustration(imageBg, illustrationText, imagePath);
-        image.setPreferredSize(new Dimension(190, 112));
+                new EmptyBorder(8, 8, 8, 8)));
+
+        ProductIllustration image = new ProductIllustration(imageBg, illustrationText);
+        image.setPreferredSize(new Dimension(185, 95));
         product.add(image, BorderLayout.NORTH);
 
-        JLabel productName = new JLabel("<html><div style='width:190px'><b>" + name + "</b></div></html>");
-        productName.setFont(new Font("Arial", Font.PLAIN, 13)); productName.setForeground(TEXT);
-        JLabel productCode = new JLabel(code + "  •  " + unit);
-        productCode.setFont(new Font("Arial", Font.PLAIN, 11)); productCode.setForeground(new Color(125, 135, 148));
+        JLabel productName = new JLabel("<html><div style='width:170px'><b>" + name + "</b></div></html>");
+        productName.setFont(new Font("Arial", Font.PLAIN, 12));
+        productName.setForeground(TEXT);
+
+        JLabel productCode = new JLabel("Mã: " + code + " • ĐVT: " + unit);
+        productCode.setFont(new Font("Arial", Font.PLAIN, 11));
+        productCode.setForeground(new Color(125, 135, 148));
+
         JLabel productPrice = new JLabel(price);
-        productPrice.setFont(new Font("Arial", Font.BOLD, 15)); productPrice.setForeground(BLUE);
+        productPrice.setFont(new Font("Arial", Font.BOLD, 13));
+        productPrice.setForeground(MAU_NAVY);
+
         JLabel stockStatus = new JLabel("● " + status);
         stockStatus.setFont(new Font("Arial", Font.BOLD, 11));
         if (status.equals("Còn hàng")) stockStatus.setForeground(new Color(18, 135, 94));
         else if (status.equals("Tồn thấp")) stockStatus.setForeground(new Color(173, 123, 25));
-        else stockStatus.setForeground(new Color(190, 65, 75));
+        else stockStatus.setForeground(MAU_DO);
 
         JPanel details = new JPanel();
-        details.setOpaque(false); details.setLayout(new BoxLayout(details, BoxLayout.Y_AXIS));
-        productName.setAlignmentX(Component.LEFT_ALIGNMENT); productCode.setAlignmentX(Component.LEFT_ALIGNMENT);
-        details.add(productName); details.add(Box.createVerticalStrut(5));
-        details.add(productCode); details.add(Box.createVerticalStrut(8));
-        JPanel priceRow = new JPanel(new BorderLayout()); priceRow.setOpaque(false);
-        priceRow.add(productPrice, BorderLayout.WEST); priceRow.add(stockStatus, BorderLayout.EAST);
-        details.add(priceRow); product.add(details, BorderLayout.CENTER);
+        details.setOpaque(false);
+        details.setLayout(new BoxLayout(details, BoxLayout.Y_AXIS));
+
+        productName.setAlignmentX(Component.LEFT_ALIGNMENT);
+        productCode.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        details.add(productName);
+        details.add(Box.createVerticalStrut(3));
+        details.add(productCode);
+        details.add(Box.createVerticalStrut(5));
+
+        JPanel priceRow = new JPanel(new BorderLayout());
+        priceRow.setOpaque(false);
+        priceRow.add(productPrice, BorderLayout.WEST);
+        priceRow.add(stockStatus, BorderLayout.EAST);
+        details.add(priceRow);
+
+        product.add(details, BorderLayout.CENTER);
+        product.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        product.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dangThem = false;
+                setEditableForm(true);
+                txtMaVT.setText(code);
+                txtTenVT.setText(name);
+                cboDonViTinh.setSelectedItem(unit);
+                txtSoLuongTon.setText(stock);
+                txtTonToiThieu.setText("20");
+                txtGiaBan.setText(price.replace(" đ", "").replace(".", ""));
+                txtHanSuDung.setText("31/12/2027");
+                txtNhaCungCap.setText("Công ty Thiết bị Y tế MedEquip");
+            }
+            @Override public void mousePressed(MouseEvent e) {}
+            @Override public void mouseReleased(MouseEvent e) {}
+            @Override public void mouseEntered(MouseEvent e) {}
+            @Override public void mouseExited(MouseEvent e) {}
+        });
+
         return product;
     }
-    private static class ProductIllustration extends JPanel {
-        private final Color bg;
-        private final String text;
-        private final Image productImage;
 
-        public ProductIllustration(Color bg, String text, String imagePath) {
-            this.bg = bg;
-            this.text = text;
-            Image loaded = null;
-            URL url = imagePath == null ? null : VatTuPanel.class.getResource(imagePath);
-            if (url != null) loaded = new ImageIcon(url).getImage();
-            else System.err.println("Không tìm thấy ảnh: " + imagePath);
-            this.productImage = loaded;
+    private static class ProductIllustration extends JPanel {
+        private final String text;
+
+        public ProductIllustration(Color bg, String text) {
             setBackground(bg);
-            setPreferredSize(new Dimension(190, 112));
+            setPreferredSize(new Dimension(185, 95));
+            this.text = text;
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-
             Graphics2D g2 = (Graphics2D) g.create();
-
-            g2.setRenderingHint(
-                RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BICUBIC
-            );
-
-            g2.setRenderingHint(
-                RenderingHints.KEY_RENDERING,
-                RenderingHints.VALUE_RENDER_QUALITY
-            );
-
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             int w = getWidth();
             int h = getHeight();
 
-            if (productImage != null) {
-                
-                g2.drawImage(productImage, 0, 0, w, h, this);
-            } else {
-                g2.setColor(new Color(100, 100, 100));
-                g2.drawString("Chưa có hình ảnh", 10, h / 2);
-            }
-
+            g2.setColor(new Color(100, 115, 130));
+            g2.setFont(new Font("Arial", Font.BOLD, 12));
+            g2.drawString(text, 15, h / 2 + 5);
             g2.dispose();
         }
     }
-    private JPanel createInfoPanel() {
-        JPanel card = createCard(); card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        JPanel titleRow = new JPanel(new BorderLayout()); titleRow.setOpaque(false);
-        JLabel title = new JLabel("▌ Thông tin vật tư");
-        title.setFont(new Font("Arial", Font.BOLD, 17)); title.setForeground(TEXT);
-        JButton edit = new JButton("Chỉnh sửa");
-        edit.setFont(new Font("Arial", Font.PLAIN, 12)); edit.setForeground(new Color(60, 120, 175));
-        edit.setBackground(new Color(240, 247, 253)); edit.setBorder(new LineBorder(new Color(205, 220, 235)));
-        titleRow.add(title, BorderLayout.WEST); titleRow.add(edit, BorderLayout.EAST);
-        titleRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34)); titleRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.add(titleRow); card.add(Box.createVerticalStrut(18));
-        addInfoField(card, "Mã vật tư *", "VT0001", true);
-        addInfoField(card, "Tên vật tư *", "Găng tay y tế Nitrile", false);
-        addInfoField(card, "Đơn vị tính *", "Hộp", false);
-        JPanel quantityRow = new JPanel(new GridLayout(1, 2, 12, 0)); quantityRow.setOpaque(false);
-        quantityRow.add(numberField("Số lượng tồn *", "150"));
-        quantityRow.add(numberField("Tồn tối thiểu *", "20"));
-        quantityRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62)); quantityRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.add(quantityRow); card.add(Box.createVerticalStrut(15));
-        addInfoField(card, "Giá bán *", "125000", false);
-        addInfoField(card, "Hạn sử dụng (Có thể để trống)", "2027-12-31", false);
-        JLabel descLabel = fieldLabel("Mô tả vật tư"); descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.add(descLabel); card.add(Box.createVerticalStrut(6));
-        JTextArea description = new JTextArea("Găng tay y tế không bột, kích thước M, dùng một lần.");
-        description.setFont(new Font("Arial", Font.PLAIN, 13)); description.setLineWrap(true); description.setWrapStyleWord(true);
-        description.setBorder(new CompoundBorder(new LineBorder(new Color(211, 217, 225)),
-            new EmptyBorder(8, 10, 8, 10)));
-        description.setRows(3); description.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
-        description.setAlignmentX(Component.LEFT_ALIGNMENT); card.add(description); card.add(Box.createVerticalStrut(18));
-        JButton update = makeButton("  Cập nhật thông tin", BLUE, Color.WHITE);
-        update.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40)); update.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.add(update); card.add(Box.createVerticalStrut(10));
-        JPanel actions = new JPanel(new GridLayout(1, 2, 8, 0)); actions.setOpaque(false);
-        JButton refresh = makeButton("  Làm mới", Color.WHITE, TEXT);
-        refresh.setBorder(new LineBorder(new Color(210, 216, 224)));
-        JButton delete = makeButton("  Xóa vật tư", Color.WHITE, new Color(190, 65, 65));
-        delete.setBorder(new LineBorder(new Color(224, 190, 190)));
-        actions.add(refresh); actions.add(delete);
-        actions.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38)); actions.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.add(actions); card.add(Box.createVerticalGlue());
-        return card;
+
+    private JPanel taoBenPhai() {
+        JPanel pnlBenPhai = new JPanel(new BorderLayout(0, 10));
+        pnlBenPhai.setBackground(MAU_NEN);
+
+        JPanel pnlThongTin = taoThongTinVatTu();
+        pnlBenPhai.add(pnlThongTin, BorderLayout.CENTER);
+
+        return pnlBenPhai;
     }
-    private void addInfoField(JPanel parent, String label, String value, boolean disabled) {
-        JLabel l = fieldLabel(label); l.setAlignmentX(Component.LEFT_ALIGNMENT);
-        parent.add(l); parent.add(Box.createVerticalStrut(6));
-        JTextField field = new JTextField(value); styleField(field);
-        if (disabled) {
-            field.setEditable(false); field.setBackground(new Color(245, 246, 248));
-            field.setFont(new Font("Arial", Font.BOLD, 12));
+
+    private JPanel taoThongTinVatTu() {
+        JPanel pnl = taoPanelTrang();
+        pnl.setLayout(new BorderLayout(0, 10));
+        pnl.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 225, 232)),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+
+        JLabel lblTieuDe = taoTieuDe("Thông tin chi tiết vật tư");
+
+        JPanel pnlForm = new JPanel();
+        pnlForm.setLayout(new BoxLayout(pnlForm, BoxLayout.Y_AXIS));
+        pnlForm.setBackground(MAU_TRANG);
+        pnlForm.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+        txtMaVT = taoOThongTin("");
+        txtTenVT = taoOThongTinNhap("");
+
+        cboDonViTinh = new JComboBox<>(new String[]{"Hộp", "Cái", "Bộ", "Lọ", "Ống", "Thỏi"});
+        cboDonViTinh.setFont(new Font("Arial", Font.PLAIN, 13));
+        cboDonViTinh.setBackground(MAU_TRANG);
+
+        txtSoLuongTon = taoOThongTinNhap("");
+        txtTonToiThieu = taoOThongTinNhap("");
+        txtGiaBan = taoOThongTinNhap("");
+        txtHanSuDung = taoOThongTinNhap("");
+        txtNhaCungCap = taoOThongTinNhap("");
+
+        pnlForm.add(taoDongNhap("Mã vật tư:", txtMaVT));
+        pnlForm.add(Box.createVerticalStrut(8));
+        pnlForm.add(taoDongNhap("Tên vật tư:", txtTenVT));
+        pnlForm.add(Box.createVerticalStrut(8));
+        pnlForm.add(taoDongNhap("Đơn vị tính:", cboDonViTinh));
+        pnlForm.add(Box.createVerticalStrut(8));
+        pnlForm.add(taoDongNhap("Số lượng tồn:", txtSoLuongTon));
+        pnlForm.add(Box.createVerticalStrut(8));
+        pnlForm.add(taoDongNhap("Tồn tối thiểu:", txtTonToiThieu));
+        pnlForm.add(Box.createVerticalStrut(8));
+        pnlForm.add(taoDongNhap("Giá bán (VNĐ):", txtGiaBan));
+        pnlForm.add(Box.createVerticalStrut(8));
+        pnlForm.add(taoDongNhap("Hạn sử dụng:", txtHanSuDung));
+        pnlForm.add(Box.createVerticalStrut(8));
+        pnlForm.add(taoDongNhap("Nhà cung cấp:", txtNhaCungCap));
+        pnlForm.add(Box.createVerticalGlue());
+
+        JScrollPane scrForm = new JScrollPane(pnlForm);
+        scrForm.setBorder(BorderFactory.createEmptyBorder());
+
+        JPanel pnlNut = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        pnlNut.setBackground(MAU_TRANG);
+
+        btnLuu = taoNut("Lưu", MAU_TEAL, 95);
+        btnXoa = taoNut("Xóa", MAU_DO, 95);
+        btnHuyBo = taoNut("Hủy bỏ", new Color(110, 120, 135), 95);
+
+        pnlNut.add(btnLuu);
+        pnlNut.add(btnXoa);
+        pnlNut.add(btnHuyBo);
+
+        pnl.add(lblTieuDe, BorderLayout.NORTH);
+        pnl.add(scrForm, BorderLayout.CENTER);
+        pnl.add(pnlNut, BorderLayout.SOUTH);
+
+        return pnl;
+    }
+
+    private JPanel taoDongNhap(String nhan, Component control) {
+        JPanel pnl = new JPanel(new BorderLayout(8, 0));
+        pnl.setBackground(MAU_TRANG);
+        
+        JLabel lbl = new JLabel(nhan);
+        lbl.setFont(new Font("Arial", Font.BOLD, 12));
+        lbl.setPreferredSize(new Dimension(115, 28));
+        
+        control.setPreferredSize(new Dimension(180, 28));
+
+        pnl.add(lbl, BorderLayout.WEST);
+        pnl.add(control, BorderLayout.CENTER);
+        pnl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        
+        return pnl;
+    }
+
+    private void dangKySuKien() {
+        btnThem.addActionListener(this);
+        btnLuu.addActionListener(this);
+        btnXoa.addActionListener(this);
+        btnHuyBo.addActionListener(this);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object source = e.getSource();
+        if (source.equals(btnThem)) {
+            dangThem = true;
+            setEditableForm(true);
+            clearForm();
+            txtMaVT.setText("VT0006");
+            txtTenVT.requestFocus();
+        } else if (source.equals(btnLuu)) {
+            xuLyLuuVatTu();
+        } else if (source.equals(btnXoa)) {
+            xuLyXoaVatTu();
+        } else if (source.equals(btnHuyBo)) {
+            clearForm();
+            setEditableForm(false);
         }
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-        field.setAlignmentX(Component.LEFT_ALIGNMENT); parent.add(field); parent.add(Box.createVerticalStrut(15));
     }
 
-    private JPanel numberField(String label, String value) {
-        JPanel p = new JPanel(new BorderLayout(0, 5)); p.setOpaque(false);
-        p.add(fieldLabel(label), BorderLayout.NORTH);
-        JTextField field = new JTextField(value); styleField(field); p.add(field, BorderLayout.CENTER);
-        return p;
+    private void xuLyLuuVatTu() {
+        if (txtTenVT.getText().trim().isEmpty() || txtGiaBan.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ tên vật tư và giá bán!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        JOptionPane.showMessageDialog(this, dangThem ? "Thêm vật tư mới thành công!" : "Cập nhật thông tin vật tư thành công!");
+        taiDanhSachVatTuDangTheAnh();
+        setEditableForm(false);
+        clearForm();
     }
 
-    private JLabel fieldLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Arial", Font.BOLD, 12)); label.setForeground(new Color(75, 84, 95));
-        return label;
+    private void xuLyXoaVatTu() {
+        String maVT = txtMaVT.getText().trim();
+        if (maVT.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn vật tư cần xóa từ danh mục!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int confirm = JOptionPane.showConfirmDialog(this, "Xác nhận xóa vật tư này khỏi kho?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            JOptionPane.showMessageDialog(this, "Đã xóa vật tư thành công!");
+            clearForm();
+            setEditableForm(false);
+            taiDanhSachVatTuDangTheAnh();
+        }
     }
 
-    private void styleField(JTextField field) {
-        field.setFont(new Font("Arial", Font.PLAIN, 13)); field.setForeground(TEXT); field.setBackground(Color.WHITE);
-        field.setBorder(new CompoundBorder(new LineBorder(new Color(211, 217, 225)),
-            new EmptyBorder(7, 10, 7, 10)));
-        field.setPreferredSize(new Dimension(120, 36));
+    private void setEditableForm(boolean editable) {
+        txtTenVT.setEditable(editable);
+        cboDonViTinh.setEnabled(editable);
+        txtSoLuongTon.setEditable(editable);
+        txtTonToiThieu.setEditable(editable);
+        txtGiaBan.setEditable(editable);
+        txtHanSuDung.setEditable(editable);
+        txtNhaCungCap.setEditable(editable);
+        btnLuu.setEnabled(editable);
+        btnXoa.setEnabled(!dangThem && editable);
     }
 
-    private void styleCombo(JComboBox<String> combo) {
-        combo.setFont(new Font("Arial", Font.PLAIN, 12)); combo.setForeground(TEXT); combo.setBackground(Color.WHITE);
-        combo.setBorder(new LineBorder(new Color(211, 217, 225)));
-        combo.setPreferredSize(new Dimension(120, 36));
+    private void clearForm() {
+        txtMaVT.setText("");
+        txtTenVT.setText("");
+        cboDonViTinh.setSelectedIndex(0);
+        txtSoLuongTon.setText("");
+        txtTonToiThieu.setText("");
+        txtGiaBan.setText("");
+        txtHanSuDung.setText("");
+        txtNhaCungCap.setText("");
     }
-    private JButton makeButton(String text, Color background, Color foreground) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 12)); button.setForeground(foreground);
-        button.setBackground(background); button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(new LineBorder(background.equals(Color.WHITE) ? new Color(215, 220, 227) : background));
-        return button;
+
+    private JPanel taoPanelTrang() {
+        JPanel pnl = new JPanel();
+        pnl.setBackground(MAU_TRANG);
+        return pnl;
+    }
+
+    private JLabel taoTieuDe(String noiDung) {
+        JLabel lbl = new JLabel(noiDung);
+        lbl.setFont(new Font("Arial", Font.BOLD, 15));
+        lbl.setForeground(MAU_NAVY);
+        return lbl;
+    }
+
+    private JTextField taoOThongTin(String noiDung) {
+        JTextField txt = new JTextField(noiDung);
+        txt.setFont(new Font("Arial", Font.PLAIN, 13));
+        txt.setEditable(false);
+        txt.setBackground(new Color(248, 249, 252));
+        txt.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(225, 229, 235)),
+                BorderFactory.createEmptyBorder(5, 7, 5, 7)
+        ));
+        return txt;
+    }
+
+    private JTextField taoOThongTinNhap(String noiDung) {
+        JTextField txt = new JTextField(noiDung);
+        txt.setFont(new Font("Arial", Font.PLAIN, 13));
+        txt.setBackground(MAU_TRANG);
+        txt.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(225, 229, 235)),
+                BorderFactory.createEmptyBorder(5, 7, 5, 7)
+        ));
+        return txt;
+    }
+
+    private JButton taoNut(String noiDung, Color mauNen, int chieuRong) {
+        JButton btn = new JButton(noiDung);
+        btn.setFont(new Font("Arial", Font.BOLD, 12));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(mauNen);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setOpaque(true);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(chieuRong, 32));
+        return btn;
     }
 }
