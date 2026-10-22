@@ -240,22 +240,7 @@ public class ThongKeKhachHangPanel extends JPanel {
                 "Tổng chi tiêu"
         };
 
-        Object[][] duLieu = {
-                {1, "KH001", "Nguyễn Văn An",
-                        12, "19.500.000 đ"},
-
-                {2, "KH002", "Trần Thị Bình",
-                        8, "12.000.000 đ"},
-
-                {3, "KH003", "Lê Hoàng Nam",
-                        5, "6.500.000 đ"},
-
-                {4, "KH004", "Phạm Thu Hà",
-                        15, "28.000.000 đ"},
-
-                {5, "KH005", "Võ Minh Tuấn",
-                        3, "3.200.000 đ"}
-        };
+       Object[][] duLieu = {};
 
         DefaultTableModel model =
                 new DefaultTableModel(duLieu, cot) {
