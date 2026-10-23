@@ -43,7 +43,6 @@ public class PhongDieuTriPanel extends JPanel implements ActionListener, MouseLi
     private JComboBox<String> cboLoaiPhong;
     private JTextField txtViTri;
     private JComboBox<String> cboTrangThai;
-    private JTextField txtSoGhe;
     private JTextField txtThietBi;
 
     private JButton btnThem;       
@@ -185,8 +184,6 @@ public class PhongDieuTriPanel extends JPanel implements ActionListener, MouseLi
         cboTrangThai = new JComboBox<>(new String[]{"Đang hoạt động", "Bảo trì", "Tạm ngưng"});
         cboTrangThai.setFont(new Font("Arial", Font.PLAIN, 13));
         cboTrangThai.setBackground(MAU_TRANG);
-
-        txtSoGhe = taoOThongTinNhap("");
         txtThietBi = taoOThongTinNhap("");
 
         pnlForm.add(taoDongNhap("Mã phòng:", txtMaPhong));
@@ -199,9 +196,7 @@ public class PhongDieuTriPanel extends JPanel implements ActionListener, MouseLi
         pnlForm.add(Box.createVerticalStrut(8));
         pnlForm.add(taoDongNhap("Trạng thái:", cboTrangThai));
         pnlForm.add(Box.createVerticalStrut(8));
-        pnlForm.add(taoDongNhap("Số ghế nha:", txtSoGhe));
-        pnlForm.add(Box.createVerticalStrut(8));
-        pnlForm.add(taoDongNhap("Mô tả thiết bị:", txtThietBi));
+        pnlForm.add(taoDongNhap("Mô tả:", txtThietBi));
         pnlForm.add(Box.createVerticalGlue());
 
         JScrollPane scrForm = new JScrollPane(pnlForm);
@@ -281,8 +276,6 @@ public class PhongDieuTriPanel extends JPanel implements ActionListener, MouseLi
             cboLoaiPhong.setSelectedItem(String.valueOf(modelPhong.getValueAt(row, 2)));
             txtViTri.setText(String.valueOf(modelPhong.getValueAt(row, 3)));
             cboTrangThai.setSelectedItem(String.valueOf(modelPhong.getValueAt(row, 4)));
-            txtSoGhe.setText("2");
-            txtThietBi.setText("Ghế nha khoa cao cấp, Đèn điều trị");
         }
     }
 
@@ -294,14 +287,7 @@ public class PhongDieuTriPanel extends JPanel implements ActionListener, MouseLi
     private void taiDanhSachPhongTuCSDL() {
         modelPhong.setRowCount(0);
         try {
-            Object[][] duLieuMau = {
-                    {"P001", "Phòng Khám 01", "Phòng khám tổng quát", "Tầng 1", "Đang hoạt động"},
-                    {"P002", "Phòng Tiểu Phẫu", "Tiểu phẫu", "Tầng 2", "Đang hoạt động"},
-                    {"P003", "Phòng Chụp X-Quang", "X-Quang", "Tầng 1", "Đang hoạt động"}
-            };
-            for (Object[] row : duLieuMau) {
-                modelPhong.addRow(row);
-            }
+            //Kết nối DB lấy dữ liệu
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -338,7 +324,6 @@ public class PhongDieuTriPanel extends JPanel implements ActionListener, MouseLi
         cboLoaiPhong.setEnabled(editable);
         txtViTri.setEditable(editable);
         cboTrangThai.setEnabled(editable);
-        txtSoGhe.setEditable(editable);
         txtThietBi.setEditable(editable);
         btnLuu.setEnabled(editable);
         btnXoa.setEnabled(!dangThem && editable);
@@ -350,7 +335,6 @@ public class PhongDieuTriPanel extends JPanel implements ActionListener, MouseLi
         cboLoaiPhong.setSelectedIndex(0);
         txtViTri.setText("");
         cboTrangThai.setSelectedIndex(0);
-        txtSoGhe.setText("");
         txtThietBi.setText("");
     }
 

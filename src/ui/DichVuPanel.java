@@ -281,15 +281,7 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
     private void taiDanhSachDichVuTuCSDL() {
         modelDichVu.setRowCount(0);
         try {
-            Object[][] duLieuMau = {
-                    {"DV0001", "Trám răng Composite", "300.000", "30 phút", "Đang cung cấp"},
-                    {"DV0002", "Lấy cao răng & Đánh bóng", "200.000", "45 phút", "Đang cung cấp"},
-                    {"DV0003", "Tẩy trắng răng Laser", "1.500.000", "60 phút", "Đang cung cấp"},
-                    {"DV0004", "Nhổ răng khôn (Tiểu phẫu)", "1.000.000", "45 phút", "Đang cung cấp"}
-            };
-            for (Object[] row : duLieuMau) {
-                modelDichVu.addRow(row);
-            }
+         
         } catch (Exception ex) {
             ex.printStackTrace();
         }
