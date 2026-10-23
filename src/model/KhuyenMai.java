@@ -1,11 +1,12 @@
 
 package model;
 
-import java.math.BigDecimal;
+//import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class KhuyenMai {
     private String maKM;
+    private String maThayThe;
     private String tenKM;
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
@@ -17,10 +18,9 @@ public class KhuyenMai {
     public KhuyenMai() {
     }
 
-    public KhuyenMai(String maKM, String tenKM, LocalDate ngayBatDau,
-                     LocalDate ngayKetThuc, String dichVuApDung,
-                     String dieuKien, double chietKhau, String trangThai) {
+    public KhuyenMai(String maKM, String maThayThe, String tenKM, LocalDate ngayBatDau, LocalDate ngayKetThuc, String dichVuApDung, String dieuKien, double chietKhau, String trangThai) {
         this.maKM = maKM;
+        this.maThayThe = maThayThe;
         this.tenKM = tenKM;
         this.ngayBatDau = ngayBatDau;
         this.ngayKetThuc = ngayKetThuc;
@@ -36,6 +36,14 @@ public class KhuyenMai {
 
     public void setMaKM(String maKM) {
         this.maKM = maKM;
+    }
+
+    public String getMaThayThe() {
+        return maThayThe;
+    }
+
+    public void setMaThayThe(String maThayThe) {
+        this.maThayThe = maThayThe;
     }
 
     public String getTenKM() {
@@ -92,5 +100,20 @@ public class KhuyenMai {
 
     public void setTrangThai(String trangThai) {
         this.trangThai = trangThai;
+    }
+
+    @Override
+    public String toString() {
+        return "KhuyenMai{" +
+                "maKM='" + maKM + '\'' +
+                ", maThayThe='" + maThayThe + '\'' +
+                ", tenKM='" + tenKM + '\'' +
+                ", ngayBatDau=" + ngayBatDau +
+                ", ngayKetThuc=" + ngayKetThuc +
+                ", dichVuApDung='" + dichVuApDung + '\'' +
+                ", dieuKien='" + dieuKien + '\'' +
+                ", chietKhau=" + chietKhau +
+                ", trangThai='" + trangThai + '\'' +
+                '}';
     }
 }

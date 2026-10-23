@@ -1,5 +1,7 @@
 package ui;
 
+import utils.GiaoDienStyle;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;

@@ -9,6 +9,7 @@ public class NhanVien {
     private String soDT;
     private LocalDate ngayVaoLam;
     private Boolean gioiTinh;
+    private String chucVu;
     private String trangThai;
     private String email;
     private String diaChi;
@@ -16,12 +17,13 @@ public class NhanVien {
     public NhanVien() {
     }
 
-    public NhanVien(String maNV, String hoTen, String soDT,LocalDate ngayVaoLam, Boolean gioiTinh,String trangThai, String email, String diaChi) {
+    public NhanVien(String maNV, String hoTen, String soDT, LocalDate ngayVaoLam, Boolean gioiTinh, String chucVu, String trangThai, String email, String diaChi) {
         this.maNV = maNV;
         this.hoTen = hoTen;
         this.soDT = soDT;
         this.ngayVaoLam = ngayVaoLam;
         this.gioiTinh = gioiTinh;
+        this.chucVu = chucVu;
         this.trangThai = trangThai;
         this.email = email;
         this.diaChi = diaChi;
@@ -67,6 +69,14 @@ public class NhanVien {
         this.gioiTinh = gioiTinh;
     }
 
+    public String getChucVu() {
+        return chucVu;
+    }
+
+    public void setChucVu(String chucVu) {
+        this.chucVu = chucVu;
+    }
+
     public String getTrangThai() {
         return trangThai;
     }
@@ -89,5 +99,20 @@ public class NhanVien {
 
     public void setDiaChi(String diaChi) {
         this.diaChi = diaChi;
+    }
+
+    @Override
+    public String toString() {
+        return "NhanVien{" +
+                "maNV='" + maNV + '\'' +
+                ", hoTen='" + hoTen + '\'' +
+                ", soDT='" + soDT + '\'' +
+                ", ngayVaoLam=" + ngayVaoLam +
+                ", gioiTinh=" + gioiTinh +
+                ", chucVu='" + chucVu + '\'' +
+                ", trangThai='" + trangThai + '\'' +
+                ", email='" + email + '\'' +
+                ", diaChi='" + diaChi + '\'' +
+                '}';
     }
 }
