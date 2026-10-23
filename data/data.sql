@@ -2,7 +2,7 @@
 GO
 
 -- =========================================================
--- 1. DỮ LIỆU BỆNH NHÂN (Mã tự sinh từ BN0001)
+-- 1. DU LIEU BENH NHAN
 -- =========================================================
 INSERT INTO BenhNhan
     (MaBenhNhan, HoTen, NgaySinh, GioiTinh, SoDT, Email, DiaChi)
@@ -19,45 +19,63 @@ VALUES
 ('BN0010', N'Phan Nhật Minh', '1991-06-08', 1, '0901122343', 'minh.phan@gmail.com', N'Quận 7, TP.HCM');
 GO
 
-
 -- =========================================================
--- 2. DỮ LIỆU NHÂN VIÊN & TÀI KHOẢN (Trigger tự sinh NV0001 -> NV0005 và tự tạo TaiKhoan)
+-- 2. DU LIEU NHAN VIEN
+-- Chèn từng nhân viên để trigger tạo mã và tài khoản lần lượt
 -- =========================================================
-INSERT INTO NhanVien (HoTen, SoDT, NgayVaoLam, GioiTinh, TrangThai, Email, DiaChi)
+INSERT INTO NhanVien
+    (HoTen, SoDT, NgayVaoLam, GioiTinh, ChucVu, TrangThai, Email, DiaChi)
 VALUES
-(N'Dr. Nguyễn Hải Sơn', '0988111221', '2022-01-10', 1, N'Đang làm', 'son.nguyen@nhakhoa.com', N'Quận 1, TP.HCM'),
-(N'Dr. Trần Mai Linh', '0988111222', '2022-03-15', 0, N'Đang làm', 'linh.tran@nhakhoa.com', N'Quận 3, TP.HCM'),
-(N'Lê Thu Thảo', '0988111223', '2023-05-20', 0, N'Đang làm', 'thao.le@nhakhoa.com', N'Bình Thạnh, TP.HCM'),
-(N'Phạm Văn Hoàng', '0988111224', '2023-06-01', 1, N'Đang làm', 'hoang.pham@nhakhoa.com', N'Gò Vấp, TP.HCM'),
-(N'Đỗ Hoàng Yến', '0988111225', '2024-01-15', 0, N'Đang làm', 'yen.do@nhakhoa.com', N'Quận 10, TP.HCM');
+(N'Dr. Nguyễn Hải Sơn', '0988111221', '2022-01-10', 1, N'Quản lý', N'Đang làm', 'son.nguyen@nhakhoa.com', N'Quận 1, TP.HCM');
 GO
 
--- Cập nhật lại phân quyền cho đúng chuyên môn trong bảng TaiKhoan vừa được Trigger sinh ra
-UPDATE TaiKhoan SET Quyen = N'Quản lý' WHERE TenDangNhap = 'NV0001';
-UPDATE TaiKhoan SET Quyen = N'Nha sĩ' WHERE TenDangNhap = 'NV0002';
-UPDATE TaiKhoan SET Quyen = N'Nha sĩ' WHERE TenDangNhap = 'NV0003';
-UPDATE TaiKhoan SET Quyen = N'Lễ tân' WHERE TenDangNhap = 'NV0004';
-UPDATE TaiKhoan SET Quyen = N'Lễ tân' WHERE TenDangNhap = 'NV0005';
+INSERT INTO NhanVien
+    (HoTen, SoDT, NgayVaoLam, GioiTinh, ChucVu, TrangThai, Email, DiaChi)
+VALUES
+(N'Dr. Trần Mai Linh', '0988111222', '2022-03-15', 0, N'Nha sĩ', N'Đang làm', 'linh.tran@nhakhoa.com', N'Quận 3, TP.HCM');
 GO
 
+INSERT INTO NhanVien
+    (HoTen, SoDT, NgayVaoLam, GioiTinh, ChucVu, TrangThai, Email, DiaChi)
+VALUES
+(N'Lê Thu Thảo', '0988111223', '2023-05-20', 0, N'Nha sĩ', N'Đang làm', 'thao.le@nhakhoa.com', N'Bình Thạnh, TP.HCM');
+GO
+
+INSERT INTO NhanVien
+    (HoTen, SoDT, NgayVaoLam, GioiTinh, ChucVu, TrangThai, Email, DiaChi)
+VALUES
+(N'Phạm Văn Hoàng', '0988111224', '2023-06-01', 1, N'Lễ tân', N'Đang làm', 'hoang.pham@nhakhoa.com', N'Gò Vấp, TP.HCM');
+GO
+
+INSERT INTO NhanVien
+    (HoTen, SoDT, NgayVaoLam, GioiTinh, ChucVu, TrangThai, Email, DiaChi)
+VALUES
+(N'Đỗ Hoàng Yến', '0988111225', '2024-01-15', 0, N'Lễ tân', N'Đang làm', 'yen.do@nhakhoa.com', N'Quận 10, TP.HCM');
+GO
+
+-- Kiểm tra mã nhân viên và tài khoản do trigger tạo
+SELECT * FROM NhanVien;
+SELECT * FROM TaiKhoan;
+GO
 
 -- =========================================================
--- 3. DỮ LIỆU PHÒNG ĐIỀU TRỊ (Mã định dạng Pxxxxx)
+-- 3. DU LIEU PHONG DIEU TRI
 -- =========================================================
-INSERT INTO PhongDieuTri (MaPhong, TenPhong, LoaiPhong, ViTri, TrangThai, MoTa)
+INSERT INTO PhongDieuTri
+    (MaPhong, TenPhong, LoaiPhong, ViTri, TrangThai, MoTa)
 VALUES
 ('P00001', N'Phòng khám VIP 1', N'VIP', N'Tầng 1 - Khu A', N'Trống', N'Phòng khám nha khoa cao cấp'),
-('P00002', N'Phòng tiểu phẫu', N'Tiểu phẫu', N'Tầng 1 - Khu B', N'Trống', N'Chuyên nhổ răng khôn, cắm Implant'),
+('P00002', N'Phòng tiểu phẫu', N'Tiểu phẫu', N'Tầng 1 - Khu B', N'Trống', N'Chuyên nhổ răng khôn và cắm Implant'),
 ('P00003', N'Phòng tổng quát 1', N'Thường', N'Tầng 2 - Khu A', N'Đang sử dụng', N'Khám và cạo vôi răng'),
-('P00004', N'Phòng X-Quang', N'Chụp X-Quang', N'Tầng 2 - Khu B', N'Trống', N'Chụp phim Panorama, Cephalometric'),
-('P00005', N'Phòng xét nghiệm', N'Xét nghiệm', N'Tầng trệt', N'Trống', N'Xét nghiệm máu trước tiểu phẫu');
+('P00004', N'Phòng X-Quang', N'Chụp X-Quang', N'Tầng 2 - Khu B', N'Trống', N'Chụp phim nha khoa'),
+('P00005', N'Phòng xét nghiệm', N'Xét nghiệm', N'Tầng trệt', N'Trống', N'Xét nghiệm trước tiểu phẫu');
 GO
 
-
 -- =========================================================
--- 4. DỮ LIỆU DỊCH VỤ (Mã định dạng DVxxxx)
+-- 4. DU LIEU DICH VU
 -- =========================================================
-INSERT INTO DichVu (MaDV, TenDV, DonGia, ThoiGianDuKien, TrangThai)
+INSERT INTO DichVu
+    (MaDV, TenDV, DonGia, ThoiGianDuKien, TrangThai)
 VALUES
 ('DV0001', N'Khám và tư vấn tổng quát', 100000, 20, N'Đang cung cấp'),
 ('DV0002', N'Cạo vôi răng', 250000, 30, N'Đang cung cấp'),
@@ -68,9 +86,8 @@ VALUES
 ('DV0007', N'Chụp phim X-Quang răng', 120000, 10, N'Đang cung cấp');
 GO
 
-
 -- =========================================================
--- 5. DỮ LIỆU VẬT TƯ (Mã định dạng VTxxxx)
+-- 5. DU LIEU VAT TU
 -- =========================================================
 INSERT INTO VatTu
     (MaVT, TenVatTu, DonViTinh, SoLuongTon, SoLuongToiThieu, HanSuDung, MoTa, HinhAnh)
@@ -82,94 +99,117 @@ VALUES
 ('VT0005', N'Khẩu trang y tế', N'Hộp', 50, 10, NULL, N'Vật tư bảo hộ y tế', N'images/khau_trang.png');
 GO
 
-
 -- =========================================================
--- 6. DỮ LIỆU KHUYẾN MÃI (Mã định dạng KMxxxx)
+-- 6. DU LIEU KHUYEN MAI
+-- MaThayThe là mã khách nhập để áp dụng khuyến mãi
 -- =========================================================
-INSERT INTO KhuyenMai (MaKM, TenKM, NgayBatDau, NgayKetThuc, DichVuApDung, DieuKien, ChietKhau, TrangThai)
+INSERT INTO KhuyenMai
+    (MaKM, MaThayThe, TenKM, NgayBatDau, NgayKetThuc, DichVuApDung, DieuKien, ChietKhau, TrangThai)
 VALUES
-('KM0001', N'Ưu đãi hè - Giảm giá cạo vôi răng', '2026-06-01', '2026-06-30', N'Cạo vôi răng', N'Áp dụng mọi khách hàng', 15.00, N'Đang áp dụng'),
-('KM0002', N'Mừng khai trương chi nhánh', '2026-04-01', '2026-05-30', N'Tất cả dịch vụ', N'Hóa đơn trên 500.000đ', 10.00, N'Đang áp dụng');
+('KM0001', 'CAOVOI15', N'Ưu đãi hè - Giảm giá cạo vôi răng', '2026-06-01', '2026-06-30', N'Cạo vôi răng', N'Áp dụng cho khách hàng sử dụng dịch vụ cạo vôi răng', 15.00, N'Hết hạn'),
+('KM0002', 'KHAITRUONG10', N'Mừng khai trương chi nhánh', '2026-04-01', '2026-05-30', N'Tất cả dịch vụ', N'Hóa đơn trên 500.000 đồng', 10.00, N'Hết hạn');
 GO
 
-
 -- =========================================================
--- 7. DỮ LIỆU KẾ HOẠCH ĐIỀU TRỊ (Mã định dạng KHxxxx)
+-- 7. DU LIEU KE HOACH DIEU TRI
 -- =========================================================
-INSERT INTO KeHoachDieuTri (MaKeHoach, MaBenhNhan, ChanDoan, NgayBatDau, NgayKetThuc, ChiPhiDuKien, TrangThai)
+INSERT INTO KeHoachDieuTri
+    (MaKeHoach, MaBenhNhan, ChanDoan, NgayBatDau, NgayKetThuc, ChiPhiDuKien, TrangThai)
 VALUES
 ('KH0001', 'BN0001', N'Sâu răng hàm số 6, viêm nướu nhẹ', '2026-04-01', '2026-04-10', 600000, N'Đang thực hiện'),
 ('KH0002', 'BN0002', N'Răng khôn mọc lệch gây đau', '2026-04-05', '2026-04-06', 1500000, N'Hoàn thành');
 GO
 
-
 -- =========================================================
--- 8. DỮ LIỆU HỒ SƠ BỆNH NHÂN (Mã định dạng HSxxxx)
+-- 8. DU LIEU HO SO BENH NHAN
 -- =========================================================
-INSERT INTO HoSoBenhNhan (MaHoSo, MaBenhNhan, MaNV, MaKeHoach, NgayKham, TinhTrangRangMieng, ChanDoan, PhuongPhapDieuTri, TienSuBenh, DiUng, BenhLyNen, NguoiLienHe, SoDTNLH, GhiChu)
+INSERT INTO HoSoBenhNhan
+    (MaHoSo, MaBenhNhan, MaNV, MaKeHoach, NgayKham, TinhTrangRangMieng, ChanDoan, PhuongPhapDieuTri, TienSuBenh, DiUng, BenhLyNen, NguoiLienHe, SoDTNLH, GhiChu)
 VALUES
 ('HS0001', 'BN0001', 'NV0002', 'KH0001', '2026-04-01', N'Nhiều vôi răng, có lỗ sâu ở răng hàm dưới', N'Sâu ngà nông', N'Cạo vôi răng và trám răng Composite', N'Không', N'Không', N'Không', N'Nguyễn Văn Ba', '0901234567', N'Bệnh nhân nhạy cảm với ê buốt'),
 ('HS0002', 'BN0002', 'NV0003', 'KH0002', '2026-04-05', N'Răng số 8 hàm dưới mọc ngang', N'Viêm lợi trùm do răng khôn', N'Tiểu phẫu nhổ răng khôn', N'Không', N'Kháng sinh Penicillin', N'Huyết áp nhẹ', N'Trần Thị Hoa', '0901234568', N'Đã uống thuốc giảm đau trước khi đến');
 GO
 
-
 -- =========================================================
--- 9. DỮ LIỆU LỊCH LÀM VIỆC (Mã tự do)
+-- 9. DU LIEU LICH LAM VIEC
 -- =========================================================
-INSERT INTO LichLamViec (MaLich, MaPhong, MaNhanVien, NgayLam, CaLam, GioBatDau, GioKetThuc, TrangThai)
+INSERT INTO LichLamViec
+    (MaLich, MaPhong, MaNhanVien, NgayLam, CaLam, GioBatDau, GioKetThuc, TrangThai)
 VALUES
-('LLV20260401', 'P00003', 'NV0002', '2026-04-01', N'Sáng', '2026-04-01 08:00:00', '2026-04-01 12:00:00', N'Đã phân công'),
-('LLV20260402', 'P00002', 'NV0003', '2026-04-05', N'Chiều', '2026-04-05 13:30:00', '2026-04-05 17:30:00', N'Đã phân công');
+('LLV20260401', 'P00003', 'NV0002', '2026-04-01', 'Sáng', '2026-04-01 08:00:00', '2026-04-01 12:00:00', N'Đã phân công'),
+('LLV20260402', 'P00002', 'NV0003', '2026-04-05', 'Chiều', '2026-04-05 13:30:00', '2026-04-05 17:30:00', N'Đã phân công');
 GO
 
-
 -- =========================================================
--- 10. DỮ LIỆU LỊCH HẸN (Mã tự do)
+-- 10. DU LIEU LICH HEN
 -- =========================================================
-INSERT INTO LichHen (MaLichHen, MaBenhNhan, MaDichVu, MaPhong, MaNV, NgayHen, GioHen, TrangThai, GhiChu)
+INSERT INTO LichHen
+    (MaLichHen, MaBenhNhan, MaDichVu, MaPhong, MaNV, NgayHen, GioHen, TrangThai, GhiChu)
 VALUES
 ('LH000001', 'BN0001', 'DV0002', 'P00003', 'NV0002', '2026-04-01', '2026-04-01 09:00:00', N'Hoàn thành', N'Khách đến đúng giờ'),
 ('LH000002', 'BN0002', 'DV0005', 'P00002', 'NV0003', '2026-04-05', '2026-04-05 14:00:00', N'Hoàn thành', N'Tiểu phẫu thành công');
 GO
 
-
 -- =========================================================
--- 11. DỮ LIỆU PHIẾU NHẬP HÀNG (Mã tự sinh từ PN0001)
+-- 11. DU LIEU PHIEU NHAP HANG
+-- Gán mã rõ ràng vì bảng không được xác nhận có trigger tự sinh mã
 -- =========================================================
-INSERT INTO PhieuNhapHang (MaNV, NhaCungCap, GhiChu)
+INSERT INTO PhieuNhapHang
+    (MaPhieuNhap, NgayNhap, MaNV, NhaCungCap, GhiChu)
 VALUES
-('NV0004', N'Công ty TNHH Thiết Bị Y Tế Sài Gòn', N'Nhập vật tư định kỳ tháng 4'),
-('NV0004', N'Dược Phẩm Phương Nam', N'Nhập thuốc tê và bông băng');
+('PN0001', '2026-04-01', 'NV0004', N'Công ty TNHH Thiết Bị Y Tế Sài Gòn', N'Nhập vật tư định kỳ tháng 4'),
+('PN0002', '2026-04-05', 'NV0004', N'Dược Phẩm Phương Nam', N'Nhập thuốc tê và bông băng');
 GO
 
-
 -- =========================================================
--- 12. DỮ LIỆU CHI TIẾT PHIẾU NHẬP
+-- 12. DU LIEU CHI TIET PHIEU NHAP
 -- =========================================================
-INSERT INTO ChiTietPhieuNhap (MaPhieuNhap, MaVatTu, SoLuong, DonGia, HanSuDung)
+INSERT INTO ChiTietPhieuNhap
+    (MaPhieuNhap, MaVatTu, SoLuong, DonGia, HanSuDung)
 VALUES
 ('PN0001', 'VT0001', 50, 45000, '2028-12-31'),
 ('PN0001', 'VT0002', 15, 120000, '2027-06-30'),
 ('PN0002', 'VT0003', 100, 15000, '2030-01-01');
 GO
 
-
 -- =========================================================
--- 13. DỮ LIỆU HÓA ĐƠN (Mã tự sinh từ HD0001)
+-- 13. DU LIEU HOA DON
+-- Gán mã rõ ràng vì bảng không được xác nhận có trigger tự sinh mã
 -- =========================================================
-INSERT INTO HoaDon (MaBenhNhan, MaNV, NgayLap, ChietKhau, MaKM, TrangThai)
+INSERT INTO HoaDon
+    (MaHD, MaBenhNhan, MaNV, NgayLap, ChietKhau, MaKM, TrangThai)
 VALUES
-('BN0001', 'NV0004', '2026-04-01', 0, NULL, N'Đã thanh toán'),
-('BN0002', 'NV0004', '2026-04-05', 10.00, 'KM0002', N'Đã thanh toán');
+('HD0001', 'BN0001', 'NV0004', '2026-04-01', 0.00, NULL, N'Đã thanh toán'),
+('HD0002', 'BN0002', 'NV0004', '2026-04-05', 10.00, 'KM0002', N'Đã thanh toán');
 GO
 
-
 -- =========================================================
--- 14. DỮ LIỆU CHI TIẾT HÓA ĐƠN
+-- 14. DU LIEU CHI TIET HOA DON
 -- =========================================================
-INSERT INTO ChiTietHoaDon (MaHD, MaDV, SoLuong, DonGia)
+INSERT INTO ChiTietHoaDon
+    (MaHD, MaDV, SoLuong, DonGia)
 VALUES
 ('HD0001', 'DV0002', 1, 250000),
 ('HD0001', 'DV0003', 1, 350000),
 ('HD0002', 'DV0005', 1, 1500000);
+GO
+
+-- =========================================================
+-- 15. KIEM TRA DU LIEU SAU KHI THEM
+-- =========================================================
+SELECT * FROM BenhNhan;
+SELECT * FROM NhanVien;
+SELECT * FROM TaiKhoan;
+SELECT * FROM PhongDieuTri;
+SELECT * FROM DichVu;
+SELECT * FROM VatTu;
+SELECT * FROM KhuyenMai;
+SELECT * FROM KeHoachDieuTri;
+SELECT * FROM HoSoBenhNhan;
+SELECT * FROM LichLamViec;
+SELECT * FROM LichHen;
+SELECT * FROM PhieuNhapHang;
+SELECT * FROM ChiTietPhieuNhap;
+SELECT * FROM HoaDon;
+SELECT * FROM ChiTietHoaDon;
 GO
