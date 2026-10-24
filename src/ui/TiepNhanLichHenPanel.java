@@ -19,7 +19,7 @@ import java.util.Date;
 public class TiepNhanLichHenPanel extends JPanel implements ActionListener, MouseListener {
 
     // =========================================================================
-    // KHAI BÁO TẤT CẢ CÁC BIẾN VÀ THÀNH PHẦN GIAO DIỆN O PHÍA TRÊN
+    // KHAI BÁO TẤT CẢ CÁC BIẾN VÀ THÀNH PHẦN GIAO DIỆN Ở PHÍA TRÊN
     // =========================================================================
     private JTextField codeField;
     private JTextField patientField;
@@ -71,28 +71,22 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
         layDanhSachLichHenTuCSDL();
     }
 
-    // Tạo bố cục tổng thể chia làm 2 phần: Bảng danh sách bên trái và Form bên phải
+    // Tạo bố cục tổng thể: Khung chi tiết ở TRÊN (NORTH), Khung danh sách ở DƯỚI (CENTER)
     private JPanel createContent() {
-        JPanel outer = new JPanel(new BorderLayout(15, 0));
+        JPanel outer = new JPanel(new BorderLayout(0, 15));
         outer.setBackground(UIHelper.BG);
 
-        JPanel left = new JPanel(new BorderLayout(0, 12));
-        left.setBackground(UIHelper.BG);
-        left.add(createTablePanel(), BorderLayout.CENTER);
+        JPanel topPanel = createFormPanel();
+        // Cố định chiều cao vừa vặn cho khung thông tin chi tiết ở phía trên
+        topPanel.setPreferredSize(new Dimension(0, 210));
 
-        JPanel right = createFormPanel();
-        right.setPreferredSize(new Dimension(420, 0));
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBackground(UIHelper.BG);
+        bottomPanel.add(createTablePanel(), BorderLayout.CENTER);
 
-        // Dùng JSplitPane phân chia không gian linh hoạt
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
-        split.setResizeWeight(0.68);
-        split.setDividerLocation(0.68);
-        split.setDividerSize(6);
-        split.setBorder(null);
-        split.setBackground(UIHelper.BG);
-        split.setContinuousLayout(true);
+        outer.add(topPanel, BorderLayout.NORTH);
+        outer.add(bottomPanel, BorderLayout.CENTER);
 
-        outer.add(split, BorderLayout.CENTER);
         return outer;
     }
 
@@ -127,12 +121,11 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
                 return false;
             }
         };
-
         table = new JTable(model);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.setForeground(UIHelper.TEXT);
         table.setBackground(Color.WHITE);
-        table.setRowHeight(42);
+        table.setRowHeight(36);
         table.setGridColor(new Color(230, 240, 250));
         table.setShowVerticalLines(false);
         table.setSelectionBackground(new Color(220, 235, 252));
@@ -141,17 +134,27 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         table.getTableHeader().setForeground(Color.WHITE);
         table.getTableHeader().setBackground(UIHelper.NAVY);
-        table.getTableHeader().setPreferredSize(new Dimension(0, 38));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 36));
         table.getTableHeader().setReorderingAllowed(false);
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        table.getColumnModel().getColumn(0).setPreferredWidth(40);
-        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-        table.getColumnModel().getColumn(1).setPreferredWidth(70);
-        table.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
 
-        JScrollPane scroll = new JScrollPane(table);
+        // Tự động phân bổ độ rộng các cột trải đều trên bảng rộng
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        int[] columnWidths = {50, 90, 180, 120, 110, 90, 180, 160, 140};
+        for (int i = 0; i < columnWidths.length; i++) {
+            table.getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
+        }
+        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
+
+        JScrollPane scroll = new JScrollPane(table,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scroll.setBorder(new LineBorder(UIHelper.BORDER, 1, true));
         scroll.getViewport().setBackground(Color.WHITE);
         p.add(scroll, BorderLayout.CENTER);
@@ -167,79 +170,68 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
         return p;
     }
 
-    // Tạo khu vực Form nhập liệu chi tiết thông tin lịch hẹn ở bên phải
+    // Tạo khu vực Form nhập liệu chi tiết thông tin lịch hẹn ở TRÊN dạng lưới ngang
     private JPanel createFormPanel() {
         JPanel p = UIHelper.createCardPanel();
-        p.setLayout(new BorderLayout(0, 12));
+        p.setLayout(new BorderLayout(0, 8));
         p.setBorder(new CompoundBorder(new LineBorder(UIHelper.BORDER, 1, true), BorderFactory.createTitledBorder(
                 BorderFactory.createEmptyBorder(0, 0, 0, 0), "Thông tin chi tiết",
                 TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
                 new Font("Segoe UI", Font.BOLD, 14), UIHelper.NAVY)));
 
-        JPanel form = new JPanel();
-        form.setBackground(Color.WHITE);
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        // Sắp xếp các trường nhập liệu thành 2 hàng, 4 cột (GridLayout 2x4)
+        JPanel formGrid = new JPanel(new GridLayout(2, 4, 15, 6));
+        formGrid.setBackground(Color.WHITE);
+        formGrid.setBorder(new EmptyBorder(2, 10, 2, 10));
 
         codeField = new JTextField("LH001");
         codeField.setEditable(false);
         codeField.setBackground(new Color(245, 248, 252));
-        addField(form, "Mã lịch hẹn", codeField);
 
         patientField = new JTextField();
-        addField(form, "Tên bệnh nhân *", patientField);
-
         phoneField = new JTextField();
-        addField(form, "Số điện thoại *", phoneField);
 
-        // Khởi tạo JDateChooser chọn ngày hẹn
         dateChooser = new JDateChooser();
         dateChooser.setDateFormatString("dd/MM/yyyy");
         dateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         dateChooser.setBackground(Color.WHITE);
         dateChooser.setDate(new Date());
-        addCustomRow(form, "Ngày hẹn *", dateChooser);
 
-        // Chọn Giờ & Phút bằng 2 ComboBox
-        JPanel timePanel = new JPanel(new GridLayout(1, 2, 8, 0));
+        JPanel timePanel = new JPanel(new GridLayout(1, 2, 6, 0));
         timePanel.setBackground(Color.WHITE);
-
-        cboHour = new JComboBox<>(new String[]{
-                "07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19"
-        });
+        cboHour = new JComboBox<>(new String[]{"07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19"});
         UIHelper.styleComboBox(cboHour);
-
-        cboMinute = new JComboBox<>(new String[]{
-                "00", "15", "30", "45"
-        });
+        cboMinute = new JComboBox<>(new String[]{"00", "15", "30", "45"});
         UIHelper.styleComboBox(cboMinute);
-
         timePanel.add(cboHour);
         timePanel.add(cboMinute);
-        addCustomRow(form, "Giờ hẹn * (Giờ : Phút)", timePanel);
 
-        // JComboBox chọn Bác sĩ phụ trách
         dentistCombo = new JComboBox<>();
         UIHelper.styleComboBox(dentistCombo);
-        addCustomRow(form, "Bác sĩ phụ trách *", dentistCombo);
 
-        serviceCombo = addCombo(form, "Dịch vụ *", new String[]{
-                "Chọn dịch vụ", "Khám tổng quát", "Lấy cao răng", "Trám răng", "Tẩy trắng răng"
-        });
+        serviceCombo = new JComboBox<>(new String[]{"Chọn dịch vụ", "Khám tổng quát", "Lấy cao răng", "Trám răng", "Tẩy trắng răng"});
+        UIHelper.styleComboBox(serviceCombo);
 
-        statusCombo = addCombo(form, "Trạng thái", new String[]{
-                "Chọn trạng thái", "Chờ xác nhận", "Đã xác nhận", "Đã hoàn thành", "Đã hủy"
-        });
+        statusCombo = new JComboBox<>(new String[]{"Chọn trạng thái", "Chờ xác nhận", "Đã xác nhận", "Đã hoàn thành", "Đã hủy"});
+        UIHelper.styleComboBox(statusCombo);
 
-        JScrollPane scroll = new JScrollPane(form);
-        scroll.setBorder(null);
-        scroll.getViewport().setBackground(Color.WHITE);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        p.add(scroll, BorderLayout.CENTER);
+        // Thêm các trường vào lưới hiển thị
+        formGrid.add(createFieldWrapper("Mã lịch hẹn", codeField));
+        formGrid.add(createFieldWrapper("Tên bệnh nhân *", patientField));
+        formGrid.add(createFieldWrapper("Số điện thoại *", phoneField));
+        formGrid.add(createFieldWrapper("Ngày hẹn *", dateChooser));
 
-        // Các nút thao tác chức năng ở đáy form: Lưu, Xóa, Hủy
-        JPanel actions = new JPanel(new GridLayout(1, 3, 6, 0));
+        formGrid.add(createFieldWrapper("Giờ hẹn * (Giờ : Phút)", timePanel));
+        formGrid.add(createFieldWrapper("Bác sĩ phụ trách *", dentistCombo));
+        formGrid.add(createFieldWrapper("Dịch vụ *", serviceCombo));
+        formGrid.add(createFieldWrapper("Trạng thái", statusCombo));
+
+        p.add(formGrid, BorderLayout.CENTER);
+
+        // Các nút thao tác chức năng đặt gọn ở góc phải phía dưới form
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actions.setOpaque(false);
-        actions.setBorder(new EmptyBorder(8, 0, 0, 0));
+        actions.setBorder(new EmptyBorder(0, 0, 0, 5));
 
         saveBtn = new JButton("Lưu");
         deleteBtn = new JButton("Xóa");
@@ -248,61 +240,30 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
         UIHelper.styleButton(saveBtn, true, FontAwesomeSolid.SAVE);
         UIHelper.styleButton(deleteBtn, false, FontAwesomeSolid.TRASH_ALT);
         UIHelper.styleButton(cancelBtn, false, FontAwesomeSolid.TIMES);
+        deleteBtn.setForeground(new Color(215, 38, 56));
 
-        deleteBtn.setForeground(new Color(215, 38, 56)); // Màu đỏ cảnh báo nút Xóa
+        saveBtn.setPreferredSize(new Dimension(85, 30));
+        deleteBtn.setPreferredSize(new Dimension(85, 30));
+        cancelBtn.setPreferredSize(new Dimension(85, 30));
 
         actions.add(saveBtn);
         actions.add(deleteBtn);
         actions.add(cancelBtn);
+
         p.add(actions, BorderLayout.SOUTH);
 
         return p;
     }
 
-    private void addField(JPanel parent, String label, JTextField field) {
-        JPanel wrap = new JPanel(new BorderLayout(0, 4));
+    private JPanel createFieldWrapper(String label, JComponent comp) {
+        JPanel wrap = new JPanel(new BorderLayout(0, 2));
         wrap.setBackground(Color.WHITE);
-        wrap.setBorder(new EmptyBorder(0, 0, 10, 0));
-        wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel l = new JLabel(label);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        l.setForeground(UIHelper.TEXT);
-        UIHelper.styleTextField(field);
-        wrap.add(l, BorderLayout.NORTH);
-        wrap.add(field, BorderLayout.CENTER);
-        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
-        parent.add(wrap);
-    }
-
-    private void addCustomRow(JPanel parent, String label, JComponent comp) {
-        JPanel wrap = new JPanel(new BorderLayout(0, 4));
-        wrap.setBackground(Color.WHITE);
-        wrap.setBorder(new EmptyBorder(0, 0, 10, 0));
-        wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel l = new JLabel(label);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        l.setFont(new Font("Segoe UI", Font.BOLD, 11));
         l.setForeground(UIHelper.TEXT);
         wrap.add(l, BorderLayout.NORTH);
         wrap.add(comp, BorderLayout.CENTER);
-        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
-        parent.add(wrap);
-    }
-
-    private JComboBox<String> addCombo(JPanel parent, String label, String[] options) {
-        JPanel wrap = new JPanel(new BorderLayout(0, 4));
-        wrap.setBackground(Color.WHITE);
-        wrap.setBorder(new EmptyBorder(0, 0, 10, 0));
-        wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel l = new JLabel(label);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        l.setForeground(UIHelper.TEXT);
-        JComboBox<String> combo = new JComboBox<>(options);
-        UIHelper.styleComboBox(combo);
-        wrap.add(l, BorderLayout.NORTH);
-        wrap.add(combo, BorderLayout.CENTER);
-        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
-        parent.add(wrap);
-        return combo;
+        return wrap;
     }
 
     // Làm sạch form nhập liệu
@@ -352,7 +313,7 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
     }
 
     // =========================================================================
-    // XỬ LÝ SỰ KIỆN NÚT BẤM (ACTIONLISTENER TRUYỀN THỐNG)
+    // XỬ LÝ SỰ KIỆN NÚT BẤM
     // =========================================================================
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -369,7 +330,7 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
     }
 
     // =========================================================================
-    // XỬ LÝ SỰ KIỆN CHUỘT TRÊN BẢNG (MOUSELISTENER)
+    // XỬ LÝ SỰ KIỆN CHUỘT TRÊN BẢNG
     // =========================================================================
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -385,68 +346,35 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
     @Override public void mouseExited(MouseEvent e) {}
 
     // =========================================================================
-    // CÁC HÀM KHUNG XỬ LÝ NGHIỆP VỤ & KẾT NỐI CSDL (KẾT NỐI VỚI DAO/SQL)
+    // CÁC HÀM XỬ LÝ NGHIỆP VỤ & KẾT NỐI CSDL
     // =========================================================================
-
-    /**
-     * Tải danh sách Bác sĩ từ CSDL và nạp vào ComboBox dentistCombo
-     */
     private void layDanhSachBacSiTuCSDL() {
         dentistCombo.removeAllItems();
         dentistCombo.addItem("Chọn bác sĩ phụ trách");
 
         try {
-            // TODO: Viết code gọi DAO tại đây
-            // NhanVien_DAO nvDAO = new NhanVien_DAO();
-            // List<NhanVien> listBS = nvDAO.getDanhSachBacSi();
-            // for (NhanVien bs : listBS) {
-            //     dentistCombo.addItem(bs.getHoTen());
-            // }
-
-            // [Dữ liệu giả lập chạy thử]
             dentistCombo.addItem("BS. Nguyễn Văn Tuấn");
             dentistCombo.addItem("BS. Trần Thị Hương");
             dentistCombo.addItem("BS. Lê Minh Hoàng");
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Tải toàn bộ danh sách lịch hẹn từ CSDL và nạp vào Table Model
-     */
     private void layDanhSachLichHenTuCSDL() {
-        model.setRowCount(0); // Xóa dữ liệu cũ trên bảng
+        model.setRowCount(0);
 
         try {
-            // TODO: Viết code gọi DAO tại đây
-            // LichHen_DAO lhDAO = new LichHen_DAO();
-            // List<LichHen> listLH = lhDAO.getDanhSachLichHen();
-            // int stt = 1;
-            // for (LichHen lh : listLH) {
-            //     model.addRow(new Object[]{
-            //         stt++, lh.getMaLichHen(), lh.getTenBenhNhan(), lh.getSdt(),
-            //         sdf.format(lh.getNgayHen()), lh.getGioHen(), lh.getTenBacSi(),
-            //         lh.getDichVu(), lh.getTrangThai()
-            //     });
-            // }
-
-            // [Dữ liệu giả lập chạy thử]
             model.addRow(new Object[]{"1", "LH001", "Nguyễn Minh Anh", "0901234567", "18/10/2026", "08:00", "BS. Nguyễn Văn Tuấn", "Khám tổng quát", "Đã xác nhận"});
             model.addRow(new Object[]{"2", "LH002", "Trần Gia Hân", "0912345678", "19/10/2026", "09:00", "BS. Trần Thị Hương", "Lấy cao răng", "Chờ xác nhận"});
             model.addRow(new Object[]{"3", "LH003", "Lê Hoàng Nam", "0923456789", "20/10/2026", "10:30", "BS. Nguyễn Văn Tuấn", "Trám răng", "Đã xác nhận"});
 
             totalLabel.setText("Tổng số: " + model.getRowCount() + " lịch hẹn");
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Xử lý nghiệp vụ Lưu thông tin Lịch hẹn (Thêm mới hoặc Cập nhật vào CSDL)
-     */
     private void xuLyLuuLichHen() {
         String maLH = codeField.getText().trim();
         String benhNhan = patientField.getText().trim();
@@ -455,7 +383,6 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
         String gio = cboHour.getSelectedItem() + ":" + cboMinute.getSelectedItem();
         String bacSi = (dentistCombo.getSelectedIndex() > 0) ? String.valueOf(dentistCombo.getSelectedItem()) : "";
 
-        // Kiểm tra dữ liệu đầu vào (Validation)
         if (benhNhan.isEmpty() || sdt.isEmpty() || ngay.isEmpty() ||
                 bacSi.isEmpty() || serviceCombo.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn và nhập đầy đủ các trường bắt buộc (*).", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
@@ -464,10 +391,6 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
 
         int selectedRow = table.getSelectedRow();
         if (selectedRow >= 0) {
-            // TODO: Gọi DAO để thực hiện câu lệnh UPDATE trong SQL Server
-            // LichHen lh = new LichHen(maLH, benhNhan, sdt, dateChooser.getDate(), gio, bacSi, serviceCombo.getSelectedItem().toString(), statusCombo.getSelectedItem().toString());
-            // if (lhDAO.capNhatLichHen(lh)) { ... }
-
             int r = table.convertRowIndexToModel(selectedRow);
             model.setValueAt(maLH, r, 1);
             model.setValueAt(benhNhan, r, 2);
@@ -479,10 +402,6 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
             model.setValueAt(statusCombo.getSelectedIndex() == 0 ? "Chờ xác nhận" : statusCombo.getSelectedItem(), r, 8);
             JOptionPane.showMessageDialog(this, "Đã cập nhật lịch hẹn thành công.");
         } else {
-            // TODO: Gọi DAO để thực hiện câu lệnh INSERT INTO trong SQL Server
-            // LichHen lh = new LichHen(maLH, benhNhan, sdt, dateChooser.getDate(), gio, bacSi, serviceCombo.getSelectedItem().toString(), "Chờ xác nhận");
-            // if (lhDAO.themLichHen(lh)) { ... }
-
             String trangThai = statusCombo.getSelectedIndex() == 0 ? "Chờ xác nhận" : (String) statusCombo.getSelectedItem();
             Object[] rowData = {
                     String.valueOf(model.getRowCount() + 1),
@@ -496,9 +415,6 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
         clearForm();
     }
 
-    /**
-     * Xử lý nghiệp vụ Xóa Lịch hẹn khỏi CSDL
-     */
     private void xuLyXoaLichHen() {
         int row = table.getSelectedRow();
         if (row < 0) {
@@ -516,11 +432,6 @@ public class TiepNhanLichHenPanel extends JPanel implements ActionListener, Mous
 
         if (confirm == JOptionPane.YES_OPTION) {
             int r = table.convertRowIndexToModel(row);
-            String maLH = String.valueOf(model.getValueAt(r, 1));
-
-            // TODO: Gọi DAO để thực hiện câu lệnh DELETE FROM trong SQL Server
-            // if (lhDAO.xoaLichHen(maLH)) { ... }
-
             model.removeRow(r);
             totalLabel.setText("Tổng số: " + model.getRowCount() + " lịch hẹn");
             clearForm();

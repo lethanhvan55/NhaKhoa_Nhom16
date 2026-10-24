@@ -30,7 +30,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
 
     private JButton addBtn;
     private JButton saveBtn;
-    private JButton deleteBtn; // Khai báo nút Xóa
+    private JButton deleteBtn;
     private JButton cancelBtn;
 
     public NhanVienPanel() {
@@ -43,31 +43,27 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         // Đăng ký sự kiện cho các nút bấm và bảng dữ liệu
         addBtn.addActionListener(this);
         saveBtn.addActionListener(this);
-        deleteBtn.addActionListener(this); // Đăng ký sự kiện nút Xóa
+        deleteBtn.addActionListener(this);
         cancelBtn.addActionListener(this);
         table.addMouseListener(this);
     }
 
+    // Bố cục tổng thể: Khung thông tin chi tiết ở TRÊN (NORTH), Khung danh sách ở DƯỚI (CENTER)
     private JPanel createContent() {
-        JPanel outer = new JPanel(new BorderLayout(15, 0));
+        JPanel outer = new JPanel(new BorderLayout(0, 15));
         outer.setBackground(UIHelper.BG);
 
-        JPanel left = new JPanel(new BorderLayout(0, 12));
-        left.setBackground(UIHelper.BG);
-        left.add(createTablePanel(), BorderLayout.CENTER);
+        JPanel topPanel = createFormPanel();
+        // Cố định chiều cao vừa vặn cho khung thông tin chi tiết ở phía trên
+        topPanel.setPreferredSize(new Dimension(0, 210));
 
-        JPanel right = createFormPanel();
-        right.setPreferredSize(new Dimension(380, 0));
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBackground(UIHelper.BG);
+        bottomPanel.add(createTablePanel(), BorderLayout.CENTER);
 
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
-        split.setResizeWeight(0.72);
-        split.setDividerLocation(0.72);
-        split.setDividerSize(6);
-        split.setBorder(null);
-        split.setBackground(UIHelper.BG);
-        split.setContinuousLayout(true);
+        outer.add(topPanel, BorderLayout.NORTH);
+        outer.add(bottomPanel, BorderLayout.CENTER);
 
-        outer.add(split, BorderLayout.CENTER);
         return outer;
     }
 
@@ -106,7 +102,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.setForeground(UIHelper.TEXT);
         table.setBackground(Color.WHITE);
-        table.setRowHeight(42);
+        table.setRowHeight(36);
         table.setGridColor(new Color(230, 240, 250));
         table.setShowVerticalLines(false);
         table.setSelectionBackground(new Color(220, 235, 252));
@@ -115,15 +111,21 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         table.getTableHeader().setForeground(Color.WHITE);
         table.getTableHeader().setBackground(UIHelper.NAVY);
-        table.getTableHeader().setPreferredSize(new Dimension(0, 38));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 36));
         table.getTableHeader().setReorderingAllowed(false);
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        table.getColumnModel().getColumn(0).setPreferredWidth(45);
+
+        // Tự động phân bổ độ rộng các cột trải đều
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        int[] columnWidths = {50, 90, 180, 120, 180, 140, 140};
+        for (int i = 0; i < columnWidths.length; i++) {
+            table.getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
+        }
         table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-        table.getColumnModel().getColumn(1).setPreferredWidth(80);
         table.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
 
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(new LineBorder(UIHelper.BORDER, 1, true));
@@ -141,48 +143,48 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         return p;
     }
 
+    // Khung form thông tin chi tiết bố trí dạng lưới ngang (2 hàng, 4 cột)
     private JPanel createFormPanel() {
         JPanel p = UIHelper.createCardPanel();
-        p.setLayout(new BorderLayout(0, 12));
+        p.setLayout(new BorderLayout(0, 8));
         p.setBorder(new CompoundBorder(new LineBorder(UIHelper.BORDER, 1, true), BorderFactory.createTitledBorder(
                 BorderFactory.createEmptyBorder(0, 0, 0, 0), "Thông tin chi tiết",
                 TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
                 new Font("Segoe UI", Font.BOLD, 14), UIHelper.NAVY)));
 
-        JPanel form = new JPanel();
-        form.setBackground(Color.WHITE);
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        JPanel formGrid = new JPanel(new GridLayout(2, 4, 15, 6));
+        formGrid.setBackground(Color.WHITE);
+        formGrid.setBorder(new EmptyBorder(2, 10, 2, 10));
 
         codeField = new JTextField();
-        addField(form, "Mã nhân viên *", codeField);
-
         nameField = new JTextField();
-        addField(form, "Họ và tên *", nameField);
-
         phoneField = new JTextField();
-        addField(form, "Số điện thoại *", phoneField);
-
         emailField = new JTextField();
-        addField(form, "Email", emailField);
 
-        positionCombo = addCombo(form, "Chức vụ *", new String[]{
+        positionCombo = new JComboBox<>(new String[]{
                 "Chọn chức vụ", "Lễ tân", "Bác sĩ", "Phụ tá", "Quản lý"
         });
+        UIHelper.styleComboBox(positionCombo);
 
-        statusCombo = addCombo(form, "Trạng thái", new String[]{
+        statusCombo = new JComboBox<>(new String[]{
                 "Chọn trạng thái", "Đang làm việc", "Tạm nghỉ", "Đã nghỉ việc"
         });
+        UIHelper.styleComboBox(statusCombo);
 
-        JScrollPane scroll = new JScrollPane(form);
-        scroll.setBorder(null);
-        scroll.getViewport().setBackground(Color.WHITE);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        p.add(scroll, BorderLayout.CENTER);
+        // Thêm các trường vào lưới hiển thị
+        formGrid.add(createFieldWrapper("Mã nhân viên *", codeField));
+        formGrid.add(createFieldWrapper("Họ và tên *", nameField));
+        formGrid.add(createFieldWrapper("Số điện thoại *", phoneField));
+        formGrid.add(createFieldWrapper("Email", emailField));
+        formGrid.add(createFieldWrapper("Chức vụ *", positionCombo));
+        formGrid.add(createFieldWrapper("Trạng thái", statusCombo));
 
-        // Chia thanh chứa nút thành 3 cột (Lưu, Xóa, Hủy) dùng GridLayout(1, 3)
-        JPanel actions = new JPanel(new GridLayout(1, 3, 6, 0));
+        p.add(formGrid, BorderLayout.CENTER);
+
+        // Các nút thao tác chức năng đặt gọn ở góc phải phía dưới form
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actions.setOpaque(false);
-        actions.setBorder(new EmptyBorder(8, 0, 0, 0));
+        actions.setBorder(new EmptyBorder(0, 0, 0, 5));
 
         saveBtn = new JButton("Lưu");
         deleteBtn = new JButton("Xóa");
@@ -191,9 +193,11 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         UIHelper.styleButton(saveBtn, true, FontAwesomeSolid.SAVE);
         UIHelper.styleButton(deleteBtn, false, FontAwesomeSolid.TRASH_ALT);
         UIHelper.styleButton(cancelBtn, false, FontAwesomeSolid.TIMES);
-
-        // Thiết kế riêng màu chữ đỏ cảnh báo cho nút Xóa
         deleteBtn.setForeground(new Color(215, 38, 56));
+
+        saveBtn.setPreferredSize(new Dimension(85, 30));
+        deleteBtn.setPreferredSize(new Dimension(85, 30));
+        cancelBtn.setPreferredSize(new Dimension(85, 30));
 
         actions.add(saveBtn);
         actions.add(deleteBtn);
@@ -203,36 +207,18 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         return p;
     }
 
-    private void addField(JPanel parent, String label, JTextField field) {
-        JPanel wrap = new JPanel(new BorderLayout(0, 4));
+    private JPanel createFieldWrapper(String label, JComponent comp) {
+        JPanel wrap = new JPanel(new BorderLayout(0, 2));
         wrap.setBackground(Color.WHITE);
-        wrap.setBorder(new EmptyBorder(0, 0, 10, 0));
-        wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel l = new JLabel(label);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        l.setFont(new Font("Segoe UI", Font.BOLD, 11));
         l.setForeground(UIHelper.TEXT);
-        UIHelper.styleTextField(field);
+        if (comp instanceof JTextField) {
+            UIHelper.styleTextField((JTextField) comp);
+        }
         wrap.add(l, BorderLayout.NORTH);
-        wrap.add(field, BorderLayout.CENTER);
-        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
-        parent.add(wrap);
-    }
-
-    private JComboBox<String> addCombo(JPanel parent, String label, String[] options) {
-        JPanel wrap = new JPanel(new BorderLayout(0, 4));
-        wrap.setBackground(Color.WHITE);
-        wrap.setBorder(new EmptyBorder(0, 0, 10, 0));
-        wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel l = new JLabel(label);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        l.setForeground(UIHelper.TEXT);
-        JComboBox<String> combo = new JComboBox<>(options);
-        UIHelper.styleComboBox(combo);
-        wrap.add(l, BorderLayout.NORTH);
-        wrap.add(combo, BorderLayout.CENTER);
-        wrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
-        parent.add(wrap);
-        return combo;
+        wrap.add(comp, BorderLayout.CENTER);
+        return wrap;
     }
 
     public void clearForm() {
@@ -267,7 +253,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         } else if (source.equals(saveBtn)) {
             xuLyLuuNhanVien();
         } else if (source.equals(deleteBtn)) {
-            xuLyXoaNhanVien(); // Xử lý khi nhấn nút Xóa
+            xuLyXoaNhanVien();
         } else if (source.equals(cancelBtn)) {
             clearForm();
         }
@@ -302,7 +288,6 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         JOptionPane.showMessageDialog(this, "Khung logic lưu dữ liệu sẵn sàng.");
     }
 
-    // Khung hàm xử lý sự kiện Xóa nhân viên
     private void xuLyXoaNhanVien() {
         int row = table.getSelectedRow();
         if (row < 0) {
@@ -319,9 +304,6 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            // TODO: Viết lệnh DAO / SQL Server để xóa dữ liệu ở đây
-
-            // Xóa dòng trên giao diện bảng tạm thời
             model.removeRow(row);
             clearForm();
             JOptionPane.showMessageDialog(this, "Đã xóa nhân viên thành công.");
