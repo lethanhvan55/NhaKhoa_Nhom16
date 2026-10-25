@@ -1,4 +1,3 @@
-
 package model;
 
 import java.time.LocalDate;
@@ -15,21 +14,26 @@ public class KeHoachDieuTri {
     public KeHoachDieuTri() {
     }
 
-    public KeHoachDieuTri(String maKeHoach, BenhNhan maBenhNhan,String chanDoan, LocalDate ngayBatDau,LocalDate ngayKetThuc, double chiPhiDuKien,String trangThai) {
-        this.maKeHoach = maKeHoach;
-        this.maBenhNhan = maBenhNhan;
-        this.chanDoan = chanDoan;
-        this.ngayBatDau = ngayBatDau;
-        this.ngayKetThuc = ngayKetThuc;
-        this.chiPhiDuKien = chiPhiDuKien;
-        this.trangThai = trangThai;
+    public KeHoachDieuTri(String maKeHoach, BenhNhan maBenhNhan, String chanDoan, 
+                          LocalDate ngayBatDau, LocalDate ngayKetThuc, double chiPhiDuKien, String trangThai) {
+        setMaKeHoach(maKeHoach);
+        setMaBenhNhan(maBenhNhan);
+        setChanDoan(chanDoan);
+        setNgayBatDau(ngayBatDau);
+        setNgayKetThuc(ngayKetThuc);
+        setChiPhiDuKien(chiPhiDuKien);
+        setTrangThai(trangThai);
     }
+
     public String getMaKeHoach() {
         return maKeHoach;
     }
 
     public void setMaKeHoach(String maKeHoach) {
-        this.maKeHoach = maKeHoach;
+        if (maKeHoach == null || maKeHoach.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã kế hoạch không được để trống!");
+        }
+        this.maKeHoach = maKeHoach.trim();
     }
 
     public BenhNhan getMaBenhNhan() {
@@ -37,6 +41,9 @@ public class KeHoachDieuTri {
     }
 
     public void setMaBenhNhan(BenhNhan maBenhNhan) {
+        if (maBenhNhan == null || maBenhNhan.getMaBenhNhan() == null || maBenhNhan.getMaBenhNhan().trim().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn thông tin bệnh nhân!");
+        }
         this.maBenhNhan = maBenhNhan;
     }
 
@@ -45,7 +52,10 @@ public class KeHoachDieuTri {
     }
 
     public void setChanDoan(String chanDoan) {
-        this.chanDoan = chanDoan;
+        if (chanDoan == null || chanDoan.trim().isEmpty()) {
+            throw new IllegalArgumentException("Chẩn đoán bệnh không được để trống!");
+        }
+        this.chanDoan = chanDoan.trim();
     }
 
     public LocalDate getNgayBatDau() {
@@ -53,6 +63,9 @@ public class KeHoachDieuTri {
     }
 
     public void setNgayBatDau(LocalDate ngayBatDau) {
+        if (ngayBatDau == null) {
+            throw new IllegalArgumentException("Ngày bắt đầu không được để trống!");
+        }
         this.ngayBatDau = ngayBatDau;
     }
 
@@ -61,6 +74,12 @@ public class KeHoachDieuTri {
     }
 
     public void setNgayKetThuc(LocalDate ngayKetThuc) {
+        if (ngayKetThuc == null) {
+            throw new IllegalArgumentException("Ngày kết thúc không được để trống!");
+        }
+        if (this.ngayBatDau != null && ngayKetThuc.isBefore(this.ngayBatDau)) {
+            throw new IllegalArgumentException("Ngày kết thúc không được trước ngày bắt đầu!");
+        }
         this.ngayKetThuc = ngayKetThuc;
     }
 
@@ -69,6 +88,9 @@ public class KeHoachDieuTri {
     }
 
     public void setChiPhiDuKien(double chiPhiDuKien) {
+        if (chiPhiDuKien < 0) {
+            throw new IllegalArgumentException("Chi phí dự kiến không được âm!");
+        }
         this.chiPhiDuKien = chiPhiDuKien;
     }
 
@@ -77,6 +99,9 @@ public class KeHoachDieuTri {
     }
 
     public void setTrangThai(String trangThai) {
-        this.trangThai = trangThai;
+        if (trangThai == null || trangThai.trim().isEmpty()) {
+            throw new IllegalArgumentException("Trạng thái kế hoạch không được để trống!");
+        }
+        this.trangThai = trangThai.trim();
     }
 }

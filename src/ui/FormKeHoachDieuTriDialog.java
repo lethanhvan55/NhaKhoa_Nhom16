@@ -11,8 +11,10 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -25,17 +27,23 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
+import dao.KeHoachDieuTri_DAO;
+import dao.BenhNhan_DAO;
+import dao.DichVu_DAO;
+import model.BenhNhan;
+import model.KeHoachDieuTri;
+import model.DichVu;
 import utils.GiaoDienStyle;
 
 public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener {
@@ -44,44 +52,52 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
     private Color mauNen = GiaoDienStyle.MAU_NEN;
     private Color mauTrang = GiaoDienStyle.MAU_TRANG;
 
-    // Các trường thông tin chung
     private JTextField txtMaKH;
     private JComboBox<String> cboBenhNhan;
-    private JComboBox<String> cboBacSi;
     private JTextField txtChanDoan;
     private JDateChooser dcNgayBatDau;
     private JDateChooser dcNgayKetThuc;
     private JComboBox<String> cboTrangThai;
-    private JTextArea txtGhiChu;
 
-    // Các trường chọn dịch vụ
     private JComboBox<String> cboDichVu;
     private JSpinner spnSoLuong;
     private JButton btnThemDV;
     private JButton btnXoaDV;
 
-    // Bảng dịch vụ đã chọn
     private JTable tblDichVu;
     private DefaultTableModel modelDichVu;
     private JLabel lblTongTien;
 
-    // Các nút lưu / hủy
     private JButton btnLuu;
     private JButton btnHuy;
 
     private DecimalFormat df = new DecimalFormat("#,##0");
-    private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     private double tongChiPhi = 0;
+    private KeHoachDieuTri_DAO khDao = new KeHoachDieuTri_DAO();
+    private boolean isThemMoi = true;
 
     public FormKeHoachDieuTriDialog(JFrame parent) {
-        super(parent, "Lập Kế Hoạch Điều Trị Mới", true); // Modal Dialog
+        super(parent, "Lập Kế Hoạch Điều Trị Mới", true);
+        this.isThemMoi = true;
         khoiTaoGiaoDien();
         dangKySuKien();
         loadDataCombobox();
+        txtMaKH.setText(sinhMaTuDong());
+        txtMaKH.setEditable(false);
+    }
+
+    public FormKeHoachDieuTriDialog(JFrame parent, String maKH) {
+        super(parent, "Chỉnh Sửa Kế Hoạch Điều Trị", true);
+        this.isThemMoi = false;
+        khoiTaoGiaoDien();
+        dangKySuKien();
+        loadDataCombobox();
+        loadDuLieuLenForm(maKH);
+        txtMaKH.setEditable(false);
     }
 
     private void khoiTaoGiaoDien() {
-        setSize(850, 680);
+        setSize(850, 620);
         setLocationRelativeTo(null);
         setResizable(false);
         setLayout(new BorderLayout());
@@ -97,7 +113,6 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         add(pnlMain, BorderLayout.CENTER);
     }
 
-    // Panel 1: Thông tin chung của kế hoạch điều trị
     private JPanel taoFormThongTinChung() {
         JPanel pnl = new JPanel(new GridBagLayout());
         pnl.setBackground(mauTrang);
@@ -107,8 +122,8 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
                         BorderFactory.createTitledBorder(
                                 BorderFactory.createEmptyBorder(0, 0, 0, 0),
                                 "Thông tin chung kế hoạch",
-                                javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION,
-                                javax.swing.border.TitledBorder.DEFAULT_POSITION,
+                                TitledBorder.DEFAULT_JUSTIFICATION,
+                                TitledBorder.DEFAULT_POSITION,
                                 new Font("Segoe UI", Font.BOLD, 14),
                                 mauChuDao
                         )
@@ -119,15 +134,11 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         gbc.insets = new Insets(6, 10, 6, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        txtMaKH = new JTextField("KH0007");
-        txtMaKH.setEditable(false);
+        txtMaKH = new JTextField();
         txtMaKH.setPreferredSize(new Dimension(180, 30));
 
         cboBenhNhan = new JComboBox<>();
         cboBenhNhan.setPreferredSize(new Dimension(180, 30));
-
-        cboBacSi = new JComboBox<>();
-        cboBacSi.setPreferredSize(new Dimension(180, 30));
 
         txtChanDoan = new JTextField();
         txtChanDoan.setPreferredSize(new Dimension(180, 30));
@@ -147,20 +158,12 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         });
         cboTrangThai.setPreferredSize(new Dimension(180, 30));
 
-        // Dòng 0: Mã KH & Bệnh nhân
         themTruongForm(pnl, gbc, "Mã kế hoạch:", txtMaKH, 0, 0);
         themTruongForm(pnl, gbc, "Bệnh nhân *:", cboBenhNhan, 2, 0);
-
-        // Dòng 1: Bác sĩ & Chẩn đoán
-        themTruongForm(pnl, gbc, "Bác sĩ phụ trách *:", cboBacSi, 0, 1);
-        themTruongForm(pnl, gbc, "Chẩn đoán *:", txtChanDoan, 2, 1);
-
-        // Dòng 2: Ngày bắt đầu & Ngày kết thúc
-        themTruongForm(pnl, gbc, "Ngày bắt đầu *:", dcNgayBatDau, 0, 2);
-        themTruongForm(pnl, gbc, "Ngày kết thúc *:", dcNgayKetThuc, 2, 2);
-
-        // Dòng 3: Trạng thái
-        themTruongForm(pnl, gbc, "Trạng thái:", cboTrangThai, 0, 3);
+        themTruongForm(pnl, gbc, "Chẩn đoán *:", txtChanDoan, 0, 1);
+        themTruongForm(pnl, gbc, "Ngày bắt đầu *:", dcNgayBatDau, 2, 1);
+        themTruongForm(pnl, gbc, "Ngày kết thúc *:", dcNgayKetThuc, 0, 2);
+        themTruongForm(pnl, gbc, "Trạng thái:", cboTrangThai, 2, 2);
 
         return pnl;
     }
@@ -179,7 +182,6 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         pnl.add(comp, gbc);
     }
 
-    // Panel 2: Khu vực chọn dịch vụ và bảng hiển thị dịch vụ trong kế hoạch
     private JPanel taoKhuVucDichVu() {
         JPanel pnl = new JPanel(new BorderLayout(5, 8));
         pnl.setBackground(mauTrang);
@@ -189,15 +191,14 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
                         BorderFactory.createTitledBorder(
                                 BorderFactory.createEmptyBorder(0, 0, 0, 0),
                                 "Chi tiết dịch vụ điều trị",
-                                javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION,
-                                javax.swing.border.TitledBorder.DEFAULT_POSITION,
+                                TitledBorder.DEFAULT_JUSTIFICATION,
+                                TitledBorder.DEFAULT_POSITION,
                                 new Font("Segoe UI", Font.BOLD, 14),
                                 mauChuDao
                         )
                 )
         );
 
-        // Thanh công cụ chọn dịch vụ + số lượng
         JPanel pnlChonDV = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         pnlChonDV.setBackground(mauTrang);
 
@@ -219,8 +220,7 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
 
         pnl.add(pnlChonDV, BorderLayout.NORTH);
 
-        // Bảng danh sách dịch vụ
-        String[] cot = {"Mã DV", "Tên dịch vụ", "Số lượng", "Đơn giá (VNĐ)", "Thành tiền (VNĐ)"};
+        String[] cot = {"STT", "Mã DV", "Tên dịch vụ", "SL", "Đơn giá", "Thành tiền"};
         modelDichVu = new DefaultTableModel(null, cot) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -234,15 +234,14 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
 
         DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
         rightRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
-        tblDichVu.getColumnModel().getColumn(3).setCellRenderer(rightRenderer);
         tblDichVu.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
+        tblDichVu.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
 
         JScrollPane scrTable = new JScrollPane(tblDichVu);
         scrTable.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         scrTable.getViewport().setBackground(Color.WHITE);
         pnl.add(scrTable, BorderLayout.CENTER);
 
-        // Đáy panel: Hiển thị tổng tiền
         lblTongTien = new JLabel("Tổng chi phí dự kiến: 0 VNĐ  ", SwingConstants.RIGHT);
         lblTongTien.setFont(new Font("Segoe UI", Font.BOLD, 15));
         lblTongTien.setForeground(mauChuDao);
@@ -253,7 +252,6 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         return pnl;
     }
 
-    // Panel 3: Nút Lưu / Hủy ở góc dưới
     private JPanel taoPanelNutThaoTac() {
         JPanel pnl = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         pnl.setBackground(mauNen);
@@ -272,24 +270,126 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         btnXoaDV.addActionListener(this);
         btnLuu.addActionListener(this);
         btnHuy.addActionListener(this);
+
+        cboBenhNhan.addActionListener(e -> {
+            if (cboBenhNhan.getSelectedIndex() > 0 && isThemMoi) {
+                String selectedBN = (String) cboBenhNhan.getSelectedItem();
+                String maBN = selectedBN.split(" - ")[0];
+                loadDichVuVaoBangTheoBenhNhan(maBN);
+            }
+        });
     }
 
     private void loadDataCombobox() {
-        // TODO: Kết nối DAO lấy danh sách Bệnh nhân, Bác sĩ, Dịch vụ từ SQL Server
+        cboBenhNhan.removeAllItems();
         cboBenhNhan.addItem("Chọn bệnh nhân");
-        cboBenhNhan.addItem("BN0001 - Nguyễn Văn An");
-        cboBenhNhan.addItem("BN0002 - Trần Thị Bích");
-        cboBenhNhan.addItem("BN0003 - Lê Minh Hoàng");
+        try {
+            BenhNhan_DAO bnDao = new BenhNhan_DAO();
+            List<BenhNhan> dsBN = bnDao.getAll();
+            for (BenhNhan bn : dsBN) {
+                cboBenhNhan.addItem(bn.getMaBenhNhan() + " - " + bn.getHoTen());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        cboBacSi.addItem("Chọn bác sĩ");
-        cboBacSi.addItem("BS001 - BS. Nguyễn Văn Tuấn");
-        cboBacSi.addItem("BS002 - BS. Trần Thị Hương");
-
+        cboDichVu.removeAllItems();
         cboDichVu.addItem("Chọn dịch vụ");
-        cboDichVu.addItem("DV001 - Khám và tư vấn (500,000)");
-        cboDichVu.addItem("DV002 - Trám răng composte (400,000)");
-        cboDichVu.addItem("DV003 - Cạo vôi răng (300,000)");
-        cboDichVu.addItem("DV004 - Niềng răng mắc cài (20,000,000)");
+        try {
+            DichVu_DAO dvDao = new DichVu_DAO();
+            List<DichVu> dsDV = dvDao.getAllDichVu();
+            for (DichVu dv : dsDV) {
+                String itemText = dv.getMaDV() + " - " + dv.getTenDV() + " (" + df.format(dv.getDonGia()) + ")";
+                cboDichVu.addItem(itemText);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String sinhMaTuDong() {
+        try {
+            List<KeHoachDieuTri> ds = khDao.getAll();
+            if (ds == null || ds.isEmpty()) {
+                return "KH0001";
+            }
+            
+            int max = 0;
+            for (KeHoachDieuTri kh : ds) {
+                try {
+                    String ma = kh.getMaKeHoach();
+                    int so = Integer.parseInt(ma.replaceAll("\\D+", ""));
+                    if (so > max) {
+                        max = so;
+                    }
+                } catch (Exception ignored) {}
+            }
+            return String.format("KH%04d", max + 1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "KH0001";
+        }
+    }
+
+    private void loadDichVuVaoBangTheoBenhNhan(String maBenhNhan) {
+        modelDichVu.setRowCount(0);
+        try {
+            List<DichVu> dsDV = khDao.getDichVuTheoMaBenhNhan(maBenhNhan);
+            
+            int stt = 1;
+            for (DichVu dv : dsDV) {
+                int soLuong = 1; 
+                double donGia = dv.getDonGia();
+                double thanhTien = donGia * soLuong;
+
+                modelDichVu.addRow(new Object[]{
+                        stt++,
+                        dv.getMaDV(),
+                        dv.getTenDV(),
+                        soLuong,
+                        df.format(donGia),
+                        df.format(thanhTien)
+                });
+            }
+            tinhLaiTongChiPhi();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadDuLieuLenForm(String maKH) {
+        try {
+            List<KeHoachDieuTri> ds = khDao.getAll();
+            for (KeHoachDieuTri kh : ds) {
+                if (kh.getMaKeHoach().equals(maKH)) {
+                    txtMaKH.setText(kh.getMaKeHoach());
+                    txtChanDoan.setText(kh.getChanDoan());
+                    
+                    if (kh.getNgayBatDau() != null) {
+                        dcNgayBatDau.setDate(Date.from(kh.getNgayBatDau().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                    }
+                    if (kh.getNgayKetThuc() != null) {
+                        dcNgayKetThuc.setDate(Date.from(kh.getNgayKetThuc().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                    }
+                    
+                    cboTrangThai.setSelectedItem(kh.getTrangThai());
+                    
+                    if (kh.getMaBenhNhan() != null) {
+                        String maBN = kh.getMaBenhNhan().getMaBenhNhan();
+                        for (int i = 0; i < cboBenhNhan.getItemCount(); i++) {
+                            if (cboBenhNhan.getItemAt(i).startsWith(maBN)) {
+                                cboBenhNhan.setSelectedIndex(i);
+                                break;
+                            }
+                        }
+                        loadDichVuVaoBangTheoBenhNhan(maBN);
+                    }
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -302,7 +402,7 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         } else if (src.equals(btnLuu)) {
             xuLyLuuKeHoach();
         } else if (src.equals(btnHuy)) {
-            dispose(); // Đóng form
+            dispose();
         }
     }
 
@@ -315,36 +415,32 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         String selectedDV = (String) cboDichVu.getSelectedItem();
         int soLuong = (int) spnSoLuong.getValue();
 
-        // Tách chuỗi mẫu: "DV001 - Khám và tư vấn (500,000)"
-        String maDV = selectedDV.substring(0, 5);
-        String tenDV = selectedDV.substring(8, selectedDV.indexOf(" ("));
-        double donGia = 0;
-
-        if (maDV.equals("DV001")) donGia = 500000;
-        else if (maDV.equals("DV002")) donGia = 400000;
-        else if (maDV.equals("DV003")) donGia = 300000;
-        else if (maDV.equals("DV004")) donGia = 20000000;
-
+        String maDV = selectedDV.substring(0, selectedDV.indexOf(" - "));
+        String phanConLai = selectedDV.substring(selectedDV.indexOf(" - ") + 3);
+        String tenDV = phanConLai.substring(0, phanConLai.lastIndexOf(" ("));
+        
+        String giaStr = phanConLai.substring(phanConLai.lastIndexOf("(") + 1, phanConLai.lastIndexOf(")"))
+                                  .replace(",", "").replace(".", "").replace(" VNĐ", "").trim();
+        double donGia = Double.parseDouble(giaStr);
         double thanhTien = donGia * soLuong;
 
-        // Kiểm tra xem dịch vụ đã có trong bảng chưa
         for (int i = 0; i < modelDichVu.getRowCount(); i++) {
-            if (modelDichVu.getValueAt(i, 0).equals(maDV)) {
-                int slCu = Integer.parseInt(modelDichVu.getValueAt(i, 2).toString());
+            if (modelDichVu.getValueAt(i, 1).equals(maDV)) {
+                int slCu = Integer.parseInt(modelDichVu.getValueAt(i, 3).toString());
                 int slMoi = slCu + soLuong;
                 double thanhTienMoi = donGia * slMoi;
 
-                modelDichVu.setValueAt(slMoi, i, 2);
-                modelDichVu.setValueAt(df.format(thanhTienMoi), i, 4);
+                modelDichVu.setValueAt(slMoi, i, 3);
+                modelDichVu.setValueAt(df.format(thanhTienMoi), i, 5);
 
                 tinhLaiTongChiPhi();
                 return;
             }
         }
 
-        // Thêm dòng mới nếu chưa có
+        int sttMoi = modelDichVu.getRowCount() + 1;
         modelDichVu.addRow(new Object[]{
-                maDV, tenDV, soLuong, df.format(donGia), df.format(thanhTien)
+                sttMoi, maDV, tenDV, soLuong, df.format(donGia), df.format(thanhTien)
         });
 
         tinhLaiTongChiPhi();
@@ -358,6 +454,11 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         }
 
         modelDichVu.removeRow(row);
+        
+        for (int i = 0; i < modelDichVu.getRowCount(); i++) {
+            modelDichVu.setValueAt(i + 1, i, 0);
+        }
+        
         tinhLaiTongChiPhi();
     }
 
@@ -365,7 +466,7 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
         tongChiPhi = 0;
         for (int i = 0; i < modelDichVu.getRowCount(); i++) {
             try {
-                String thanhTienStr = modelDichVu.getValueAt(i, 4).toString().replace(",", "").replace(".", "");
+                String thanhTienStr = modelDichVu.getValueAt(i, 5).toString().replace(",", "").replace(".", "");
                 tongChiPhi += Double.parseDouble(thanhTienStr);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -375,22 +476,53 @@ public class FormKeHoachDieuTriDialog extends JDialog implements ActionListener 
     }
 
     private void xuLyLuuKeHoach() {
-        if (cboBenhNhan.getSelectedIndex() == 0 || cboBacSi.getSelectedIndex() == 0 || txtChanDoan.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc (*)", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
         if (modelDichVu.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "Kế hoạch điều trị phải có ít nhất 1 dịch vụ!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // TODO: Viết code gọi DAO thực hiện INSERT KeHoachDieuTri & ChiTietKeHoach vào SQL Server
-        // Example:
-        // KeHoachDieuTri kh = new KeHoachDieuTri(...);
-        // if(keHoachDAO.them(kh)) { ... }
+        try {
+            String maKH = txtMaKH.getText().trim();
+            
+            BenhNhan bn = new BenhNhan();
+            if (cboBenhNhan.getSelectedIndex() > 0) {
+                String selectedBN = (String) cboBenhNhan.getSelectedItem();
+                String maBN = selectedBN.split(" - ")[0];
+                bn.setMaBenhNhan(maBN);
+            } else {
+                bn.setMaBenhNhan("");
+            }
 
-        JOptionPane.showMessageDialog(this, "Đã thêm mới kế hoạch điều trị thành công!");
-        dispose(); // Đóng form dialog
+            String chanDoan = txtChanDoan.getText().trim();
+            Date ngayBDDate = dcNgayBatDau.getDate();
+            Date ngayKTDate = dcNgayKetThuc.getDate();
+
+            LocalDate ngayBD = ngayBDDate != null ? ngayBDDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
+            LocalDate ngayKT = ngayKTDate != null ? ngayKTDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
+
+            String trangThai = cboTrangThai.getSelectedItem() != null ? cboTrangThai.getSelectedItem().toString() : "";
+            KeHoachDieuTri kh = new KeHoachDieuTri(maKH, bn, chanDoan, ngayBD, ngayKT, tongChiPhi, trangThai);
+
+            boolean kq;
+            if (isThemMoi) {
+                kq = khDao.themKeHoach(kh);
+            } else {
+                kq = khDao.suaKeHoach(kh);
+            }
+
+            if (kq) {
+                String thongBao = isThemMoi ? "Thêm mới kế hoạch thành công!" : "Cập nhật kế hoạch thành công!";
+                JOptionPane.showMessageDialog(this, thongBao);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Thực hiện thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

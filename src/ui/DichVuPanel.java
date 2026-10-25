@@ -1,17 +1,22 @@
 package ui;
 
+import dao.DichVu_DAO;
+import model.DichVu;
 import utils.GiaoDienStyle;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.text.DecimalFormat;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -22,11 +27,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
 public class DichVuPanel extends JPanel implements ActionListener, MouseListener {
@@ -45,7 +51,6 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
     private JTextField txtDonGia;
     private JTextField txtThoiGian;
     private JComboBox<String> cboTrangThai;
-    private JTextField txtMoTa;
 
     private JButton btnThem;      
     private JButton btnLuu;      
@@ -53,9 +58,11 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
     private JButton btnHuyBo;    
 
     private boolean dangThem = false;
+    private DichVu_DAO dv_dao = new DichVu_DAO();
+    private DecimalFormat df = new DecimalFormat("#,###");
 
     public DichVuPanel() {
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(15, 0));
         setBackground(MAU_NEN);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
@@ -64,25 +71,16 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         taiDanhSachDichVuTuCSDL();
         setEditableForm(false);
     }
+
     private void taoGiaoDien() {
         JPanel pnlBenTrai = taoBenTrai();
         JPanel pnlBenPhai = taoBenPhai();
-        
-        pnlBenPhai.setPreferredSize(new Dimension(420, 0));
+        pnlBenPhai.setPreferredSize(new Dimension(390, 0));
 
-        JSplitPane splitTong = new JSplitPane(
-                JSplitPane.HORIZONTAL_SPLIT,
-                pnlBenTrai,
-                pnlBenPhai
-        );
-        splitTong.setResizeWeight(0.52);
-        splitTong.setDividerLocation(500);
-        splitTong.setDividerSize(8);
-        splitTong.setBorder(null);
-        splitTong.setBackground(MAU_NEN);
-
-        add(splitTong, BorderLayout.CENTER);
+        add(pnlBenTrai, BorderLayout.CENTER);
+        add(pnlBenPhai, BorderLayout.EAST);
     }
+
     private JPanel taoBenTrai() {
         JPanel pnlBenTrai = new JPanel(new BorderLayout(0, 10));
         pnlBenTrai.setBackground(MAU_NEN);
@@ -96,15 +94,16 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
     private JPanel taoKhuVucDanhSachDichVu() {
         JPanel pnl = taoPanelTrang();
         pnl.setLayout(new BorderLayout(0, 10));
-        pnl.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 225, 232)),
-                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        pnl.setBorder(new CompoundBorder(
+                new LineBorder(new Color(220, 225, 232)),
+                new EmptyBorder(12, 12, 12, 12)
         ));
+
         JPanel pnlTieuDe = new JPanel(new BorderLayout());
         pnlTieuDe.setBackground(MAU_TRANG);
 
         JLabel lblTieuDe = taoTieuDe("Danh sách dịch vụ nha khoa");
-        btnThem = taoNut("Thêm dịch vụ", MAU_NAVY, 115);
+        btnThem = taoNut("+ Thêm dịch vụ", MAU_NAVY, 120);
 
         pnlTieuDe.add(lblTieuDe, BorderLayout.WEST);
         pnlTieuDe.add(btnThem, BorderLayout.EAST);
@@ -113,7 +112,7 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
                 "Mã dịch vụ",
                 "Tên dịch vụ",
                 "Đơn giá (VNĐ)",
-                "Thời gian dự kiến",
+                "Thời gian",
                 "Trạng thái"
         };
 
@@ -131,8 +130,8 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         tblDichVu.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         tblDichVu.getTableHeader().setBackground(MAU_NAVY);
         tblDichVu.getTableHeader().setForeground(Color.WHITE);
-        tblDichVu.setSelectionBackground(new Color(220, 235, 250));
-        tblDichVu.setSelectionForeground(Color.BLACK);
+        tblDichVu.setSelectionBackground(new Color(204, 245, 238));
+        tblDichVu.setSelectionForeground(MAU_NAVY);
         GiaoDienStyle.dinhDangBang(tblDichVu);
 
         JScrollPane scrDanhSach = new JScrollPane(tblDichVu);
@@ -157,9 +156,9 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
     private JPanel taoThongTinDichVu() {
         JPanel pnl = taoPanelTrang();
         pnl.setLayout(new BorderLayout(0, 10));
-        pnl.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 225, 232)),
-                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        pnl.setBorder(new CompoundBorder(
+                new LineBorder(new Color(220, 225, 232)),
+                new EmptyBorder(15, 15, 15, 15)
         ));
 
         JLabel lblTieuDe = taoTieuDe("Thông tin chi tiết dịch vụ");
@@ -167,7 +166,7 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         JPanel pnlForm = new JPanel();
         pnlForm.setLayout(new BoxLayout(pnlForm, BoxLayout.Y_AXIS));
         pnlForm.setBackground(MAU_TRANG);
-        pnlForm.setBorder(new EmptyBorder(5, 5, 5, 5));
+        pnlForm.setBorder(new EmptyBorder(5, 0, 5, 0));
 
         txtMaDichVu = taoOThongTin("");
         txtTenDichVu = taoOThongTinNhap("");
@@ -178,30 +177,27 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         cboTrangThai.setFont(new Font("Arial", Font.PLAIN, 13));
         cboTrangThai.setBackground(MAU_TRANG);
 
-        txtMoTa = taoOThongTinNhap("");
-
         pnlForm.add(taoDongNhap("Mã dịch vụ:", txtMaDichVu));
-        pnlForm.add(Box.createVerticalStrut(8));
+        pnlForm.add(Box.createVerticalStrut(10));
         pnlForm.add(taoDongNhap("Tên dịch vụ:", txtTenDichVu));
-        pnlForm.add(Box.createVerticalStrut(8));
-        pnlForm.add(taoDongNhap("Đơn giá (VNĐ):", txtDonGia));
-        pnlForm.add(Box.createVerticalStrut(8));
-        pnlForm.add(taoDongNhap("Thời gian dự kiến:", txtThoiGian));
-        pnlForm.add(Box.createVerticalStrut(8));
+        pnlForm.add(Box.createVerticalStrut(10));
+        pnlForm.add(taoDongNhap("Đơn giá:", txtDonGia));
+        pnlForm.add(Box.createVerticalStrut(10));
+        pnlForm.add(taoDongNhap("Thời gian:", txtThoiGian));
+        pnlForm.add(Box.createVerticalStrut(10));
         pnlForm.add(taoDongNhap("Trạng thái:", cboTrangThai));
-        pnlForm.add(Box.createVerticalStrut(8));
-        pnlForm.add(taoDongNhap("Mô tả:", txtMoTa));
         pnlForm.add(Box.createVerticalGlue());
 
         JScrollPane scrForm = new JScrollPane(pnlForm);
         scrForm.setBorder(BorderFactory.createEmptyBorder());
 
-        JPanel pnlNut = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        JPanel pnlNut = new JPanel(new GridLayout(1, 3, 8, 0));
         pnlNut.setBackground(MAU_TRANG);
+        pnlNut.setBorder(new EmptyBorder(10, 0, 0, 0));
 
-        btnLuu = taoNut("Lưu", MAU_TEAL, 95);
-        btnXoa = taoNut("Xóa", MAU_DO, 95);
-        btnHuyBo = taoNut("Hủy bỏ", new Color(110, 120, 135), 95);
+        btnLuu = taoNut("Lưu", MAU_TEAL, 0);
+        btnXoa = taoNut("Xóa", MAU_DO, 0);
+        btnHuyBo = taoNut("Hủy bỏ", new Color(110, 120, 135), 0);
 
         pnlNut.add(btnLuu);
         pnlNut.add(btnXoa);
@@ -215,22 +211,19 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
     }
 
     private JPanel taoDongNhap(String nhan, Component control) {
-        JPanel pnl = new JPanel(new BorderLayout(8, 0));
+        JPanel pnl = new JPanel(new BorderLayout(6, 0));
         pnl.setBackground(MAU_TRANG);
         
         JLabel lbl = new JLabel(nhan);
         lbl.setFont(new Font("Arial", Font.BOLD, 12));
-        lbl.setPreferredSize(new Dimension(115, 28));
+        lbl.setPreferredSize(new Dimension(110, 28));
         
-        control.setPreferredSize(new Dimension(180, 28));
-
         pnl.add(lbl, BorderLayout.WEST);
         pnl.add(control, BorderLayout.CENTER);
         pnl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
         
         return pnl;
     }
-
 
     private void dangKySuKien() {
         tblDichVu.addMouseListener(this);
@@ -244,10 +237,22 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
         if (source.equals(btnThem)) {
+            taiDanhSachDichVuTuCSDL();
+            clearForm();
             dangThem = true;
             setEditableForm(true);
-            clearForm();
-            txtMaDichVu.setText("DV0005");
+
+            int max = 0;
+            for (int i = 0; i < modelDichVu.getRowCount(); i++) {
+                try {
+                    String ma = String.valueOf(modelDichVu.getValueAt(i, 0));
+                    int so = Integer.parseInt(ma.replaceAll("\\D+", ""));
+                    if (so > max) {
+                        max = so;
+                    }
+                } catch (Exception ignored) {}
+            }
+            txtMaDichVu.setText("DV" + String.format("%04d", max + 1));
             txtTenDichVu.requestFocus();
         } else if (source.equals(btnLuu)) {
             xuLyLuuDichVu();
@@ -268,10 +273,11 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
             setEditableForm(true); 
             txtMaDichVu.setText(String.valueOf(modelDichVu.getValueAt(row, 0)));
             txtTenDichVu.setText(String.valueOf(modelDichVu.getValueAt(row, 1)));
-            txtDonGia.setText(String.valueOf(modelDichVu.getValueAt(row, 2)));
+            String donGiaStr = String.valueOf(modelDichVu.getValueAt(row, 2)).replace(",", "").replace(" VNĐ", "").trim();
+            txtDonGia.setText(donGiaStr);
+            
             txtThoiGian.setText(String.valueOf(modelDichVu.getValueAt(row, 3)));
             cboTrangThai.setSelectedItem(String.valueOf(modelDichVu.getValueAt(row, 4)));
-            txtMoTa.setText("Mô tả chi tiết dịch vụ nha khoa.");
         }
     }
 
@@ -283,35 +289,79 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
     private void taiDanhSachDichVuTuCSDL() {
         modelDichVu.setRowCount(0);
         try {
-         
+            List<DichVu> danhSach = dv_dao.getAllDichVu();
+            for (DichVu dv : danhSach) {
+                modelDichVu.addRow(new Object[]{
+                    dv.getMaDV(),
+                    dv.getTenDV(),
+                    df.format(dv.getDonGia()),
+                    dv.getThoiGianDuKien(),
+                    dv.getTrangThai()
+                });
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
     private void xuLyLuuDichVu() {
-        if (txtTenDichVu.getText().trim().isEmpty() || txtDonGia.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ tên dịch vụ và đơn giá!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
+        try {
+            String maDV = txtMaDichVu.getText().trim();
+            String tenDV = txtTenDichVu.getText().trim();
+            
+            double donGia;
+            try {
+                String giaStr = txtDonGia.getText().trim().replace(",", "");
+                donGia = Double.parseDouble(giaStr);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Đơn giá phải là số hợp lệ!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                txtDonGia.requestFocus();
+                return;
+            }
+
+            String thoiGian = txtThoiGian.getText().trim();
+            String trangThai = cboTrangThai.getSelectedItem().toString();
+            DichVu dv = new DichVu(maDV, tenDV, donGia, thoiGian, trangThai);
+
+            if (dangThem) {
+                boolean kq = dv_dao.create(dv);
+                if (kq) {
+                    JOptionPane.showMessageDialog(this, "Thêm dịch vụ mới thành công!");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Thêm thất bại (Trùng mã dịch vụ hoặc lỗi CSDL)!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } else {
+                boolean kq = dv_dao.update(dv);
+                if (kq) {
+                    JOptionPane.showMessageDialog(this, "Cập nhật thông tin dịch vụ thành công!");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
+            taiDanhSachDichVuTuCSDL();
+            setEditableForm(false);
+            clearForm();
+
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Cảnh báo", JOptionPane.WARNING_MESSAGE);
         }
-        JOptionPane.showMessageDialog(this, dangThem ? "Thêm dịch vụ mới thành công!" : "Cập nhật thông tin dịch vụ thành công!");
-        taiDanhSachDichVuTuCSDL();
-        setEditableForm(false);
-        clearForm();
     }
 
     private void xuLyXoaDichVu() {
         int row = tblDichVu.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn dịch vụ cần xóa từ bảng!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn dịch vụ cần xóa khỏi bảng!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int confirm = JOptionPane.showConfirmDialog(this, "Xác nhận xóa dịch vụ này khỏi CSDL?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa dịch vụ này khỏi bảng hiển thị?", "Xác nhận", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             modelDichVu.removeRow(row);
-            JOptionPane.showMessageDialog(this, "Đã xóa dịch vụ thành công!");
             clearForm();
             setEditableForm(false);
+            JOptionPane.showMessageDialog(this, "Đã xóa dịch vụ khỏi bảng thành công!");
         }
     }
 
@@ -320,7 +370,6 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         txtDonGia.setEditable(editable);
         txtThoiGian.setEditable(editable);
         cboTrangThai.setEnabled(editable);
-        txtMoTa.setEditable(editable);
         btnLuu.setEnabled(editable);
         btnXoa.setEnabled(!dangThem && editable);
     }
@@ -331,7 +380,7 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         txtDonGia.setText("");
         txtThoiGian.setText("");
         cboTrangThai.setSelectedIndex(0);
-        txtMoTa.setText("");
+        dangThem = false;
     }
 
     private JPanel taoPanelTrang() {
@@ -378,8 +427,12 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setOpaque(true);
-        btn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(chieuRong, 32));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        if (chieuRong > 0) {
+            btn.setPreferredSize(new Dimension(chieuRong, 32));
+        } else {
+            btn.setPreferredSize(new Dimension(0, 34));
+        }
         return btn;
     }
 }
