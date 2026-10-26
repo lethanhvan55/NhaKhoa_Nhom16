@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -14,17 +15,22 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JPasswordField;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
+import dao.TaiKhoan_DAO;
+import model.NhanVien;
+import model.TaiKhoan;
+
 public class TaiKhoanPanel extends JPanel {
 
-    // Khai báo các thành phần giao diện nhập liệu
-    private JTextField txtMaTK;
+    private final TaiKhoan_DAO taiKhoanDAO = new TaiKhoan_DAO();
+
+    // Các thành phần nhập liệu giao diện
     private JTextField txtTenDN;
     private JPasswordField txtMatKhau;
     private JTextField txtNhanVien;
@@ -36,14 +42,12 @@ public class TaiKhoanPanel extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
 
-    // Các nút chức năng để dễ dàng quản lý sự kiện và phân quyền
     private JButton btnThem;
     private JButton btnSua;
     private JButton btnXoa;
     private JButton btnLamMoi;
     private JButton btnTim;
 
-    // Lưu quyền của tài khoản hiện đang đăng nhập (Mặc định: "Quản lý")
     private String currentUserRole = "Quản lý";
 
     public TaiKhoanPanel() {
@@ -55,11 +59,7 @@ public class TaiKhoanPanel extends JPanel {
         JPanel pnlNorth = new JPanel(new BorderLayout());
         pnlNorth.setBackground(new Color(245, 248, 252));
 
-        JLabel lblTieuDe = new JLabel(
-                "QUẢN LÝ TÀI KHOẢN",
-                SwingConstants.LEFT
-        );
-
+        JLabel lblTieuDe = new JLabel("QUẢN LÝ TÀI KHOẢN", SwingConstants.LEFT);
         lblTieuDe.setFont(new Font("Arial", Font.BOLD, 24));
         lblTieuDe.setForeground(new Color(35, 65, 95));
 
@@ -69,13 +69,11 @@ public class TaiKhoanPanel extends JPanel {
         // 2. Khu vực thông tin tài khoản
         JPanel pnlThongTin = new JPanel(new GridLayout(3, 2, 15, 12));
         pnlThongTin.setBackground(Color.WHITE);
-
         pnlThongTin.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createTitledBorder("Thông tin tài khoản"),
                 BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
 
-        txtMaTK = new JTextField();
         txtTenDN = new JTextField();
         txtMatKhau = new JPasswordField();
         txtNhanVien = new JTextField();
@@ -88,17 +86,14 @@ public class TaiKhoanPanel extends JPanel {
                 "Hoạt động", "Khóa"
         });
 
-        pnlThongTin.add(createField("Mã tài khoản:", txtMaTK));
         pnlThongTin.add(createField("Tên đăng nhập:", txtTenDN));
         pnlThongTin.add(createField("Mật khẩu:", txtMatKhau));
-        pnlThongTin.add(createField("Mã nhân viên:", txtNhanVien));
+        pnlThongTin.add(createField("Mã nhân viên (MaNV):", txtNhanVien));
         pnlThongTin.add(createField("Quyền:", cboQuyen));
         pnlThongTin.add(createField("Trạng thái:", cboTrangThai));
 
         // 3. Các nút chức năng
-        JPanel pnlButton = new JPanel(
-                new FlowLayout(FlowLayout.CENTER, 12, 8)
-        );
+        JPanel pnlButton = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 8));
         pnlButton.setBackground(Color.WHITE);
 
         btnThem = createButton("Thêm", new Color(15, 145, 135));
@@ -118,7 +113,6 @@ public class TaiKhoanPanel extends JPanel {
 
         // 4. Bảng danh sách tài khoản
         String[] headers = {
-                "Mã tài khoản",
                 "Tên đăng nhập",
                 "Mật khẩu",
                 "Mã nhân viên",
@@ -146,14 +140,10 @@ public class TaiKhoanPanel extends JPanel {
         table.getTableHeader().setPreferredSize(new Dimension(0, 35));
 
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(BorderFactory.createTitledBorder(
-                "Danh sách tài khoản"
-        ));
+        scroll.setBorder(BorderFactory.createTitledBorder("Danh sách tài khoản"));
 
         // 5. Tìm kiếm
-        JPanel pnlTimKiem = new JPanel(
-                new FlowLayout(FlowLayout.LEFT, 10, 8)
-        );
+        JPanel pnlTimKiem = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         pnlTimKiem.setBackground(Color.WHITE);
 
         txtTimKiem = new JTextField(22);
@@ -177,7 +167,8 @@ public class TaiKhoanPanel extends JPanel {
 
         add(pnlCenter, BorderLayout.CENTER);
 
-        // --- 7. XỬ LÝ SỰ KIỆN VÀ PHÂN QUYỀN ---
+        // --- 7. TẢI DỮ LIỆU, SỰ KIỆN VÀ PHÂN QUYỀN ---
+        loadDataToTable();
         initEventHandlers();
         apDungPhanQuyen(currentUserRole);
     }
@@ -208,14 +199,29 @@ public class TaiKhoanPanel extends JPanel {
         return button;
     }
 
-    // ==========================================
-    // CÀI ĐẶT SỰ KIỆN CHO CÁC NÚT & BẢNG
-    // ==========================================
+    private void loadDataToTable() {
+        tableModel.setRowCount(0);
+        List<TaiKhoan> list = taiKhoanDAO.getAllTaiKhoan();
+        for (TaiKhoan tk : list) {
+            Object[] row = {
+                    tk.getTenDangNhap(),
+                    tk.getMatKhau(),
+                    (tk.getMaNV() != null) ? tk.getMaNV().getMaNV() : "",
+                    tk.getQuyen(),
+                    tk.getTrangThai()
+            };
+            tableModel.addRow(row);
+        }
+    }
+
     private void initEventHandlers() {
         btnThem.addActionListener(e -> xuLyThem());
         btnSua.addActionListener(e -> xuLySua());
         btnXoa.addActionListener(e -> xuLyXoa());
-        btnLamMoi.addActionListener(e -> xuLyLamMoi());
+        btnLamMoi.addActionListener(e -> {
+            xuLyLamMoi();
+            loadDataToTable();
+        });
         btnTim.addActionListener(e -> xuLyTimKiem());
 
         table.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -227,70 +233,91 @@ public class TaiKhoanPanel extends JPanel {
     }
 
     private void xuLyThem() {
-        String maTK = txtMaTK.getText().trim();
         String tenDN = txtTenDN.getText().trim();
         String matKhau = new String(txtMatKhau.getPassword()).trim();
-        String maNV = txtNhanVien.getText().trim();
+        String maNVStr = txtNhanVien.getText().trim();
         String quyen = cboQuyen.getSelectedItem().toString();
         String trangThai = cboTrangThai.getSelectedItem().toString();
 
-        if (maTK.isEmpty() || tenDN.isEmpty() || matKhau.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng nhập đầy đủ Mã tài khoản, Tên đăng nhập và Mật khẩu!",
-                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+        if (tenDN.isEmpty() || matKhau.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ Tên đăng nhập và Mật khẩu!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Thêm dữ liệu vào bảng giao diện
-        Object[] rowData = {maTK, tenDN, matKhau, maNV, quyen, trangThai};
-        tableModel.addRow(rowData);
+        NhanVien nv = new NhanVien();
+        nv.setMaNV(maNVStr);
 
-        JOptionPane.showMessageDialog(this, "Thêm tài khoản thành công!");
-        xuLyLamMoi();
+        TaiKhoan tk = new TaiKhoan();
+        tk.setTenDangNhap(tenDN);
+        tk.setMatKhau(matKhau);
+        tk.setMaNV(nv);
+        tk.setQuyen(quyen);
+        tk.setTrangThai(trangThai);
+
+        if (taiKhoanDAO.themTaiKhoan(tk)) {
+            JOptionPane.showMessageDialog(this, "Thêm tài khoản thành công!");
+            loadDataToTable();
+            xuLyLamMoi();
+        } else {
+            JOptionPane.showMessageDialog(this, "Thêm thất bại (Trùng tên đăng nhập hoặc lỗi CSDL)!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void xuLySua() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn dòng cần sửa trên bảng!",
-                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn tài khoản cần sửa trên bảng!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        tableModel.setValueAt(txtMaTK.getText().trim(), selectedRow, 0);
-        tableModel.setValueAt(txtTenDN.getText().trim(), selectedRow, 1);
-        tableModel.setValueAt(new String(txtMatKhau.getPassword()).trim(), selectedRow, 2);
-        tableModel.setValueAt(txtNhanVien.getText().trim(), selectedRow, 3);
-        tableModel.setValueAt(cboQuyen.getSelectedItem().toString(), selectedRow, 4);
-        tableModel.setValueAt(cboTrangThai.getSelectedItem().toString(), selectedRow, 5);
+        String tenDN = txtTenDN.getText().trim();
+        String matKhau = new String(txtMatKhau.getPassword()).trim();
+        String maNVStr = txtNhanVien.getText().trim();
+        String quyen = cboQuyen.getSelectedItem().toString();
+        String trangThai = cboTrangThai.getSelectedItem().toString();
 
-        JOptionPane.showMessageDialog(this, "Cập nhật tài khoản thành công!");
+        NhanVien nv = new NhanVien();
+        nv.setMaNV(maNVStr);
+
+        TaiKhoan tk = new TaiKhoan();
+        tk.setTenDangNhap(tenDN);
+        tk.setMatKhau(matKhau);
+        tk.setMaNV(nv);
+        tk.setQuyen(quyen);
+        tk.setTrangThai(trangThai);
+
+        if (taiKhoanDAO.capNhatTaiKhoan(tk)) {
+            JOptionPane.showMessageDialog(this, "Cập nhật tài khoản thành công!");
+            loadDataToTable();
+        } else {
+            JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void xuLyXoa() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn dòng cần xóa trên bảng!",
-                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn tài khoản cần xóa trên bảng!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "Bạn có chắc chắn muốn xóa tài khoản này?",
-                "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+        String tenDN = tableModel.getValueAt(selectedRow, 0).toString();
 
+        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa tài khoản: " + tenDN + "?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            tableModel.removeRow(selectedRow);
-            JOptionPane.showMessageDialog(this, "Xóa tài khoản thành công!");
-            xuLyLamMoi();
+            if (taiKhoanDAO.xoaTaiKhoan(tenDN)) {
+                JOptionPane.showMessageDialog(this, "Xóa tài khoản thành công!");
+                loadDataToTable();
+                xuLyLamMoi();
+            } else {
+                JOptionPane.showMessageDialog(this, "Xóa thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void xuLyLamMoi() {
-        txtMaTK.setText("");
         txtTenDN.setText("");
+        txtTenDN.setEditable(true); // Mở khóa cho phép nhập tên đăng nhập mới
         txtMatKhau.setText("");
         txtNhanVien.setText("");
         cboQuyen.setSelectedIndex(0);
@@ -302,12 +329,13 @@ public class TaiKhoanPanel extends JPanel {
     private void xuLyTimKiem() {
         String keyword = txtTimKiem.getText().trim().toLowerCase();
         if (keyword.isEmpty()) {
+            loadDataToTable();
             return;
         }
 
         for (int i = 0; i < tableModel.getRowCount(); i++) {
-            String tenDN = tableModel.getValueAt(i, 1).toString().toLowerCase();
-            String maNV = tableModel.getValueAt(i, 3).toString().toLowerCase();
+            String tenDN = tableModel.getValueAt(i, 0).toString().toLowerCase();
+            String maNV = tableModel.getValueAt(i, 2) != null ? tableModel.getValueAt(i, 2).toString().toLowerCase() : "";
 
             if (tenDN.contains(keyword) || maNV.contains(keyword)) {
                 table.setRowSelectionInterval(i, i);
@@ -321,29 +349,24 @@ public class TaiKhoanPanel extends JPanel {
     private void hienThiChiTietLenForm() {
         int row = table.getSelectedRow();
         if (row >= 0) {
-            txtMaTK.setText(tableModel.getValueAt(row, 0).toString());
-            txtTenDN.setText(tableModel.getValueAt(row, 1).toString());
-            txtMatKhau.setText(tableModel.getValueAt(row, 2).toString());
-            txtNhanVien.setText(tableModel.getValueAt(row, 3).toString());
-            cboQuyen.setSelectedItem(tableModel.getValueAt(row, 4).toString());
-            cboTrangThai.setSelectedItem(tableModel.getValueAt(row, 5).toString());
+            txtTenDN.setText(tableModel.getValueAt(row, 0).toString());
+            txtTenDN.setEditable(false); // Khóa tên đăng nhập khi sửa vì đây là khóa chính
+            txtMatKhau.setText(tableModel.getValueAt(row, 1).toString());
+            txtNhanVien.setText(tableModel.getValueAt(row, 2) != null ? tableModel.getValueAt(row, 2).toString() : "");
+            cboQuyen.setSelectedItem(tableModel.getValueAt(row, 3).toString());
+            cboTrangThai.setSelectedItem(tableModel.getValueAt(row, 4).toString());
         }
     }
 
-    // ==========================================
-    // HỆ THỐNG PHÂN QUYỀN (ROLE-BASED ACCESS CONTROL)
-    // ==========================================
     public void apDungPhanQuyen(String role) {
         this.currentUserRole = role;
 
         switch (role) {
             case "Quản lý":
-                // Quản lý toàn quyền thao tác CRUD
                 setComponentEnabled(true);
                 break;
 
             case "Lễ tân":
-                // Lễ tân chỉ được sửa thông tin cơ bản, KHÔNG được thêm/xóa tài khoản hoặc đổi quyền
                 btnThem.setEnabled(false);
                 btnXoa.setEnabled(false);
                 btnSua.setEnabled(true);
@@ -352,7 +375,6 @@ public class TaiKhoanPanel extends JPanel {
 
             case "Nha sĩ":
             case "Phụ tá":
-                // Các nhóm quyền chuyên môn không được phép vào quản lý tài khoản
                 setComponentEnabled(false);
                 JOptionPane.showMessageDialog(this,
                         "Bạn không có quyền truy cập chức năng Quản lý tài khoản!",
@@ -366,7 +388,6 @@ public class TaiKhoanPanel extends JPanel {
     }
 
     private void setComponentEnabled(boolean status) {
-        txtMaTK.setEnabled(status);
         txtTenDN.setEnabled(status);
         txtMatKhau.setEnabled(status);
         txtNhanVien.setEnabled(status);

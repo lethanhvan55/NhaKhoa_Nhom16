@@ -21,45 +21,27 @@ public class HoSoBenhNhan {
 
     public HoSoBenhNhan() {
     }
-    
+
     public HoSoBenhNhan(String maHoSo, BenhNhan maBenhNhan, NhanVien maNV, KeHoachDieuTri maKeHoach, LocalDate ngayKham,
-			String tinhTrangRangMieng, String chanDoan, String phuongPhapDieuTri, String tienSuBenh, String diUng,
-			String benhLyNen, String nguoiLienHe, String soDTNLH, String ghiChu) {
-		super();
-		this.maHoSo = maHoSo;
-		this.maBenhNhan = maBenhNhan;
-		this.maNV = maNV;
-		this.maKeHoach = maKeHoach;
-		this.ngayKham = ngayKham;
-		this.tinhTrangRangMieng = tinhTrangRangMieng;
-		this.chanDoan = chanDoan;
-		this.phuongPhapDieuTri = phuongPhapDieuTri;
-		this.tienSuBenh = tienSuBenh;
-		this.diUng = diUng;
-		this.benhLyNen = benhLyNen;
-		this.nguoiLienHe = nguoiLienHe;
-		this.soDTNLH = soDTNLH;
-		this.ghiChu = ghiChu;
-	}
+                        String tinhTrangRangMieng, String chanDoan, String phuongPhapDieuTri, String tienSuBenh, String diUng,
+                        String benhLyNen, String nguoiLienHe, String soDTNLH, String ghiChu) {
+        this.maHoSo = maHoSo;
+        this.maBenhNhan = maBenhNhan;
+        this.maNV = maNV;
+        this.maKeHoach = maKeHoach;
+        this.ngayKham = ngayKham;
+        this.tinhTrangRangMieng = tinhTrangRangMieng;
+        this.chanDoan = chanDoan;
+        this.phuongPhapDieuTri = phuongPhapDieuTri;
+        this.tienSuBenh = tienSuBenh;
+        this.diUng = diUng;
+        this.benhLyNen = benhLyNen;
+        this.nguoiLienHe = nguoiLienHe;
+        this.soDTNLH = soDTNLH;
+        this.ghiChu = ghiChu;
+    }
 
-
-
-	public void setMaBenhNhan(BenhNhan maBenhNhan) {
-		this.maBenhNhan = maBenhNhan;
-	}
-
-
-	public void setMaNV(NhanVien maNV) {
-		this.maNV = maNV;
-	}
-
-
-	public void setMaKeHoach(KeHoachDieuTri maKeHoach) {
-		this.maKeHoach = maKeHoach;
-	}
-
-
-	public String getMaHoSo() {
+    public String getMaHoSo() {
         return maHoSo;
     }
 
@@ -67,7 +49,30 @@ public class HoSoBenhNhan {
         this.maHoSo = maHoSo;
     }
 
-   
+    public BenhNhan getMaBenhNhan() {
+        return maBenhNhan;
+    }
+
+    public void setMaBenhNhan(BenhNhan maBenhNhan) {
+        this.maBenhNhan = maBenhNhan;
+    }
+
+    public NhanVien getMaNV() {
+        return maNV;
+    }
+
+    public void setMaNV(NhanVien maNV) {
+        this.maNV = maNV;
+    }
+
+    public KeHoachDieuTri getMaKeHoach() {
+        return maKeHoach;
+    }
+
+    public void setMaKeHoach(KeHoachDieuTri maKeHoach) {
+        this.maKeHoach = maKeHoach;
+    }
+
     public LocalDate getNgayKham() {
         return ngayKham;
     }
@@ -147,4 +152,14 @@ public class HoSoBenhNhan {
     public void setGhiChu(String ghiChu) {
         this.ghiChu = ghiChu;
     }
+
+    @Override
+    public String toString() {
+        return "HoSoBenhNhan [maHoSo=" + maHoSo + ", maBenhNhan=" + maBenhNhan + ", maNV=" + maNV + ", maKeHoach="
+                + maKeHoach + ", ngayKham=" + ngayKham + ", tinhTrangRangMieng=" + tinhTrangRangMieng + ", chanDoan="
+                + chanDoan + ", phuongPhapDieuTri=" + phuongPhapDieuTri + ", tienSuBenh=" + tienSuBenh + ", diUng="
+                + diUng + ", benhLyNen=" + benhLyNen + ", nguoiLienHe=" + nguoiLienHe + ", soDTNLH=" + soDTNLH
+                + ", ghiChu=" + ghiChu + "]";
+    }
+
 }

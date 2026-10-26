@@ -136,9 +136,9 @@ public class ConnectDB {
         try {
             // Tự động cấp phát kết nối mới nếu chưa mở hoặc đã bị đóng
             if (con == null || con.isClosed()) {
-                String url = "jdbc:sqlserver://localhost:1433;databaseName=QL_NK;encrypt=true;trustServerCertificate=true;";
+                String url = "jdbc:sqlserver://LAPTOP-0M1UU0DE\\SA;databaseName=QL_NK;encrypt=true;trustServerCertificate=true;";
                 String user = "sa";
-                String password = "sapassword"; // Thay mật khẩu SQL Server thực tế của bạn nếu cần
+                String password = "123"; // Thay mật khẩu SQL Server thực tế của bạn nếu cần
 
                 con = DriverManager.getConnection(url, user, password);
                 System.out.println("[DB] Kết nối SQL Server thành công.");
