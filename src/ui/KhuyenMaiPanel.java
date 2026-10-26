@@ -1,420 +1,724 @@
 package ui;
 
+import com.toedter.calendar.JDateChooser;
+import dao.KhuyenMai_DAO;
+import model.KhuyenMai;
+import utils.InQR;
+
 import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.table.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-public class KhuyenMaiPanel extends JPanel {
-    private final Color NAVY = new Color(18, 39, 70);
-    private final Color BLUE = new Color(27, 119, 235);
-    private final Color BG = new Color(243, 246, 250);
-    private final Color TEXT = new Color(45, 55, 68);
+public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListener {
 
-    private JTable tblKhuyenMai;
-    private DefaultTableModel modelKhuyenMai;
+    private final Color mauNen = new Color(245, 247, 251);
+    private final Color mauTrang = Color.WHITE;
+    private final Color mauXanh = new Color(35, 125, 240);
+    private final Color mauChu = new Color(35, 55, 75);
+    private final Color mauPhu = new Color(110, 125, 145);
+    private final Color mauVien = new Color(225, 232, 240);
+
+    private JPanel pnlDanhSach;
+    private JPanel pnlTheKhuyenMai;
+    private JPanel pnlForm;
 
     private JTextField txtMaKM;
+    private JTextField txtMaThayThe;
     private JTextField txtTenKM;
+    private JTextField txtGiaTriToiThieu;
     private JTextField txtChietKhau;
-    private JTextField txtDichVu;
-    private JTextField txtNgayBD;
-    private JTextField txtNgayKT;
-    private JComboBox<String> cboTrangThai;
+    private JTextField txtSoLuong;
+    private JTextField txtTimKiem;
 
-    private JButton btnLuu;
+    //private JComboBox<String> cboTrangThai;
+    private JComboBox<String> cboLocTrangThai;
+
+    private JDateChooser dcNgayBatDau;
+    private JDateChooser dcNgayKetThuc;
+
+    private JButton btnThem;
+    private JButton btnSua;
+    private JButton btnXoa;
     private JButton btnLamMoi;
-    private JButton btnTaoMoi;
-    private boolean dangThem = false;
+    private JButton btnTimKiem;
+    private JButton btnInQR;
+
+    private JLabel lblTongSo;
+
+    private final KhuyenMai_DAO km_dao = new KhuyenMai_DAO();
+    private List<KhuyenMai> danhSachHienThi = new ArrayList<>();
+
+    private final DateTimeFormatter dinhDangNgay = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private JTextField txtTrangThai;
 
     public KhuyenMaiPanel() {
-       setLayout(new BorderLayout());
-       setBackground(BG);
-       add(createMainContent(), BorderLayout.CENTER);
+        setLayout(new BorderLayout(15, 15));
+        setBackground(mauNen);
+        setBorder(new EmptyBorder(18, 18, 18, 18));
+
+        khoiTaoGiaoDien();
+        dangKySuKien();
+        docDuLieu();
+        xoaTrang();
     }
 
-    private JPanel createMainContent() {
-        JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(BG);
-        main.setBorder(new EmptyBorder(20, 20, 20, 20));
+    private void khoiTaoGiaoDien() {
+        JPanel pnlNoiDung = new JPanel(new GridBagLayout());
+        pnlNoiDung.setOpaque(false);
 
-        JPanel content = new JPanel(new BorderLayout(20, 0));
-        content.setBackground(BG);
-        JPanel left = new JPanel(new BorderLayout(0, 16));
-        left.setBackground(BG);
-        left.add(createSearchPanel(), BorderLayout.NORTH);
-        left.add(createPromotionTable(), BorderLayout.CENTER);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1;
+        gbc.insets = new Insets(0, 0, 0, 10);
 
-        JPanel right = createPromotionForm();
-        right.setPreferredSize(new Dimension(385, 0));
+        gbc.gridx = 0;
+        gbc.weightx = 0.58;
 
-        content.add(left, BorderLayout.CENTER);
-        content.add(right, BorderLayout.EAST);
-        
-        main.add(content, BorderLayout.CENTER);
-        return main;
+        pnlDanhSach = taoKhung();
+        pnlDanhSach.setLayout(new BorderLayout(10, 12));
+        pnlDanhSach.setBorder(new EmptyBorder(15, 15, 15, 15));
+
+        JLabel lblDanhSach = new JLabel("Danh sách khuyến mãi");
+        lblDanhSach.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        lblDanhSach.setForeground(mauChu);
+
+        txtTimKiem = taoTextField();
+        txtTimKiem.setToolTipText("Nhập mã hoặc tên khuyến mãi");
+
+        btnTimKiem = taoNut("Tìm kiếm", mauXanh, Color.WHITE);
+
+        JLabel lblTimKiem = new JLabel("Tìm kiếm:");
+        lblTimKiem.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblTimKiem.setForeground(mauChu);
+
+        cboLocTrangThai = new JComboBox<>(new String[]{"Tất cả trạng thái", "Đang áp dụng", "Hết hạn"});
+        cboLocTrangThai.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cboLocTrangThai.setPreferredSize(new Dimension(160, 36));
+
+        JLabel lblLocTrangThai = new JLabel("Trạng thái:");
+        lblLocTrangThai.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblLocTrangThai.setForeground(mauChu);
+
+        JPanel pnlTimKiem = new JPanel();
+        pnlTimKiem.setOpaque(false);
+        pnlTimKiem.setLayout(new BoxLayout(pnlTimKiem, BoxLayout.Y_AXIS));
+
+        JPanel pnlDongTimKiem = new JPanel(new BorderLayout(8, 0));
+        pnlDongTimKiem.setOpaque(false);
+        pnlDongTimKiem.add(lblTimKiem, BorderLayout.WEST);
+        pnlDongTimKiem.add(txtTimKiem, BorderLayout.CENTER);
+        pnlDongTimKiem.add(btnTimKiem, BorderLayout.EAST);
+
+        JPanel pnlDongLoc = new JPanel(new BorderLayout(8, 0));
+        pnlDongLoc.setOpaque(false);
+        pnlDongLoc.add(lblLocTrangThai, BorderLayout.WEST);
+        pnlDongLoc.add(cboLocTrangThai, BorderLayout.CENTER);
+
+        pnlTimKiem.add(pnlDongTimKiem);
+        pnlTimKiem.add(Box.createVerticalStrut(10));
+        pnlTimKiem.add(pnlDongLoc);
+
+        JPanel pnlDauDanhSach = new JPanel();
+        pnlDauDanhSach.setOpaque(false);
+        pnlDauDanhSach.setLayout(new BoxLayout(pnlDauDanhSach, BoxLayout.Y_AXIS));
+
+        lblDanhSach.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlTimKiem.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        pnlDauDanhSach.add(lblDanhSach);
+        pnlDauDanhSach.add(Box.createVerticalStrut(12));
+        pnlDauDanhSach.add(pnlTimKiem);
+
+        pnlTheKhuyenMai = new JPanel();
+        pnlTheKhuyenMai.setLayout(new BoxLayout(pnlTheKhuyenMai, BoxLayout.Y_AXIS));
+        pnlTheKhuyenMai.setBackground(mauNen);
+        pnlTheKhuyenMai.setBorder(new EmptyBorder(4, 4, 4, 4));
+
+        JScrollPane scrDanhSach = new JScrollPane(pnlTheKhuyenMai);
+        scrDanhSach.setBorder(BorderFactory.createEmptyBorder());
+        scrDanhSach.getViewport().setBackground(mauNen);
+        scrDanhSach.getVerticalScrollBar().setUnitIncrement(16);
+
+        lblTongSo = new JLabel("Tổng số: 0 khuyến mãi");
+        lblTongSo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblTongSo.setForeground(mauPhu);
+
+        pnlDanhSach.add(pnlDauDanhSach, BorderLayout.NORTH);
+        pnlDanhSach.add(scrDanhSach, BorderLayout.CENTER);
+        pnlDanhSach.add(lblTongSo, BorderLayout.SOUTH);
+
+        pnlNoiDung.add(pnlDanhSach, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 0.42;
+        gbc.insets = new Insets(0, 5, 0, 0);
+
+        pnlForm = taoKhung();
+        pnlForm.setLayout(new BorderLayout(10, 12));
+        pnlForm.setBorder(new EmptyBorder(15, 18, 15, 18));
+
+        JLabel lblForm = new JLabel("Thông tin khuyến mãi");
+        lblForm.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        lblForm.setForeground(mauChu);
+
+        JPanel pnlTruong = new JPanel(new GridBagLayout());
+        pnlTruong.setOpaque(false);
+
+        txtMaKM = taoTextField();
+        txtMaKM.setEditable(false);
+        txtMaThayThe = taoTextField();
+        txtTenKM = taoTextField();
+        txtGiaTriToiThieu = taoTextField();
+        txtChietKhau = taoTextField();
+        txtSoLuong = taoTextField();
+
+        dcNgayBatDau = taoDateChooser();
+        dcNgayKetThuc = taoDateChooser();
+
+        txtTrangThai = taoTextField();
+        txtTrangThai.setEditable(false);
+        txtTrangThai.setFocusable(false);
+
+        int dong = 0;
+        themTruong(pnlTruong, dong++, "Mã khuyến mãi", txtMaKM);
+        themTruong(pnlTruong, dong++, "Mã thay thế", txtMaThayThe);
+        themTruong(pnlTruong, dong++, "Tên khuyến mãi", txtTenKM);
+        themTruong(pnlTruong, dong++, "Ngày bắt đầu", dcNgayBatDau);
+        themTruong(pnlTruong, dong++, "Ngày kết thúc", dcNgayKetThuc);
+        themTruong(pnlTruong, dong++, "Giá trị tối thiểu", txtGiaTriToiThieu);
+        themTruong(pnlTruong, dong++, "Chiết khấu (%)", txtChietKhau);
+        themTruong(pnlTruong, dong++, "Số lượng", txtSoLuong);
+        themTruong(pnlTruong, dong, "Trạng thái", txtTrangThai);
+
+        btnThem = taoNut("Thêm", mauXanh, Color.WHITE);
+        btnSua = taoNut("Sửa", new Color(240, 160, 45), Color.WHITE);
+        btnXoa = taoNut("Xóa", new Color(220, 65, 65), Color.WHITE);
+        btnLamMoi = taoNut("Làm mới", new Color(105, 120, 140), Color.WHITE);
+        btnInQR = taoNut("In QR", new Color(80, 100, 130), Color.WHITE);
+
+        JPanel pnlNut = new JPanel(new GridLayout(0, 2, 8, 8));
+        pnlNut.setOpaque(false);
+        pnlNut.add(btnThem);
+        pnlNut.add(btnSua);
+        pnlNut.add(btnXoa);
+        pnlNut.add(btnLamMoi);
+        pnlNut.add(btnInQR);
+
+        pnlForm.add(lblForm, BorderLayout.NORTH);
+        pnlForm.add(pnlTruong, BorderLayout.CENTER);
+        pnlForm.add(pnlNut, BorderLayout.SOUTH);
+
+        pnlNoiDung.add(pnlForm, gbc);
+        add(pnlNoiDung, BorderLayout.CENTER);
     }
 
-    private JPanel createCard() {
-        JPanel p = new JPanel();
-        p.setBackground(Color.WHITE);
-        p.setBorder(new CompoundBorder(
-            new LineBorder(new Color(226, 231, 238)),
-            new EmptyBorder(16, 16, 16, 16)
-        ));
-        return p;
+    private void dangKySuKien() {
+        btnThem.addActionListener(this);
+        btnSua.addActionListener(this);
+        btnXoa.addActionListener(this);
+        btnLamMoi.addActionListener(this);
+        btnTimKiem.addActionListener(this);
+        btnInQR.addActionListener(this);
+        cboLocTrangThai.addActionListener(this);
     }
 
-    private JPanel createSearchPanel() {
-        JPanel card = createCard();
-        card.setLayout(new BorderLayout(12, 14));
-
-        JPanel top = new JPanel(new BorderLayout(12, 0));
-        top.setOpaque(false);
-        JTextField search = new JTextField("Tìm theo mã, tên KM, dịch vụ...");
-        styleField(search);
-        top.add(search, BorderLayout.CENTER);
-
-        JPanel filterWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        filterWrap.setOpaque(false);
-        JLabel filterLabel = new JLabel("Lọc:");
-        filterLabel.setForeground(new Color(100, 110, 122));
-        JComboBox<String> filter = new JComboBox<>(new String[]{
-            "Tất cả trạng thái", "Đang áp dụng", "Hết hạn"
-        });
-        styleCombo(filter);
-        filter.setPreferredSize(new Dimension(145, 36));
-        
-        btnTaoMoi = makeButton("+  Tạo mới", BLUE, Color.WHITE);
-        btnTaoMoi.setPreferredSize(new Dimension(112, 36));
-        btnTaoMoi.addActionListener(e -> {
-            dangThem = true;
-            clearForm();
-            txtMaKM.setText("KM0004");
-            txtTenKM.requestFocus();
-        });
-
-        filterWrap.add(filterLabel);
-        filterWrap.add(filter);
-        filterWrap.add(btnTaoMoi);
-
-        top.add(filterWrap, BorderLayout.EAST);
-        card.add(top, BorderLayout.CENTER);
-        return card;
+    private void docDuLieu() {
+        try {
+            km_dao.capNhatTrangThaiTuNgayKetThuc();
+            List<KhuyenMai> ds = km_dao.getAll();
+            hienThiDanhSach(ds);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Không thể tải danh sách khuyến mãi: " + e.getMessage());
+        }
     }
 
-    private JPanel createPromotionTable() {
-        JPanel card = createCard();
-        card.setLayout(new BorderLayout(0, 14));
-        JPanel titleRow = new JPanel(new BorderLayout());
-        titleRow.setOpaque(false);
-        JLabel title = new JLabel("Danh sách khuyến mãi");
-        title.setFont(new Font("Arial", Font.BOLD, 16));
-        title.setForeground(TEXT);
-        titleRow.add(title, BorderLayout.WEST);
-        card.add(titleRow, BorderLayout.NORTH);
+    private void hienThiDanhSach(List<KhuyenMai> ds) {
+        pnlTheKhuyenMai.removeAll();
+        danhSachHienThi = new ArrayList<>(ds);
 
-        String[] columns = {
-            "STT", "MÃ KM", "TÊN CHƯƠNG TRÌNH", "CHIẾT KHẤU",
-            "DỊCH VỤ ÁP DỤNG", "THỜI HẠN", "TRẠNG THÁI"};
-        Object[][] data = {
-            {"1", "KM0001", "Tri ân khách hàng tháng 10", "10%",
-             "Tất cả dịch vụ", "01/10/2026 - 31/10/2026", "Đang áp dụng"},
-            {"2", "KM0002", "Giảm giá tẩy trắng răng mùa hè", "15%",
-             "Tẩy trắng răng", "01/06/2026 - 30/06/2026", "Hết hạn"},
-            {"3", "KM0003", "Ưu đãi niềng răng sinh viên", "20%",
-             "Chỉnh nha - Niềng răng", "01/09/2026 - 30/11/2026", "Đang áp dụng"}
-        };
-        
-        modelKhuyenMai = new DefaultTableModel(data, columns) {
-            @Override public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-
-        tblKhuyenMai = new JTable(modelKhuyenMai);
-        tblKhuyenMai.setRowHeight(50);
-        tblKhuyenMai.setFont(new Font("Arial", Font.PLAIN, 12));
-        tblKhuyenMai.setForeground(TEXT);
-        tblKhuyenMai.setGridColor(new Color(238, 241, 245));
-        tblKhuyenMai.setShowVerticalLines(false);
-        tblKhuyenMai.setSelectionBackground(new Color(239, 247, 255));
-        tblKhuyenMai.setSelectionForeground(TEXT);
-        tblKhuyenMai.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tblKhuyenMai.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                int row = tblKhuyenMai.getSelectedRow();
-                if (row >= 0) {
-                    dangThem = false;
-                    txtMaKM.setText(String.valueOf(modelKhuyenMai.getValueAt(row, 1)));
-                    txtTenKM.setText(String.valueOf(modelKhuyenMai.getValueAt(row, 2)));
-                    txtChietKhau.setText(String.valueOf(modelKhuyenMai.getValueAt(row, 3)).replace("%", ""));
-                    txtDichVu.setText(String.valueOf(modelKhuyenMai.getValueAt(row, 4)));
-                    
-                    String thoiHan = String.valueOf(modelKhuyenMai.getValueAt(row, 5));
-                    String[] dates = thoiHan.split(" - ");
-                    if(dates.length == 2) {
-                        txtNgayBD.setText(dates[0].trim());
-                        txtNgayKT.setText(dates[1].trim());
-                    }
-                    cboTrangThai.setSelectedItem(String.valueOf(modelKhuyenMai.getValueAt(row, 6)));
+        if (danhSachHienThi.isEmpty()) {
+            JLabel lblTrong = new JLabel("Không có khuyến mãi phù hợp");
+            lblTrong.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            lblTrong.setForeground(mauPhu);
+            lblTrong.setAlignmentX(Component.LEFT_ALIGNMENT);
+            pnlTheKhuyenMai.add(lblTrong);
+        } else {
+            for (int i = 0; i < danhSachHienThi.size(); i++) {
+                KhuyenMai km = danhSachHienThi.get(i);
+                JPanel the = taoThe(km);
+                pnlTheKhuyenMai.add(the);
+                if (i < danhSachHienThi.size() - 1) {
+                    pnlTheKhuyenMai.add(Box.createVerticalStrut(10));
                 }
             }
-        });
-
-        JTableHeader header = tblKhuyenMai.getTableHeader();
-        header.setPreferredSize(new Dimension(0, 42));
-        header.setFont(new Font("Arial", Font.BOLD, 10));
-        header.setForeground(new Color(105, 115, 126));
-        header.setBackground(new Color(248, 249, 251));
-        header.setReorderingAllowed(false);
-
-        int[] widths = {35, 70, 155, 65, 115, 125, 100};
-        for (int i = 0; i < widths.length; i++) {
-            tblKhuyenMai.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
-        tblKhuyenMai.getColumnModel().getColumn(1).setCellRenderer(new CodeRenderer());
-        tblKhuyenMai.getColumnModel().getColumn(6).setCellRenderer(new PromotionStatusRenderer());
 
-        JScrollPane scroll = new JScrollPane(tblKhuyenMai);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.getViewport().setBackground(Color.WHITE);
-        card.add(scroll, BorderLayout.CENTER);
-
-        JPanel bottom = new JPanel(new BorderLayout());
-        bottom.setOpaque(false);
-        JPanel pages = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        pages.setOpaque(false);
-        JButton prev = new JButton("‹");
-        JButton next = new JButton("›");
-        stylePageButton(prev, false);
-        stylePageButton(next, false);
-        JLabel page = new JLabel("Trang 1/1");
-        page.setFont(new Font("Arial", Font.PLAIN, 12));
-        pages.add(prev);
-        pages.add(page);
-        pages.add(next);
-        bottom.add(pages, BorderLayout.EAST);
-        
-        JPanel bottomWrap = new JPanel(new BorderLayout());
-        bottomWrap.setOpaque(false);
-        bottomWrap.setBorder(new EmptyBorder(12, 0, 0, 0));
-        bottomWrap.add(bottom, BorderLayout.CENTER);
-        card.add(bottomWrap, BorderLayout.SOUTH);
-
-        return card;
+        lblTongSo.setText("Tổng số: " + danhSachHienThi.size() + " khuyến mãi");
+        pnlTheKhuyenMai.revalidate();
+        pnlTheKhuyenMai.repaint();
     }
 
-    private JPanel createPromotionForm() {
-        JPanel outer = new JPanel(new BorderLayout());
-        outer.setBackground(Color.WHITE);
-        outer.setBorder(new LineBorder(new Color(226, 231, 238)));
+    private JPanel taoThe(KhuyenMai km) {
+        String ngayBD = km.getNgayBatDau() == null ? "" : km.getNgayBatDau().format(dinhDangNgay);
+        String ngayKT = km.getNgayKetThuc() == null ? "" : km.getNgayKetThuc().format(dinhDangNgay);
 
-        JPanel titleBar = new JPanel(new BorderLayout());
-        titleBar.setBackground(NAVY);
-        titleBar.setBorder(new EmptyBorder(16, 16, 16, 16));
-        JLabel title = new JLabel("Thông tin khuyến mãi");
-        title.setFont(new Font("Arial", Font.BOLD, 16));
-        title.setForeground(Color.WHITE);
-        JLabel badge = new JLabel("CHI TIẾT");
-        badge.setForeground(new Color(180, 210, 245));
-        badge.setFont(new Font("Arial", Font.BOLD, 10));
-        badge.setBorder(new CompoundBorder(
-            new LineBorder(new Color(60, 90, 130)),
-            new EmptyBorder(5, 8, 5, 8)
-        ));
-        titleBar.add(title, BorderLayout.WEST);
-        titleBar.add(badge, BorderLayout.EAST);
-        outer.add(titleBar, BorderLayout.NORTH);
+        JPanel the = new JPanel(new BorderLayout(10, 10));
+        the.setBackground(mauTrang);
+        the.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(mauVien), new EmptyBorder(13, 14, 13, 14)));
+        the.setMaximumSize(new Dimension(Integer.MAX_VALUE, 190));
+        the.setAlignmentX(Component.LEFT_ALIGNMENT);
+        the.setName(km.getMaKM());
 
-        JPanel form = new JPanel();
-        form.setBackground(Color.WHITE);
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setBorder(new EmptyBorder(20, 18, 18, 18));
+        JPanel pnlDau = new JPanel(new BorderLayout(8, 5));
+        pnlDau.setOpaque(false);
 
-        txtMaKM = new JTextField("KM0001");
-        txtMaKM.setEditable(false);
-        txtMaKM.setBackground(new Color(245, 246, 248));
-        txtMaKM.setFont(new Font("Arial", Font.BOLD, 12));
-        
-        txtTenKM = new JTextField("Tri ân khách hàng tháng 10");
-        txtChietKhau = new JTextField("10");
-        txtDichVu = new JTextField("Tất cả dịch vụ");
+        JPanel pnlTen = new JPanel();
+        pnlTen.setOpaque(false);
+        pnlTen.setLayout(new BoxLayout(pnlTen, BoxLayout.Y_AXIS));
 
-        addCustomField(form, "Mã khuyến mãi *", txtMaKM);
-        addCustomField(form, "Tên khuyến mãi *", txtTenKM);
-        addCustomField(form, "Tỷ lệ chiết khấu (%) *", txtChietKhau);
-        addCustomField(form, "Dịch vụ áp dụng *", txtDichVu);
-        
-        JPanel dates = new JPanel(new GridLayout(1, 2, 12, 0));
-        dates.setOpaque(false);
-        txtNgayBD = new JTextField("01/10/2026");
-        txtNgayKT = new JTextField("31/10/2026");
-        dates.add(dateField("Ngày bắt đầu *", txtNgayBD));
-        dates.add(dateField("Ngày kết thúc *", txtNgayKT));
-        dates.setMaximumSize(new Dimension(Integer.MAX_VALUE, 76));
-        dates.setAlignmentX(Component.LEFT_ALIGNMENT);
-        form.add(dates);
-        form.add(Box.createVerticalStrut(16));
+        JLabel lblTen = new JLabel(km.getTenKM());
+        lblTen.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lblTen.setForeground(mauChu);
 
-        JLabel statusLabel = fieldLabel("Trạng thái *");
-        statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        form.add(statusLabel);
-        form.add(Box.createVerticalStrut(6));
-        cboTrangThai = new JComboBox<>(new String[]{
-            "Đang áp dụng", "Chưa bắt đầu", "Hết hạn"
-        });
-        styleCombo(cboTrangThai);
-        cboTrangThai.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-        cboTrangThai.setAlignmentX(Component.LEFT_ALIGNMENT);
-        form.add(cboTrangThai);
-        form.add(Box.createVerticalStrut(18));
+        JLabel lblMa = new JLabel(km.getMaKM());
+        lblMa.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblMa.setForeground(mauXanh);
 
-        JSeparator separator = new JSeparator();
-        separator.setForeground(new Color(235, 238, 242));
-        separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        form.add(separator);
-        form.add(Box.createVerticalStrut(14));
+        pnlTen.add(lblTen);
+        pnlTen.add(Box.createVerticalStrut(5));
+        pnlTen.add(lblMa);
 
-        JPanel buttons = new JPanel(new BorderLayout(10, 0));
-        buttons.setOpaque(false);
-        btnLuu = makeButton("Lưu dữ liệu", BLUE, Color.WHITE);
-        btnLuu.addActionListener(e -> {
-            if(txtTenKM.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Vui lòng nhập tên chương trình khuyến mãi!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+        JLabel lblTrangThai = new JLabel(km.getTrangThai());
+        lblTrangThai.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblTrangThai.setOpaque(true);
+
+        if ("Hết hạn".equals(km.getTrangThai())) {
+            lblTrangThai.setForeground(new Color(220, 53, 69));
+            lblTrangThai.setBackground(new Color(255, 230, 230));
+        } else {
+            lblTrangThai.setForeground(mauXanh);
+            lblTrangThai.setBackground(new Color(226, 247, 237));
+        }
+
+        lblTrangThai.setBorder(new EmptyBorder(5, 8, 5, 8));
+
+        pnlDau.add(pnlTen, BorderLayout.CENTER);
+        pnlDau.add(lblTrangThai, BorderLayout.EAST);
+
+        JPanel pnlThongTin = new JPanel(new GridLayout(0, 2, 12, 7));
+        pnlThongTin.setOpaque(false);
+        pnlThongTin.add(taoDongThongTin("Ngày bắt đầu", ngayBD));
+        pnlThongTin.add(taoDongThongTin("Ngày kết thúc", ngayKT));
+        pnlThongTin.add(taoDongThongTin("Mã thay thế", km.getMaThayThe()));
+        pnlThongTin.add(taoDongThongTin("Số lượng", String.valueOf(km.getSoLuong())));
+        pnlThongTin.add(taoDongThongTin("Giá trị tối thiểu", String.format("%,.0f đ", km.getGiaTriToiThieu())));
+        pnlThongTin.add(taoDongThongTin("Chiết khấu", String.format("%s%%", km.getChietKhau())));
+
+        the.add(pnlDau, BorderLayout.NORTH);
+        the.add(pnlThongTin, BorderLayout.CENTER);
+
+        ganMouseListener(the);
+        return the;
+    }
+
+    private void ganMouseListener(Component component) {
+        component.addMouseListener(this);
+        if (component instanceof Container) {
+            for (Component con : ((Container) component).getComponents()) {
+                ganMouseListener(con);
+            }
+        }
+    }
+
+    private JLabel taoDongThongTin(String ten, String giaTri) {
+        JLabel lbl = new JLabel("<html><span style='color:#718096'>" + ten + ":</span> <b>" + giaTri + "</b></html>");
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setForeground(mauChu);
+        return lbl;
+    }
+
+    private JPanel taoKhung() {
+        JPanel pnl = new JPanel();
+        pnl.setBackground(mauTrang);
+        pnl.setBorder(BorderFactory.createLineBorder(mauVien));
+        return pnl;
+    }
+
+    private JTextField taoTextField() {
+        JTextField txt = new JTextField();
+        txt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txt.setPreferredSize(new Dimension(100, 36));
+        txt.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(mauVien), new EmptyBorder(5, 9, 5, 9)));
+        return txt;
+    }
+
+    private JDateChooser taoDateChooser() {
+        JDateChooser dc = new JDateChooser();
+        dc.setDateFormatString("dd/MM/yyyy");
+        dc.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        dc.setPreferredSize(new Dimension(100, 36));
+        return dc;
+    }
+
+    private JButton taoNut(String ten, Color nen, Color chu) {
+        JButton btn = new JButton(ten);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(nen);
+        btn.setForeground(chu);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(90, 36));
+        return btn;
+    }
+
+    private void themTruong(JPanel pnl, int dong, String ten, JComponent truong) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = dong;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 0, 5, 10);
+
+        JLabel lbl = new JLabel(ten);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setForeground(mauChu);
+        pnl.add(lbl, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        gbc.insets = new Insets(5, 0, 5, 0);
+        pnl.add(truong, gbc);
+    }
+
+    public boolean validData() {
+        String maKM = txtMaKM.getText().trim();
+        String maThayThe = txtMaThayThe.getText().trim();
+        String tenKM = txtTenKM.getText().trim();
+        String giaTri = txtGiaTriToiThieu.getText().trim();
+        String chietKhau = txtChietKhau.getText().trim();
+        String soLuong = txtSoLuong.getText().trim();
+
+        if (maKM.isEmpty() || !maKM.matches("^KM\\d{4}$")) {
+            JOptionPane.showMessageDialog(this, "Mã khuyến mãi không hợp lệ.");
+            txtMaKM.requestFocus();
+            return false;
+        }
+
+        if (maThayThe.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Mã thay thế không được để trống.");
+            txtMaThayThe.requestFocus();
+            return false;
+        }
+
+        if (tenKM.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Tên khuyến mãi không được để trống.");
+            txtTenKM.requestFocus();
+            return false;
+        }
+
+        if (dcNgayBatDau.getDate() == null || dcNgayKetThuc.getDate() == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn ngày bắt đầu và ngày kết thúc.");
+            return false;
+        }
+
+        LocalDate ngayBD = layLocalDate(dcNgayBatDau.getDate());
+        LocalDate ngayKT = layLocalDate(dcNgayKetThuc.getDate());
+
+        if (ngayKT.isBefore(ngayBD)) {
+            JOptionPane.showMessageDialog(this, "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.");
+            dcNgayKetThuc.requestFocus();
+            return false;
+        }
+
+        if (giaTri.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Giá trị tối thiểu không được để trống.");
+            txtGiaTriToiThieu.requestFocus();
+            return false;
+        }
+
+        double soGiaTri;
+        try {
+            soGiaTri = Double.parseDouble(giaTri);
+            if (!Double.isFinite(soGiaTri) || soGiaTri < 0) {
+                JOptionPane.showMessageDialog(this, "Giá trị tối thiểu phải là số không âm.");
+                txtGiaTriToiThieu.requestFocus();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Giá trị tối thiểu phải là số.");
+            txtGiaTriToiThieu.requestFocus();
+            return false;
+        }
+
+        if (chietKhau.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Chiết khấu không được để trống.");
+            txtChietKhau.requestFocus();
+            return false;
+        }
+
+        double soChietKhau;
+        try {
+            soChietKhau = Double.parseDouble(chietKhau);
+            if (!Double.isFinite(soChietKhau) || soChietKhau < 0 || soChietKhau > 100) {
+                JOptionPane.showMessageDialog(this, "Chiết khấu phải nằm trong khoảng từ 0 đến 100%.");
+                txtChietKhau.requestFocus();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Chiết khấu phải là số.");
+            txtChietKhau.requestFocus();
+            return false;
+        }
+
+        if (soLuong.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Số lượng không được để trống.");
+            txtSoLuong.requestFocus();
+            return false;
+        }
+
+        try {
+            int soLuongKM = Integer.parseInt(soLuong);
+            if (soLuongKM < 0) {
+                JOptionPane.showMessageDialog(this, "Số lượng không được âm.");
+                txtSoLuong.requestFocus();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Số lượng phải là số nguyên.");
+            txtSoLuong.requestFocus();
+            return false;
+        }
+
+        boolean dangSua = danhSachHienThi.stream().anyMatch(km -> km.getMaKM().equals(maKM));
+        if (km_dao.tonTaiMaThayThe(maThayThe, dangSua ? maKM : null)) {
+            JOptionPane.showMessageDialog(this, "Mã thay thế đã tồn tại.");
+            txtMaThayThe.requestFocus();
+            return false;
+        }
+
+        return true;
+    }
+
+    private KhuyenMai layDuLieuForm() {
+        return new KhuyenMai(txtMaKM.getText().trim(), txtMaThayThe.getText().trim(), txtTenKM.getText().trim(),
+                layLocalDate(dcNgayBatDau.getDate()), layLocalDate(dcNgayKetThuc.getDate()),
+                Double.parseDouble(txtGiaTriToiThieu.getText().trim()),
+                Double.parseDouble(txtChietKhau.getText().trim()),
+                Integer.parseInt(txtSoLuong.getText().trim()), txtTrangThai.getText().trim());
+    }
+
+    private LocalDate layLocalDate(Date ngay) {
+        return ngay.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    private Date layDate(LocalDate ngay) {
+        return Date.from(ngay.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    public void xoaTrang() {
+        txtMaKM.setText(km_dao.tuSinhMaKM());
+        txtMaThayThe.setText("");
+        txtTenKM.setText("");
+        dcNgayBatDau.setDate(null);
+        dcNgayKetThuc.setDate(null);
+        txtGiaTriToiThieu.setText("");
+        txtChietKhau.setText("");
+        txtSoLuong.setText("");
+        txtTrangThai.setText("Đang áp dụng");
+        txtMaThayThe.requestFocus();
+    }
+
+    public void themKhuyenMai() {
+        if (!validData()) {
+            return;
+        }
+
+        KhuyenMai km = layDuLieuForm();
+
+        if (km_dao.them(km)) {
+            JOptionPane.showMessageDialog(this, "Thêm khuyến mãi thành công.");
+            capNhatDanhSachTheoBoLoc();
+            xoaTrang();
+        } else {
+            JOptionPane.showMessageDialog(this, "Thêm khuyến mãi thất bại. Vui lòng kiểm tra dữ liệu và SQL Server.");
+        }
+    }
+
+    public void suaKhuyenMai() {
+        String maKM = txtMaKM.getText().trim();
+
+        if (maKM.isEmpty() || !danhSachHienThi.stream().anyMatch(km -> km.getMaKM().equals(maKM))) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn khuyến mãi cần sửa.");
+            return;
+        }
+
+        if (!validData()) {
+            return;
+        }
+
+        KhuyenMai km = layDuLieuForm();
+
+        if (km_dao.sua(km)) {
+            JOptionPane.showMessageDialog(this, "Cập nhật khuyến mãi thành công.");
+            capNhatDanhSachTheoBoLoc();
+            xoaTrang();
+        } else {
+            JOptionPane.showMessageDialog(this, "Cập nhật khuyến mãi thất bại.");
+        }
+    }
+
+    public void xoaKhuyenMai() {
+        String maKM = txtMaKM.getText().trim();
+
+        if (maKM.isEmpty() || !danhSachHienThi.stream().anyMatch(km -> km.getMaKM().equals(maKM))) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn khuyến mãi cần xóa.");
+            return;
+        }
+
+        int luaChon = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa khuyến mãi " + maKM + " không?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+
+        if (luaChon == JOptionPane.YES_OPTION) {
+            if (km_dao.xoa(maKM)) {
+                JOptionPane.showMessageDialog(this, "Xóa khuyến mãi thành công.");
+                capNhatDanhSachTheoBoLoc();
+                xoaTrang();
+            } else {
+                JOptionPane.showMessageDialog(this, "Xóa khuyến mãi thất bại.");
+            }
+        }
+    }
+
+    public void timKhuyenMai() {
+        String tuKhoa = txtTimKiem.getText().trim();
+
+        capNhatDanhSachTheoBoLoc();
+
+        if (!tuKhoa.isEmpty() && danhSachHienThi.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Không tìm thấy khuyến mãi phù hợp!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    public void locTheoTrangThai() {
+        capNhatDanhSachTheoBoLoc();
+    }
+
+    private void capNhatDanhSachTheoBoLoc() {
+        km_dao.capNhatTrangThaiTuNgayKetThuc();
+
+        String tuKhoa = txtTimKiem.getText().trim();
+        List<KhuyenMai> ds = tuKhoa.isEmpty() ? km_dao.getAll() : km_dao.timKiem(tuKhoa);
+        String trangThai = cboLocTrangThai.getSelectedItem().toString();
+
+        if (!trangThai.equals("Tất cả trạng thái")) {
+            ds.removeIf(km -> !trangThai.equals(km.getTrangThai()));
+        }
+
+        hienThiDanhSach(ds);
+    }
+
+    private void chonKhuyenMai(String maKM) {
+        for (KhuyenMai km : danhSachHienThi) {
+            if (km.getMaKM().equals(maKM)) {
+                txtMaKM.setText(km.getMaKM());
+                txtMaThayThe.setText(km.getMaThayThe());
+                txtTenKM.setText(km.getTenKM());
+                dcNgayBatDau.setDate(km.getNgayBatDau() == null ? null : layDate(km.getNgayBatDau()));
+                dcNgayKetThuc.setDate(km.getNgayKetThuc() == null ? null : layDate(km.getNgayKetThuc()));
+                txtGiaTriToiThieu.setText(String.valueOf(km.getGiaTriToiThieu()));
+                txtChietKhau.setText(String.valueOf(km.getChietKhau()));
+                txtSoLuong.setText(String.valueOf(km.getSoLuong()));
+                txtTrangThai.setText(km.getTrangThai());
                 return;
             }
-            JOptionPane.showMessageDialog(this, dangThem ? "Thêm khuyến mãi mới thành công!" : "Cập nhật khuyến mãi thành công!");
-        });
-
-        btnLamMoi = makeButton("Làm mới", new Color(244, 246, 249), TEXT);
-        btnLamMoi.addActionListener(e -> clearForm());
-
-        btnLuu.setPreferredSize(new Dimension(0, 40));
-        btnLamMoi.setPreferredSize(new Dimension(100, 40));
-        buttons.add(btnLuu, BorderLayout.CENTER);
-        buttons.add(btnLamMoi, BorderLayout.EAST);
-        buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        buttons.setAlignmentX(Component.LEFT_ALIGNMENT);
-        form.add(buttons);
-
-        outer.add(form, BorderLayout.CENTER);
-        return outer;
-    }
-
-    private void addCustomField(JPanel parent, String label, JTextField field) {
-        JLabel l = fieldLabel(label);
-        l.setAlignmentX(Component.LEFT_ALIGNMENT);
-        parent.add(l);
-        parent.add(Box.createVerticalStrut(6));
-        styleField(field);
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-        field.setAlignmentX(Component.LEFT_ALIGNMENT);
-        parent.add(field);
-        parent.add(Box.createVerticalStrut(16));
-    }
-
-    private JPanel dateField(String label, JTextField field) {
-        JPanel p = new JPanel(new BorderLayout(0, 6));
-        p.setOpaque(false);
-        p.add(fieldLabel(label), BorderLayout.NORTH);
-        styleField(field);
-        p.add(field, BorderLayout.CENTER);
-        return p;
-    }
-
-    private JLabel fieldLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Arial", Font.BOLD, 12));
-        label.setForeground(new Color(75, 84, 95));
-        return label;
-    }
-
-    private void styleField(JTextField field) {
-        field.setFont(new Font("Arial", Font.PLAIN, 13));
-        field.setForeground(TEXT);
-        field.setBackground(Color.WHITE);
-        field.setBorder(new CompoundBorder(
-            new LineBorder(new Color(211, 217, 225)),
-            new EmptyBorder(7, 10, 7, 10)
-        ));
-        field.setPreferredSize(new Dimension(120, 36));
-    }
-
-    private void styleCombo(JComboBox<String> combo) {
-        combo.setFont(new Font("Arial", Font.PLAIN, 12));
-        combo.setForeground(TEXT);
-        combo.setBackground(Color.WHITE);
-        combo.setBorder(new LineBorder(new Color(211, 217, 225)));
-        combo.setPreferredSize(new Dimension(120, 36));
-    }
-
-    private JButton makeButton(String text, Color background, Color foreground) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setForeground(foreground);
-        button.setBackground(background);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(new LineBorder(
-            background.equals(Color.WHITE) ? new Color(215, 220, 227) : background
-        ));
-        return button;
-    }
-
-    private void stylePageButton(JButton button, boolean active) {
-        button.setPreferredSize(new Dimension(30, 30));
-        button.setFocusPainted(false);
-        button.setBackground(active ? BLUE : Color.WHITE);
-        button.setForeground(active ? Color.WHITE : TEXT);
-    }
-
-    private void clearForm() {
-        txtMaKM.setText("");
-        txtTenKM.setText("");
-        txtChietKhau.setText("");
-        txtDichVu.setText("");
-        txtNgayBD.setText("");
-        txtNgayKT.setText("");
-        cboTrangThai.setSelectedIndex(0);
-        txtTenKM.requestFocus();
-    }
-
-    private static class CodeRenderer extends DefaultTableCellRenderer {
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean selected,
-                boolean focus, int row, int column) {
-            JLabel label = (JLabel) super.getTableCellRendererComponent(
-                table, value, selected, focus, row, column);
-            label.setBorder(new EmptyBorder(0, 5, 0, 3));
-            label.setForeground(new Color(42, 113, 190));
-            label.setFont(new Font("Arial", Font.BOLD, 11));
-            return label;
         }
     }
+    public void inQR() {
+        String maKM = txtMaKM.getText().trim();
+        KhuyenMai km = null;
 
-    private static class PromotionStatusRenderer extends DefaultTableCellRenderer {
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean selected,
-                boolean focus, int row, int column) {
-            JLabel label = (JLabel) super.getTableCellRendererComponent(
-                table, value, selected, focus, row, column);
-            label.setHorizontalAlignment(SwingConstants.CENTER);
-            label.setFont(new Font("Arial", Font.BOLD, 10));
-            label.setOpaque(true);
-            label.setBorder(new EmptyBorder(5, 3, 5, 3));
-
-            if (String.valueOf(value).contains("Hết hạn")) {
-                label.setForeground(new Color(161, 59, 75));
-                label.setBackground(new Color(255, 229, 233));
-            } else {
-                label.setForeground(new Color(16, 125, 91));
-                label.setBackground(new Color(220, 249, 239));
+        for (KhuyenMai item : danhSachHienThi) {
+            if (item.getMaKM().equals(maKM)) {
+                km = item;
+                break;
             }
-            return label;
         }
+
+        if (km == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn khuyến mãi cần in QR.");
+            return;
+        }
+
+        String noiDung = "MA_KHUYEN_MAI: " + km.getMaKM()
+                + "\nMA_THAY_THE: " + km.getMaThayThe()
+                + "\nTEN_KHUYEN_MAI: " + km.getTenKM()
+                + "\nCHIET_KHAU: " + km.getChietKhau() + "%"
+                + "\nNGAY_BAT_DAU: " + km.getNgayBatDau()
+                + "\nNGAY_KET_THUC: " + km.getNgayKetThuc()
+                + "\nTRANG_THAI: " + km.getTrangThai();
+
+        InQR.hienThiQR(this,km.getTenKM() + " - " + km.getMaKM(), noiDung, km.getMaKM());
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object o = e.getSource();
+
+        if (o == btnThem) {
+            themKhuyenMai();
+        } else if (o == btnSua) {
+            suaKhuyenMai();
+        } else if (o == btnXoa) {
+            xoaKhuyenMai();
+        } else if (o == btnLamMoi) {
+            xoaTrang();
+        } else if (o == btnTimKiem) {
+            timKhuyenMai();
+        } else if (o == cboLocTrangThai) {
+            locTheoTrangThai();
+        } else if (o == btnInQR) {
+            inQR();
+        }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        Component component = (Component) e.getSource();
+
+        while (component != null) {
+            if (component instanceof JPanel && component.getName() != null && component.getName().matches("^KM\\d{4}$")) {
+                chonKhuyenMai(component.getName());
+                return;
+            }
+            component = component.getParent();
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
     }
 }
