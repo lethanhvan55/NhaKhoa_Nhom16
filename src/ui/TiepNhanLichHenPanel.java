@@ -41,7 +41,6 @@ public class TiepNhanLichHenPanel extends JPanel
 
     private JLabel totalLabel;
 
-    private JButton addBtn;
     private JButton saveBtn;
     private JButton deleteBtn;
     private JButton cancelBtn;
@@ -58,7 +57,6 @@ public class TiepNhanLichHenPanel extends JPanel
 
         add(createContent(), BorderLayout.CENTER);
 
-        addBtn.addActionListener(this);
         saveBtn.addActionListener(this);
         deleteBtn.addActionListener(this);
         cancelBtn.addActionListener(this);
@@ -115,13 +113,6 @@ public class TiepNhanLichHenPanel extends JPanel
         subTitle.setForeground(UIHelper.MUTED);
 
         toolbar.add(subTitle, BorderLayout.WEST);
-
-        addBtn = new JButton("Thêm lịch hẹn");
-        UIHelper.styleButton(
-                addBtn, true, FontAwesomeSolid.CALENDAR_PLUS
-        );
-
-        toolbar.add(addBtn, BorderLayout.EAST);
         p.add(toolbar, BorderLayout.NORTH);
 
         String[] cols = {
@@ -317,7 +308,6 @@ public class TiepNhanLichHenPanel extends JPanel
 
         deleteBtn.setForeground(new Color(215, 38, 56));
 
-        // Đã tăng chiều rộng nút Làm Mới lên 115px để vừa khít chữ
         saveBtn.setPreferredSize(new Dimension(85, 30));
         deleteBtn.setPreferredSize(new Dimension(85, 30));
         cancelBtn.setPreferredSize(new Dimension(115, 30));
@@ -426,9 +416,7 @@ public class TiepNhanLichHenPanel extends JPanel
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
-        if (source == addBtn) {
-            clearForm();
-        } else if (source == saveBtn) {
+        if (source == saveBtn) {
             xuLyLuuLichHen();
         } else if (source == deleteBtn) {
             xuLyXoaLichHen();
