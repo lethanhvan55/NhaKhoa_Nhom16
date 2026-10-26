@@ -102,61 +102,76 @@ public class HoSoBenhNhan_DAO {
 
     // ================= THÊM HỒ SƠ BỆNH NHÂN =================
     public boolean insert(HoSoBenhNhan hs) {
-
         if (hs == null) {
-            System.err.println("[HoSoBenhNhan_DAO] Hồ sơ không hợp lệ!");
+            System.err.println("Hồ sơ bệnh nhân không hợp lệ!");
             return false;
         }
 
         if (hs.getMaBenhNhan() == null
                 || hs.getMaBenhNhan().getMaBenhNhan() == null
                 || hs.getMaBenhNhan().getMaBenhNhan().trim().isEmpty()) {
-
-            System.err.println("[HoSoBenhNhan_DAO] Mã bệnh nhân không được để trống!");
+            System.err.println("Mã bệnh nhân không được để trống!");
             return false;
         }
 
         if (hs.getMaNV() == null
                 || hs.getMaNV().getMaNV() == null
                 || hs.getMaNV().getMaNV().trim().isEmpty()) {
+            System.err.println("Mã nhân viên không được để trống!");
+            return false;
+        }
 
-            System.err.println("[HoSoBenhNhan_DAO] Mã nhân viên không được để trống!");
+        if (hs.getNgayKham() == null) {
+            System.err.println("Ngày khám không được để trống!");
+            return false;
+        }
+
+        if (hs.getNgayKham().isAfter(java.time.LocalDate.now())) {
+            System.err.println("Ngày khám không được ở tương lai!");
+            return false;
+        }
+
+        if (hs.getTinhTrangRangMieng() == null
+                || hs.getTinhTrangRangMieng().trim().isEmpty()
+                || hs.getChanDoan() == null
+                || hs.getChanDoan().trim().isEmpty()
+                || hs.getPhuongPhapDieuTri() == null
+                || hs.getPhuongPhapDieuTri().trim().isEmpty()) {
+            System.err.println("Vui lòng nhập đầy đủ thông tin khám!");
             return false;
         }
 
         String maMoi = sinhMaHoSoMoi();
 
-        if (maMoi == null || maMoi.isEmpty()) {
-            System.err.println("[HoSoBenhNhan_DAO] Không tạo được mã hồ sơ!");
+        if (maMoi == null || maMoi.trim().isEmpty()) {
+            System.err.println("Không thể sinh mã hồ sơ!");
             return false;
         }
 
-        String sql = "INSERT INTO HoSoBenhNhan "
-                + "(MaHoSo, MaBenhNhan, MaNV, MaKeHoach, NgayKham, "
-                + "TinhTrangRangMieng, ChanDoan, PhuongPhapDieuTri, "
-                + "TienSuBenh, DiUng, BenhLyNen, NguoiLienHe, SoDTNLH, GhiChu) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql =
+                "INSERT INTO HoSoBenhNhan "
+                        + "(MaHoSo, MaBenhNhan, MaNV, MaKeHoach, NgayKham, "
+                        + "TinhTrangRangMieng, ChanDoan, PhuongPhapDieuTri, "
+                        + "TienSuBenh, DiUng, BenhLyNen, NguoiLienHe, SoDTNLH, GhiChu) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        Connection con = ConnectDB.getConnection();
-
-        if (con == null) {
-            System.err.println("[HoSoBenhNhan_DAO] Chưa kết nối database!");
-            return false;
-        }
-
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-
+        try (
+                Connection con = ConnectDB.getInstance().getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
             ps.setString(1, maMoi);
-            ps.setString(2, hs.getMaBenhNhan().getMaBenhNhan());
-            ps.setString(3, hs.getMaNV().getMaNV());
+            ps.setString(2, hs.getMaBenhNhan().getMaBenhNhan().trim());
+            ps.setString(3, hs.getMaNV().getMaNV().trim());
 
-            if (hs.getMaKeHoach() == null) {
-                ps.setNull(4, Types.CHAR);
+            if (hs.getMaKeHoach() == null
+                    || hs.getMaKeHoach().getMaKeHoach() == null
+                    || hs.getMaKeHoach().getMaKeHoach().trim().isEmpty()) {
+                ps.setNull(4, java.sql.Types.CHAR);
             } else {
-                ps.setString(4, hs.getMaKeHoach().getMaKeHoach());
+                ps.setString(4, hs.getMaKeHoach().getMaKeHoach().trim());
             }
 
-            ps.setDate(5, Date.valueOf(hs.getNgayKham()));
+            ps.setDate(5, java.sql.Date.valueOf(hs.getNgayKham()));
 
             ps.setString(6, hs.getTinhTrangRangMieng().trim());
             ps.setString(7, hs.getChanDoan().trim());
@@ -173,13 +188,14 @@ public class HoSoBenhNhan_DAO {
 
             if (rows > 0) {
                 hs.setMaHoSo(maMoi);
+                System.out.println("Thêm hồ sơ thành công: " + maMoi);
                 return true;
             }
 
             return false;
 
         } catch (SQLException e) {
-            System.err.println("[HoSoBenhNhan_DAO] Insert lỗi: " + e.getMessage());
+            System.err.println("Lỗi thêm hồ sơ: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -291,44 +307,33 @@ public class HoSoBenhNhan_DAO {
 
     // ================= SINH MÃ HỒ SƠ MỚI =================
     public String sinhMaHoSoMoi() {
+        String sql =
+                "SELECT ISNULL(MAX(CAST(RIGHT(MaHoSo, 4) AS INT)), 0) + 1 "
+                        + "FROM HoSoBenhNhan "
+                        + "WHERE MaHoSo LIKE 'HS[0-9][0-9][0-9][0-9]'";
 
-        String sql = "SELECT MAX(CAST(SUBSTRING(MaHoSo, 3, 4) AS INT)) AS SoLonNhat "
-                + "FROM HoSoBenhNhan "
-                + "WHERE MaHoSo LIKE 'HS[0-9][0-9][0-9][0-9]'";
-
-        Connection con = ConnectDB.getConnection();
-
-        if (con == null) {
-            System.err.println("[HoSoBenhNhan_DAO] Chưa kết nối database!");
-            return "";
-        }
-
-        try (PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
+        try (
+                Connection con = ConnectDB.getInstance().getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
+        ) {
             if (rs.next()) {
-                int soLonNhat = rs.getInt("SoLonNhat");
+                int so = rs.getInt(1);
 
-                if (rs.wasNull()) {
-                    soLonNhat = 0;
+                if (so > 9999) {
+                    return null;
                 }
 
-                if (soLonNhat >= 9999) {
-                    System.err.println("[HoSoBenhNhan_DAO] Đã đạt giới hạn mã HS9999!");
-                    return "";
-                }
-
-                return String.format("HS%04d", soLonNhat + 1);
+                return String.format("HS%04d", so);
             }
 
         } catch (SQLException e) {
-            System.err.println("[HoSoBenhNhan_DAO] Sinh mã hồ sơ lỗi: " + e.getMessage());
+            System.err.println("Lỗi sinh mã hồ sơ: " + e.getMessage());
             e.printStackTrace();
         }
 
-        return "";
+        return null;
     }
-
     // ================= KIỂM TRA DỮ LIỆU =================
     private boolean kiemTraDuLieu(HoSoBenhNhan hs) {
 

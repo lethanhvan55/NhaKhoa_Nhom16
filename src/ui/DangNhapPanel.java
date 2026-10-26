@@ -369,15 +369,12 @@ public class DangNhapPanel extends JFrame implements ActionListener {
                             "Thông báo",
                             JOptionPane.INFORMATION_MESSAGE
                     );
-
-                    // Lấy mã nhân viên từ tài khoản đăng nhập
                     String maNV = "";
 
                     if (tk.getMaNV() != null) {
                         maNV = tk.getMaNV().getMaNV();
                     }
 
-// Kiểm tra mã nhân viên
                     if (maNV == null || maNV.trim().isEmpty()) {
                         JOptionPane.showMessageDialog(
                                 this,
