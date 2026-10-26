@@ -1,28 +1,31 @@
 package model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class KhuyenMai {
     private String maKM;
+    private String maThayThe;
     private String tenKM;
-    private Date ngayBatDau;
-    private Date ngayKetThuc;
-    private String dieuKien;
+    private LocalDate ngayBatDau;
+    private LocalDate ngayKetThuc;
+    private double giaTriToiThieu;
     private double chietKhau;
+    private int soLuong;
     private String trangThai;
 
     public KhuyenMai() {
     }
 
-    public KhuyenMai(String maKM, String tenKM, Date ngayBatDau, Date ngayKetThuc, 
-                     String dieuKien, double chietKhau, String trangThai) {
-        setMaKM(maKM);
-        setTenKM(tenKM);
-        setNgayBatDau(ngayBatDau);
-        setNgayKetThuc(ngayKetThuc);
-        setDieuKien(dieuKien);
-        setChietKhau(chietKhau);
-        setTrangThai(trangThai);
+    public KhuyenMai(String maKM, String maThayThe, String tenKM, LocalDate ngayBatDau, LocalDate ngayKetThuc, double giaTriToiThieu, double chietKhau, int soLuong, String trangThai) {
+        this.maKM = maKM;
+        this.maThayThe = maThayThe;
+        this.tenKM = tenKM;
+        this.ngayBatDau = ngayBatDau;
+        this.ngayKetThuc = ngayKetThuc;
+        this.giaTriToiThieu = giaTriToiThieu;
+        this.chietKhau = chietKhau;
+        this.soLuong = soLuong;
+        this.trangThai = trangThai;
     }
 
     public String getMaKM() {
@@ -30,10 +33,21 @@ public class KhuyenMai {
     }
 
     public void setMaKM(String maKM) {
-        if (maKM == null || maKM.trim().isEmpty()) {
-            throw new IllegalArgumentException("Mã khuyến mãi không được để trống!");
+        if (maKM == null || !maKM.matches("^KM\\d{4}$")) {
+            throw new IllegalArgumentException("Mã khuyến mãi sai định dạng");
         }
-        this.maKM = maKM.trim();
+        this.maKM = maKM;
+    }
+
+    public String getMaThayThe() {
+        return maThayThe;
+    }
+
+    public void setMaThayThe(String maThayThe) {
+        if (maThayThe == null || maThayThe.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã thay thế không được trống");
+        }
+        this.maThayThe = maThayThe;
     }
 
     public String getTenKM() {
@@ -42,45 +56,48 @@ public class KhuyenMai {
 
     public void setTenKM(String tenKM) {
         if (tenKM == null || tenKM.trim().isEmpty()) {
-            throw new IllegalArgumentException("Tên khuyến mãi không được để trống!");
+            throw new IllegalArgumentException("Tên khuyến mãi không được trống");
         }
-        this.tenKM = tenKM.trim();
+        this.tenKM = tenKM;
     }
 
-    public Date getNgayBatDau() {
+    public LocalDate getNgayBatDau() {
         return ngayBatDau;
     }
 
-    public void setNgayBatDau(Date ngayBatDau) {
+    public void setNgayBatDau(LocalDate ngayBatDau) {
         if (ngayBatDau == null) {
-            throw new IllegalArgumentException("Ngày bắt đầu không được để trống!");
+            throw new IllegalArgumentException("Ngày bắt đầu không được rỗng");
+        }
+        if (ngayKetThuc != null && ngayKetThuc.isBefore(ngayBatDau)) {
+            throw new IllegalArgumentException("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu");
         }
         this.ngayBatDau = ngayBatDau;
     }
 
-    public Date getNgayKetThuc() {
+    public LocalDate getNgayKetThuc() {
         return ngayKetThuc;
     }
 
-    public void setNgayKetThuc(Date ngayKetThuc) {
+    public void setNgayKetThuc(LocalDate ngayKetThuc) {
         if (ngayKetThuc == null) {
-            throw new IllegalArgumentException("Ngày kết thúc không được để trống!");
+            throw new IllegalArgumentException("Ngày kết thúc không được rỗng");
         }
-        if (this.ngayBatDau != null && ngayKetThuc.before(this.ngayBatDau)) {
-            throw new IllegalArgumentException("Ngày kết thúc không được trước ngày bắt đầu!");
+        if (ngayBatDau != null && ngayKetThuc.isBefore(ngayBatDau)) {
+            throw new IllegalArgumentException("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu");
         }
         this.ngayKetThuc = ngayKetThuc;
     }
 
-    public String getDieuKien() {
-        return dieuKien;
+    public double getGiaTriToiThieu() {
+        return giaTriToiThieu;
     }
 
-    public void setDieuKien(String dieuKien) {
-        if (dieuKien == null || dieuKien.trim().isEmpty()) {
-            throw new IllegalArgumentException("Điều kiện khuyến mãi không được để trống!");
+    public void setGiaTriToiThieu(double giaTriToiThieu) {
+        if (giaTriToiThieu < 0) {
+            throw new IllegalArgumentException("Giá trị tối thiểu không được âm");
         }
-        this.dieuKien = dieuKien.trim();
+        this.giaTriToiThieu = giaTriToiThieu;
     }
 
     public double getChietKhau() {
@@ -89,9 +106,20 @@ public class KhuyenMai {
 
     public void setChietKhau(double chietKhau) {
         if (chietKhau < 0 || chietKhau > 100) {
-            throw new IllegalArgumentException("Chiết khấu phải nằm trong khoảng từ 0 đến 100 (%)!");
+            throw new IllegalArgumentException("Chiết khấu phải từ 0 đến 100%");
         }
         this.chietKhau = chietKhau;
+    }
+
+    public int getSoLuong() {
+        return soLuong;
+    }
+
+    public void setSoLuong(int soLuong) {
+        if (soLuong < 0) {
+            throw new IllegalArgumentException("Số lượng không được âm");
+        }
+        this.soLuong = soLuong;
     }
 
     public String getTrangThai() {
@@ -99,9 +127,21 @@ public class KhuyenMai {
     }
 
     public void setTrangThai(String trangThai) {
-        if (trangThai == null || trangThai.trim().isEmpty()) {
-            throw new IllegalArgumentException("Trạng thái khuyến mãi không được để trống!");
-        }
-        this.trangThai = trangThai.trim();
+        this.trangThai = trangThai;
+    }
+
+    @Override
+    public String toString() {
+        return "KhuyenMai{" +
+                "maKM='" + maKM + '\'' +
+                ", maThayThe='" + maThayThe + '\'' +
+                ", tenKM='" + tenKM + '\'' +
+                ", ngayBatDau=" + ngayBatDau +
+                ", ngayKetThuc=" + ngayKetThuc +
+                ", giaTriToiThieu=" + giaTriToiThieu +
+                ", chietKhau=" + chietKhau +
+                ", soLuong=" + soLuong +
+                ", trangThai='" + trangThai + '\'' +
+                '}';
     }
 }

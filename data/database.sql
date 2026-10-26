@@ -105,13 +105,14 @@ MaThayThe VARCHAR(30) NOT NULL UNIQUE,
 TenKM NVARCHAR(50) NOT NULL,
 NgayBatDau DATE NOT NULL,
 NgayKetThuc DATE NOT NULL,
-DieuKien NVARCHAR(50) NOT NULL,
+GiaTriToiThieu DECIMAL(18,2) NOT NULL DEFAULT 0,
 ChietKhau DECIMAL(5,2) NOT NULL,
 SoLuong INT NOT NULL,
 TrangThai NVARCHAR(50) NOT NULL,
 CONSTRAINT CK_KhuyenMai_MaKM CHECK (MaKM LIKE 'KM[0-9][0-9][0-9][0-9]'),
 
 CONSTRAINT CK_KhuyenMai_NgayKetThuc CHECK (NgayKetThuc >= NgayBatDau),
+CONSTRAINT CK_KhuyenMai_GiaTriToiThieu CHECK (GiaTriToiThieu >= 0),
 
 CONSTRAINT CK_KhuyenMai_ChietKhau CHECK (ChietKhau >= 0 AND ChietKhau <= 100),
 CONSTRAINT CK_KhuyenMai_SoLuong CHECK (SoLuong > 0),
@@ -298,6 +299,9 @@ GO
 --=======================================================
 -- 16 Chi tiết VatTu_DichVu
 --=======================================================
+
+USE QL_NK;
+GO
 
 CREATE TABLE ChiTietVatTu_DichVu (
                                      MaVT CHAR(6) NOT NULL,

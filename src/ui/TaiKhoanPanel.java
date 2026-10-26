@@ -78,8 +78,9 @@ public class TaiKhoanPanel extends JPanel {
         txtMatKhau = new JPasswordField();
         txtNhanVien = new JTextField();
 
+        // Đồng bộ quyền khớp với ràng buộc CSDL (Quản lý, Lễ tân, Nha sĩ)
         cboQuyen = new JComboBox<>(new String[] {
-                "Quản lý", "Lễ tân", "Nha sĩ", "Phụ tá"
+                "Quản lý", "Lễ tân", "Nha sĩ"
         });
 
         cboTrangThai = new JComboBox<>(new String[] {
@@ -87,7 +88,7 @@ public class TaiKhoanPanel extends JPanel {
         });
 
         pnlThongTin.add(createField("Tên đăng nhập:", txtTenDN));
-        pnlThongTin.add(createField("Mật khẩu:", txtMatKhau));
+        pnlThongTin.add(createField("Mật khẩu (tối thiểu 6 ký tự):", txtMatKhau));
         pnlThongTin.add(createField("Mã nhân viên (MaNV):", txtNhanVien));
         pnlThongTin.add(createField("Quyền:", cboQuyen));
         pnlThongTin.add(createField("Trạng thái:", cboTrangThai));
@@ -244,6 +245,12 @@ public class TaiKhoanPanel extends JPanel {
             return;
         }
 
+        // Kiểm tra độ dài mật khẩu >= 6 ký tự theo CSDL
+        if (matKhau.length() < 6) {
+            JOptionPane.showMessageDialog(this, "Mật khẩu phải có ít nhất từ 6 ký tự trở lên!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         NhanVien nv = new NhanVien();
         nv.setMaNV(maNVStr);
 
@@ -259,7 +266,7 @@ public class TaiKhoanPanel extends JPanel {
             loadDataToTable();
             xuLyLamMoi();
         } else {
-            JOptionPane.showMessageDialog(this, "Thêm thất bại (Trùng tên đăng nhập hoặc lỗi CSDL)!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Thêm thất bại (Trùng tên đăng nhập, sai mã nhân viên hoặc lỗi CSDL)!", "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -275,6 +282,12 @@ public class TaiKhoanPanel extends JPanel {
         String maNVStr = txtNhanVien.getText().trim();
         String quyen = cboQuyen.getSelectedItem().toString();
         String trangThai = cboTrangThai.getSelectedItem().toString();
+
+        // Kiểm tra độ dài mật khẩu >= 6 ký tự theo CSDL
+        if (matKhau.length() < 6) {
+            JOptionPane.showMessageDialog(this, "Mật khẩu phải có ít nhất từ 6 ký tự trở lên!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         NhanVien nv = new NhanVien();
         nv.setMaNV(maNVStr);
@@ -374,7 +387,6 @@ public class TaiKhoanPanel extends JPanel {
                 break;
 
             case "Nha sĩ":
-            case "Phụ tá":
                 setComponentEnabled(false);
                 JOptionPane.showMessageDialog(this,
                         "Bạn không có quyền truy cập chức năng Quản lý tài khoản!",

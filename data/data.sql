@@ -106,15 +106,15 @@ GO
 
 -- =========================================================
 -- 6. DU LIEU KHUYEN MAI
--- MaThayThe là mã khách nhập để áp dụng khuyến mãi
 -- =========================================================
-INSERT INTO KhuyenMai
-    (MaKM, MaThayThe, TenKM, NgayBatDau, NgayKetThuc, DieuKien, ChietKhau, SoLuong, TrangThai)
+INSERT INTO KhuyenMai (MaKM, MaThayThe, TenKM, NgayBatDau, NgayKetThuc,GiaTriToiThieu, ChietKhau, SoLuong, TrangThai)
 VALUES
-('KM0001', 'CAOVOI15', N'Ưu đãi hè - Giảm giá cạo vôi răng', '2026-06-01', '2026-06-30', N'Áp dụng cho khách hàng sử dụng dịch vụ cạo vôi răng', 15.00, 100, N'Hết hạn'),
-('KM0002', 'KHAITRUONG10', N'Mừng khai trương chi nhánh', '2026-04-01', '2026-05-30', N'Hóa đơn trên 500.000 đồng', 10.00, 200, N'Hết hạn');
-GO
+('KM0001', 'CAOVOI15', N'Ưu đãi tháng 10','2026-10-01', '2026-10-31', 500000, 15.00, 100, N'Đang áp dụng'),
 
+('KM0002', 'KHAITRUONG10', N'Ưu đãi hóa đơn lớn','2026-10-01', '2026-11-30', 1000000, 10.00, 200, N'Đang áp dụng'),
+
+('KM0003', 'KHACHMOI05', N'Ưu đãi khách hàng mới','2026-10-01', '2026-12-31', 300000, 5.00, 150, N'Đang áp dụng');
+GO
 -- =========================================================
 -- 7. DU LIEU KE HOACH DIEU TRI
 -- =========================================================
