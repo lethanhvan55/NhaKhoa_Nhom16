@@ -26,7 +26,16 @@ public class MainFrame extends JFrame {
 
     private JLabel lblVaiTro;
 
+    private String maNVHienTai;
+
+
     public MainFrame() {
+        this(null);
+    }
+
+    public MainFrame(String maNV) {
+        this.maNVHienTai = maNV;
+
         khoiTaoCuaSo();
         taoMenu();
         taoNoiDung();
@@ -56,7 +65,7 @@ public class MainFrame extends JFrame {
         pnlNoiDung.add(new HomePanel(), "Trang chủ");
 
         pnlNoiDung.add(
-                new HoSoBenhNhanPanel(),
+                new HoSoBenhNhanPanel(maNVHienTai),
                 "Hồ sơ bệnh nhân"
         );
 
