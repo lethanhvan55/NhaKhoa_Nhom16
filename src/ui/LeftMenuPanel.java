@@ -76,8 +76,8 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
     private JButton btnHoSoBenhNhan;
     private JButton btnKeHoachDieuTri;
 
-    private JButton btnTimKiemPhongDieuTri;
-    private JButton btnQuanLyPhongDieuTri;
+//    private JButton btnTimKiemPhongDieuTri;
+//    private JButton btnQuanLyPhongDieuTri;
     
     private JButton btnTimKiemDichVu;
     private JButton btnCapNhatDichVu;
@@ -211,13 +211,13 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         pnlMenuBenhNhan.add(btnKeHoachDieuTri);
         pnlMenuBenhNhan.setVisible(false);
 
-        btnDieuTri = taoNutMenu("Phòng điều trị ▼", FontAwesomeSolid.HOSPITAL);
-        btnTimKiemPhongDieuTri = taoNutCon("Tìm kiếm phòng điều trị",FontAwesomeSolid.HOSPITAL_USER);
-        btnQuanLyPhongDieuTri = taoNutCon("Cập nhật phòng điều trị",FontAwesomeSolid.HOSPITAL);
+//        btnDieuTri = taoNutMenu("Phòng điều trị ▼", FontAwesomeSolid.HOSPITAL);
+//        btnTimKiemPhongDieuTri = taoNutCon("Tìm kiếm phòng điều trị",FontAwesomeSolid.HOSPITAL_USER);
+//        btnQuanLyPhongDieuTri = taoNutCon("Cập nhật phòng điều trị",FontAwesomeSolid.HOSPITAL);
 
         pnlMenuDieuTri = taoPanelMenuCon();
-        pnlMenuDieuTri.add(btnTimKiemPhongDieuTri);
-        pnlMenuDieuTri.add(btnQuanLyPhongDieuTri);
+//        pnlMenuDieuTri.add(btnTimKiemPhongDieuTri);
+//        pnlMenuDieuTri.add(btnQuanLyPhongDieuTri);
         pnlMenuDieuTri.setVisible(false);
 
         btnDichVu = taoNutMenu("Dịch vụ ▼",FontAwesomeSolid.TOOTH);
@@ -266,9 +266,9 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         pnlDanhSachManHinh.add(pnlMenuBenhNhan);
         pnlDanhSachManHinh.add(taoDuongKe());
 
-        pnlDanhSachManHinh.add(btnDieuTri);
-        pnlDanhSachManHinh.add(pnlMenuDieuTri);
-        pnlDanhSachManHinh.add(taoDuongKe());
+//        pnlDanhSachManHinh.add(btnDieuTri);
+//        pnlDanhSachManHinh.add(pnlMenuDieuTri);
+//        pnlDanhSachManHinh.add(taoDuongKe());
         
         pnlDanhSachManHinh.add(btnDichVu);
         pnlDanhSachManHinh.add(pnlMenuDichVu);
@@ -486,14 +486,14 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
             capNhatMenuCon(pnlMenuDieuTri, btnDieuTri, dangMoDieuTri, "Phòng điều trị");
             if (dangMoDieuTri) capNhatMauNut(btnDieuTri);
         }
-        else if (o == btnTimKiemPhongDieuTri) {
-            capNhatMauNut(btnTimKiemPhongDieuTri);
-            parentView.hienThiManHinh("Tìm kiếm phòng điều trị");
-        }
-        else if (o == btnQuanLyPhongDieuTri) {
-            capNhatMauNut(btnQuanLyPhongDieuTri);
-            parentView.hienThiManHinh("Phòng điều trị");
-        }
+//        else if (o == btnTimKiemPhongDieuTri) {
+//            capNhatMauNut(btnTimKiemPhongDieuTri);
+//            parentView.hienThiManHinh("Tìm kiếm phòng điều trị");
+//        }
+//        else if (o == btnQuanLyPhongDieuTri) {
+//            capNhatMauNut(btnQuanLyPhongDieuTri);
+//            parentView.hienThiManHinh("Phòng điều trị");
+//        }
         else if (o == btnDichVu) {
             dangMoDichVu = !dangMoDichVu;
             capNhatMenuCon(pnlMenuDichVu, btnDichVu, dangMoDichVu, "Dịch Vụ");

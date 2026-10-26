@@ -86,28 +86,33 @@ VALUES
 ('DV0007', N'Chụp phim X-Quang răng', 120000, 10, N'Đang cung cấp');
 GO
 
+
 -- =========================================================
 -- 5. DU LIEU VAT TU
 -- =========================================================
-INSERT INTO VatTu
-    (MaVT, TenVatTu, DonViTinh, SoLuongTon, SoLuongToiThieu, HanSuDung, MoTa, HinhAnh)
+INSERT INTO VatTu(MaVT, TenVatTu, DonViTinh, SoLuongTon,SoLuongToiThieu, HanSuDung, MoTa, HinhAnh)
 VALUES
-('VT0001', N'Thuốc tê dạng ống Lignocaine', N'Ống', 150, 20, '2028-12-31', N'Thuốc tê sử dụng khi tiểu phẫu', N'images/thuoc_te.png'),
-('VT0002', N'Chất trám Composite', N'Tuýp', 30, 5, '2027-06-30', N'Vật liệu trám răng thẩm mỹ', N'images/composite.png'),
-('VT0003', N'Bông gòn y tế', N'Gói', 200, 30, NULL, N'Dụng cụ sát khuẩn và cầm máu', N'images/bong_gon.png'),
-('VT0004', N'Kim tiêm nha khoa', N'Cái', 500, 50, '2029-01-01', N'Kim tiêm dùng một lần', N'images/kim_tiem.png'),
-('VT0005', N'Khẩu trang y tế', N'Hộp', 50, 10, NULL, N'Vật tư bảo hộ y tế', N'images/khau_trang.png');
+('VT0001', N'Thuốc tê dạng ống Lignocaine', N'Ống',150, 20, '2028-12-31',N'Thuốc tê sử dụng khi tiểu phẫu', N'images/thuoc_te.png'),
+
+('VT0002', N'Chất trám Composite', N'Tuýp',30, 5, '2027-06-30',N'Vật liệu trám răng thẩm mỹ', N'images/composite.png'),
+
+('VT0003', N'Bông gòn y tế', N'Gói',200, 30, NULL,N'Dụng cụ sát khuẩn và cầm máu', N'images/bong_gon.png'),
+
+('VT0004', N'Kim tiêm nha khoa', N'Cái',500, 50, '2029-01-01',N'Kim tiêm dùng một lần', N'images/kim_tiem.png'),
+
+('VT0005', N'Khẩu trang y tế', N'Hộp',50, 10, NULL,N'Vật tư bảo hộ y tế', N'images/khau_trang.png');
 GO
+
 
 -- =========================================================
 -- 6. DU LIEU KHUYEN MAI
 -- MaThayThe là mã khách nhập để áp dụng khuyến mãi
 -- =========================================================
 INSERT INTO KhuyenMai
-    (MaKM, MaThayThe, TenKM, NgayBatDau, NgayKetThuc, DichVuApDung, DieuKien, ChietKhau, TrangThai)
+    (MaKM, MaThayThe, TenKM, NgayBatDau, NgayKetThuc, DieuKien, ChietKhau, SoLuong, TrangThai)
 VALUES
-('KM0001', 'CAOVOI15', N'Ưu đãi hè - Giảm giá cạo vôi răng', '2026-06-01', '2026-06-30', N'Cạo vôi răng', N'Áp dụng cho khách hàng sử dụng dịch vụ cạo vôi răng', 15.00, N'Hết hạn'),
-('KM0002', 'KHAITRUONG10', N'Mừng khai trương chi nhánh', '2026-04-01', '2026-05-30', N'Tất cả dịch vụ', N'Hóa đơn trên 500.000 đồng', 10.00, N'Hết hạn');
+('KM0001', 'CAOVOI15', N'Ưu đãi hè - Giảm giá cạo vôi răng', '2026-06-01', '2026-06-30', N'Áp dụng cho khách hàng sử dụng dịch vụ cạo vôi răng', 15.00, 100, N'Hết hạn'),
+('KM0002', 'KHAITRUONG10', N'Mừng khai trương chi nhánh', '2026-04-01', '2026-05-30', N'Hóa đơn trên 500.000 đồng', 10.00, 200, N'Hết hạn');
 GO
 
 -- =========================================================
@@ -193,6 +198,23 @@ VALUES
 ('HD0001', 'DV0003', 1, 350000),
 ('HD0002', 'DV0005', 1, 1500000);
 GO
+
+-- =========================================================
+-- 16. DU LIEU CHI TIET VAT TU - DICH VU
+-- =========================================================
+INSERT INTO ChiTietVatTu_DichVu
+    (MaVT, MaDV, SoLuongSuDung)
+VALUES
+('VT0001', 'DV0005', 2),
+('VT0001', 'DV0004', 1),
+('VT0002', 'DV0003', 1),
+('VT0003', 'DV0005', 2),
+('VT0003', 'DV0002', 1),
+('VT0004', 'DV0005', 1),
+('VT0005', 'DV0001', 1),
+('VT0005', 'DV0002', 1);
+GO
+
 
 -- =========================================================
 -- 15. KIEM TRA DU LIEU SAU KHI THEM

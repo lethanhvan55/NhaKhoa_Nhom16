@@ -1,4 +1,3 @@
-
 package ui;
 
 import java.awt.BorderLayout;
@@ -7,11 +6,18 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -25,7 +31,10 @@ import javax.swing.border.LineBorder;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.swing.FontIcon;
 
-public class TimKiemNhanVienPanel extends JPanel {
+import dao.NhanVien_DAO;
+import model.NhanVien;
+
+public class TimKiemNhanVienPanel extends JPanel implements ActionListener, MouseListener {
 
     private final Color NAVY = new Color(35, 68, 105);
     private final Color BLUE = new Color(35, 119, 224);
@@ -35,10 +44,9 @@ public class TimKiemNhanVienPanel extends JPanel {
     private JTextField txtMaNV;
     private JTextField txtHoTen;
     private JTextField txtSoDienThoai;
-    private JTextField txtEmail;
 
     private JComboBox<String> cboChucVu;
-    private JComboBox<String> cboTrangThai;
+
 
     private JTable tblNhanVien;
     private DefaultTableModel model;
@@ -46,6 +54,8 @@ public class TimKiemNhanVienPanel extends JPanel {
     private JButton btnTimKiem;
     private JButton btnLamMoi;
     private JButton btnXemChiTiet;
+
+    private NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
 
     public TimKiemNhanVienPanel() {
 
@@ -59,9 +69,7 @@ public class TimKiemNhanVienPanel extends JPanel {
         // Tiêu đề
         JPanel pnlTieuDe = new JPanel(new BorderLayout());
         pnlTieuDe.setBackground(Color.WHITE);
-        pnlTieuDe.setBorder(
-                new EmptyBorder(17, 22, 17, 24)
-        );
+        pnlTieuDe.setBorder(new EmptyBorder(17, 22, 17, 24));
 
         JLabel lblTieuDe = new JLabel("Tìm kiếm nhân viên");
         lblTieuDe.setFont(new Font("Arial", Font.BOLD, 22));
@@ -74,19 +82,19 @@ public class TimKiemNhanVienPanel extends JPanel {
         pnlChinh.add(pnlTieuDe, BorderLayout.NORTH);
 
         // Nội dung chính
-        JPanel pnlNoiDung = new JPanel(
-                new BorderLayout(0, 18)
-        );
+        JPanel pnlNoiDung = new JPanel(new BorderLayout(0, 18));
         pnlNoiDung.setBackground(BG);
-        pnlNoiDung.setBorder(
-                new EmptyBorder(18, 18, 18, 18)
-        );
+        pnlNoiDung.setBorder(new EmptyBorder(18, 18, 18, 18));
 
         // Khung tìm kiếm
-        JPanel pnlTimKiem = new JPanel( new BorderLayout(0, 16));
-
+        JPanel pnlTimKiem = new JPanel(new BorderLayout(0, 16));
         pnlTimKiem.setBackground(Color.WHITE);
-        pnlTimKiem.setBorder(new CompoundBorder(new LineBorder(new Color(226, 231, 238)),new EmptyBorder(16, 16, 16, 16)));
+        pnlTimKiem.setBorder(
+                new CompoundBorder(
+                        new LineBorder(new Color(226, 231, 238)),
+                        new EmptyBorder(16, 16, 16, 16)
+                )
+        );
 
         JLabel lblDieuKien = new JLabel("Điều kiện tìm kiếm");
         lblDieuKien.setFont(new Font("Arial", Font.BOLD, 17));
@@ -95,7 +103,9 @@ public class TimKiemNhanVienPanel extends JPanel {
         pnlTimKiem.add(lblDieuKien, BorderLayout.NORTH);
 
         // Các trường tìm kiếm
-        JPanel pnlKhungTimKiem = new JPanel(new GridLayout(2, 3, 14, 14));
+        JPanel pnlKhungTimKiem = new JPanel(
+                new GridLayout(2, 3, 14, 14)
+        );
         pnlKhungTimKiem.setBackground(Color.WHITE);
 
         // Mã nhân viên
@@ -129,14 +139,7 @@ public class TimKiemNhanVienPanel extends JPanel {
         txtSoDienThoai = new JTextField();
 
         // Email
-        JPanel pnlEmail = new JPanel(new BorderLayout(0, 6));
-        pnlEmail.setBackground(Color.WHITE);
 
-        JLabel lblEmail = new JLabel("Email");
-        lblEmail.setFont(new Font("Arial", Font.BOLD, 12));
-        lblEmail.setForeground(TEXT);
-
-        txtEmail = new JTextField();
 
         // Chức vụ
         JPanel pnlChucVu = new JPanel(new BorderLayout(0, 6));
@@ -150,40 +153,17 @@ public class TimKiemNhanVienPanel extends JPanel {
                 new String[]{
                         "Tất cả chức vụ",
                         "Lễ tân",
-                        "Bác sĩ",
-                        "Phụ tá",
+                        "Nha sĩ",
                         "Quản lý"
                 }
         );
 
-        // Trạng thái
-        JPanel pnlTrangThai = new JPanel(new BorderLayout(0, 6));
-        pnlTrangThai.setBackground(Color.WHITE);
-
-        JLabel lblTrangThai = new JLabel("Trạng thái làm việc");
-        lblTrangThai.setFont(new Font("Arial", Font.BOLD, 12));
-        lblTrangThai.setForeground(TEXT);
-
-        cboTrangThai = new JComboBox<>(
-                new String[]{
-                        "Tất cả trạng thái",
-                        "Đang làm việc",
-                        "Tạm nghỉ",
-                        "Đã nghỉ việc"
-                }
-        );
-
-        // Định dạng các ô nhập liệu
         dinhDangTextField(txtMaNV);
         dinhDangTextField(txtHoTen);
         dinhDangTextField(txtSoDienThoai);
-        dinhDangTextField(txtEmail);
 
-        // Định dạng danh sách lựa chọn
         dinhDangComboBox(cboChucVu);
-        dinhDangComboBox(cboTrangThai);
 
-        // Ghép nhãn và ô nhập liệu
         pnlMa.add(lblMa, BorderLayout.NORTH);
         pnlMa.add(txtMaNV, BorderLayout.CENTER);
 
@@ -193,30 +173,24 @@ public class TimKiemNhanVienPanel extends JPanel {
         pnlSDT.add(lblSDT, BorderLayout.NORTH);
         pnlSDT.add(txtSoDienThoai, BorderLayout.CENTER);
 
-        pnlEmail.add(lblEmail, BorderLayout.NORTH);
-        pnlEmail.add(txtEmail, BorderLayout.CENTER);
+
 
         pnlChucVu.add(lblChucVu, BorderLayout.NORTH);
         pnlChucVu.add(cboChucVu, BorderLayout.CENTER);
 
-        pnlTrangThai.add(lblTrangThai, BorderLayout.NORTH);
-        pnlTrangThai.add(cboTrangThai, BorderLayout.CENTER);
 
-        // Thêm các trường vào lưới
         pnlKhungTimKiem.add(pnlMa);
         pnlKhungTimKiem.add(pnlHoTen);
         pnlKhungTimKiem.add(pnlSDT);
-        pnlKhungTimKiem.add(pnlEmail);
         pnlKhungTimKiem.add(pnlChucVu);
-        pnlKhungTimKiem.add(pnlTrangThai);
 
-        // Các nút chức năng
         JPanel pnlNut = new JPanel(new GridLayout(1, 2, 10, 0));
         pnlNut.setBackground(Color.WHITE);
 
         btnTimKiem = new JButton("Tìm kiếm");
-        btnTimKiem.setIcon(FontIcon.of(FontAwesomeSolid.SEARCH, 14, Color.WHITE));
-
+        btnTimKiem.setIcon(
+                FontIcon.of(FontAwesomeSolid.SEARCH, 14, Color.WHITE)
+        );
         btnTimKiem.setFont(new Font("Arial", Font.BOLD, 12));
         btnTimKiem.setForeground(Color.WHITE);
         btnTimKiem.setBackground(BLUE);
@@ -236,7 +210,6 @@ public class TimKiemNhanVienPanel extends JPanel {
         pnlNut.add(btnTimKiem);
         pnlNut.add(btnLamMoi);
 
-        // Ghép nội dung tìm kiếm và các nút
         JPanel pnlNoiDungTimKiem = new JPanel(new BorderLayout(0, 14));
         pnlNoiDungTimKiem.setBackground(Color.WHITE);
         pnlNoiDungTimKiem.add(pnlKhungTimKiem, BorderLayout.CENTER);
@@ -244,10 +217,9 @@ public class TimKiemNhanVienPanel extends JPanel {
 
         pnlTimKiem.add(pnlNoiDungTimKiem, BorderLayout.CENTER);
 
-        // Khung bảng kết quả
         JPanel pnlBang = new JPanel(new BorderLayout(0, 14));
         pnlBang.setBackground(Color.WHITE);
-        pnlBang.setBorder(new CompoundBorder(new LineBorder(new Color(226, 231, 238)),new EmptyBorder(16, 16, 16, 16)));
+        pnlBang.setBorder(new CompoundBorder(new LineBorder(new Color(226, 231, 238)), new EmptyBorder(16, 16, 16, 16)));
 
         JLabel lblKetQua = new JLabel("Kết quả tìm kiếm");
         lblKetQua.setFont(new Font("Arial", Font.BOLD, 17));
@@ -255,23 +227,23 @@ public class TimKiemNhanVienPanel extends JPanel {
 
         pnlBang.add(lblKetQua, BorderLayout.NORTH);
 
-        // Tên các cột trong bảng
         String[] arrCot = {
                 "STT",
-                "MÃ NHÂN VIÊN",
-                "HỌ VÀ TÊN",
-                "SỐ ĐIỆN THOẠI",
-                "EMAIL",
-                "CHỨC VỤ",
-                "TRẠNG THÁI"
+                "Mã nhân viên",
+                "Họ và tên",
+                "Số điện thoại",
+                "Ngày vào làm",
+                "Giới tính",
+                "Chức vụ",
+                "Trạng thái",
+                "Email",
+                "Địa chỉ"
+
         };
 
-        // Tạo bảng trống, không có dữ liệu mẫu
         model = new DefaultTableModel(arrCot, 0) {
             @Override
-            public boolean isCellEditable(
-                    int row, int column
-            ) {
+            public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
@@ -286,8 +258,7 @@ public class TimKiemNhanVienPanel extends JPanel {
         tblNhanVien.setSelectionForeground(TEXT);
         tblNhanVien.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
-        // Định dạng tiêu đề bảng
-        JTableHeader tblHeader =tblNhanVien.getTableHeader();
+        JTableHeader tblHeader = tblNhanVien.getTableHeader();
 
         tblHeader.setPreferredSize(new Dimension(0, 44));
         tblHeader.setFont(new Font("Arial", Font.BOLD, 11));
@@ -297,7 +268,16 @@ public class TimKiemNhanVienPanel extends JPanel {
 
         // Độ rộng các cột
         int[] arrDoRong = {
-                45, 110, 180, 130, 190, 100, 140
+                45,  // STT
+                110, // Mã nhân viên
+                180, // Họ và tên
+                130, // Số điện thoại
+                120, // Ngày vào làm
+                90,  // Giới tính
+                110, // Chức vụ
+                100, // Trạng thái
+                200, // Email
+                180  // Địa chỉ
         };
 
         for (int i = 0; i < arrDoRong.length; i++) {
@@ -307,7 +287,7 @@ public class TimKiemNhanVienPanel extends JPanel {
         }
 
         JScrollPane scrBang = new JScrollPane(tblNhanVien);
-        scrBang.setBorder( BorderFactory.createEmptyBorder());
+        scrBang.setBorder(BorderFactory.createEmptyBorder());
         scrBang.getViewport().setBackground(Color.WHITE);
 
         pnlBang.add(scrBang, BorderLayout.CENTER);
@@ -340,8 +320,21 @@ public class TimKiemNhanVienPanel extends JPanel {
         pnlChinh.add(pnlNoiDung, BorderLayout.CENTER);
 
         add(pnlChinh, BorderLayout.CENTER);
-    }
 
+        btnTimKiem.addActionListener(this);
+        btnLamMoi.addActionListener(this);
+        btnXemChiTiet.addActionListener(this);
+
+        txtMaNV.addActionListener(this);
+        txtHoTen.addActionListener(this);
+        txtSoDienThoai.addActionListener(this);
+
+        cboChucVu.addActionListener(this);
+
+        tblNhanVien.addMouseListener(this);
+
+        taiDanhSachNhanVien();
+    }
 
     private void dinhDangTextField(JTextField txt) {
         txt.setFont(new Font("Arial", Font.PLAIN, 13));
@@ -361,6 +354,214 @@ public class TimKiemNhanVienPanel extends JPanel {
         );
     }
 
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        if (e.getSource() == btnTimKiem) {
+            timKiemNhanVien();
+        }
+
+        if (e.getSource() == btnLamMoi) {
+            lamMoiTimKiem();
+        }
+
+        if (e.getSource() == txtMaNV || e.getSource() == txtHoTen || e.getSource() == txtSoDienThoai) {
+            timKiemNhanVien();
+        }
+
+        if (e.getSource() == cboChucVu) {
+            timKiemNhanVien();
+        }
+
+        if (e.getSource() == btnXemChiTiet) {
+            xemChiTietNhanVien();
+        }
+    }
+
+    // Tải danh sách nhân viên từ SQL Server
+    private void taiDanhSachNhanVien() {
+        try {
+            List<NhanVien> danhSach = nhanVienDAO.getAllNhanVien();
+
+            model.setRowCount(0);
+
+            int stt = 1;
+
+            for (NhanVien nv : danhSach) {
+                model.addRow(new Object[]{
+                        stt++,
+                        nv.getMaNV(),
+                        nv.getHoTen(),
+                        nv.getSoDT(),
+                        nv.getNgayVaoLam(),
+                        nv.getGioiTinh()== null ? "" : (nv.getGioiTinh() ? "Nam" : "Nữ"),
+                        nv.getChucVu(),
+                        nv.getTrangThai(),
+                        nv.getEmail(),
+                        nv.getDiaChi()
+                });
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Không thể tải danh sách nhân viên!\n" + e.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    // Tìm kiếm theo họ tên hoặc số điện thoại
+    private void timKiemNhanVien() {
+
+        String maNV = txtMaNV.getText().trim().toLowerCase();
+        String hoTen = txtHoTen.getText().trim().toLowerCase();
+        String soDienThoai = txtSoDienThoai.getText().trim();
+
+        String chucVu = cboChucVu.getSelectedItem().toString();
+
+        if (maNV.isEmpty() && hoTen.isEmpty() && soDienThoai.isEmpty() && chucVu.equals("Tất cả chức vụ")) {
+
+            taiDanhSachNhanVien();
+            return;
+        }
+
+        try {
+            List<NhanVien> danhSach = nhanVienDAO.getAllNhanVien();
+
+            model.setRowCount(0);
+
+            int stt = 1;
+
+            for (NhanVien nv : danhSach) {
+
+                String ma = nv.getMaNV() == null ? "" : nv.getMaNV().trim().toLowerCase();
+
+                String ten = nv.getHoTen() == null ? "" : nv.getHoTen().toLowerCase();
+
+                String sdt = nv.getSoDT() == null ? "" : nv.getSoDT().trim();
+
+                String cv = nv.getChucVu() == null ? "" : nv.getChucVu().trim();
+
+                // Kiểm tra mã nhân viên
+                boolean dungMa = maNV.isEmpty() || ma.contains(maNV);
+
+                // Kiểm tra họ tên
+                boolean dungTen = hoTen.isEmpty() || ten.contains(hoTen);
+
+                // Kiểm tra số điện thoại
+                boolean dungSDT = soDienThoai.isEmpty() || sdt.contains(soDienThoai);
+
+                // Kiểm tra chức vụ
+                boolean dungChucVu = chucVu.equals("Tất cả chức vụ") || cv.equalsIgnoreCase(chucVu);
+
+                // Nếu thỏa mãn tất cả điều kiện thì thêm vào bảng
+                if (dungMa && dungTen && dungSDT && dungChucVu) {
+
+                    model.addRow(new Object[]{
+                            stt++,
+                            nv.getMaNV(),
+                            nv.getHoTen(),
+                            nv.getSoDT(),
+                            nv.getNgayVaoLam(),
+                            nv.getGioiTinh()== null ? "" : (nv.getGioiTinh() ? "Nam" : "Nữ"),
+                            nv.getChucVu(),
+                            nv.getTrangThai(),
+                            nv.getEmail(),
+                            nv.getDiaChi()
+                    });
+                }
+            }
+
+            // Thông báo khi không tìm thấy kết quả
+            if (model.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Không tìm thấy nhân viên phù hợp!",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Tìm kiếm nhân viên thất bại!\n" + e.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    // Làm mới điều kiện tìm kiếm
+    private void lamMoiTimKiem() {
+        txtMaNV.setText("");
+        txtHoTen.setText("");
+        txtSoDienThoai.setText("");
+
+        cboChucVu.setSelectedIndex(0);
+
+        taiDanhSachNhanVien();
+    }
+
+    // Xem thông tin nhân viên được chọn
+    private void xemChiTietNhanVien() {
+        int dong = tblNhanVien.getSelectedRow();
+
+        if (dong == -1) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng chọn một nhân viên trong bảng!",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Mã nhân viên: " + model.getValueAt(dong, 1) + "\n"
+                        + "Họ và tên: " + model.getValueAt(dong, 2) + "\n"
+                        + "Số điện thoại: " + model.getValueAt(dong, 3) + "\n"
+                        + "Ngày vào làm: " + model.getValueAt(dong, 4) + "\n"
+                        + "Giới tính: " + model.getValueAt(dong, 5) + "\n"
+                        + "Chức vụ: " + model.getValueAt(dong, 6) + "\n"
+                        + "Trạng thái: " + model.getValueAt(dong, 7) + "\n"
+                        + "Email: " + model.getValueAt(dong, 8) + "\n"
+                        + "Địa chỉ: " + model.getValueAt(dong, 9),
+
+                "Chi tiết nhân viên",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        if (e.getSource() == tblNhanVien) {
+            int dong = tblNhanVien.getSelectedRow();
+
+            if (dong >= 0) {
+                btnXemChiTiet.setEnabled(true);
+            }
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
 
     public JTextField getTxtMaNV() {
         return txtMaNV;
@@ -374,17 +575,12 @@ public class TimKiemNhanVienPanel extends JPanel {
         return txtSoDienThoai;
     }
 
-    public JTextField getTxtEmail() {
-        return txtEmail;
-    }
+
 
     public JComboBox<String> getCboChucVu() {
         return cboChucVu;
     }
 
-    public JComboBox<String> getCboTrangThai() {
-        return cboTrangThai;
-    }
 
     public JTable getTblNhanVien() {
         return tblNhanVien;
