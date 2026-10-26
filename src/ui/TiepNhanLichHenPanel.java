@@ -290,7 +290,7 @@ public class TiepNhanLichHenPanel extends JPanel
     private String sinhMaTuDong() {
         try {
             List<model.LichHen> ds = lichHenDAO.getDanhSachLichHenModel();
-            if (ds == null || ds.isEmpty()) return "LH0001";
+            if (ds == null || ds.isEmpty()) return "LH000001";
             int max = 0;
             for (model.LichHen lh : ds) {
                 try {
@@ -298,9 +298,9 @@ public class TiepNhanLichHenPanel extends JPanel
                     if (so > max) max = so;
                 } catch (Exception ignored) {}
             }
-            return String.format("LH%04d", max + 1);
+            return String.format("LH%06d", max + 1);
         } catch (Exception e) {
-            return "LH0001";
+            return "LH000001";
         }
     }
 
