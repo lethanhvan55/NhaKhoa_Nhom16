@@ -46,6 +46,9 @@ public class HoSoBenhNhan {
     }
 
     public void setMaHoSo(String maHoSo) {
+        if (maHoSo == null || !maHoSo.matches("^HS\\d{4}$")) {
+            throw new IllegalArgumentException("Mã hồ sơ phải có dạng HSXXXX");
+        }
         this.maHoSo = maHoSo;
     }
 
@@ -54,6 +57,9 @@ public class HoSoBenhNhan {
     }
 
     public void setMaBenhNhan(BenhNhan maBenhNhan) {
+        if (maBenhNhan == null) {
+            throw new IllegalArgumentException("Bệnh nhân không được để trống");
+        }
         this.maBenhNhan = maBenhNhan;
     }
 
@@ -62,6 +68,9 @@ public class HoSoBenhNhan {
     }
 
     public void setMaNV(NhanVien maNV) {
+        if (maNV == null) {
+            throw new IllegalArgumentException("Nhân viên không được để trống");
+        }
         this.maNV = maNV;
     }
 
@@ -78,6 +87,10 @@ public class HoSoBenhNhan {
     }
 
     public void setNgayKham(LocalDate ngayKham) {
+        if (ngayKham == null || ngayKham.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException(
+                    "Ngày khám không được để trống và không được lớn hơn ngày hiện tại");
+        }
         this.ngayKham = ngayKham;
     }
 
@@ -86,6 +99,12 @@ public class HoSoBenhNhan {
     }
 
     public void setTinhTrangRangMieng(String tinhTrangRangMieng) {
+        if (tinhTrangRangMieng == null || tinhTrangRangMieng.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tình trạng răng miệng không được để trống");
+        }
+        if (tinhTrangRangMieng.length() > 255) {
+            throw new IllegalArgumentException("Tình trạng răng miệng không được vượt quá 255 ký tự");
+        }
         this.tinhTrangRangMieng = tinhTrangRangMieng;
     }
 
@@ -94,6 +113,12 @@ public class HoSoBenhNhan {
     }
 
     public void setChanDoan(String chanDoan) {
+        if (chanDoan == null || chanDoan.trim().isEmpty()) {
+            throw new IllegalArgumentException("Chẩn đoán không được để trống");
+        }
+        if (chanDoan.length() > 255) {
+            throw new IllegalArgumentException("Chẩn đoán không được vượt quá 255 ký tự");
+        }
         this.chanDoan = chanDoan;
     }
 
@@ -102,6 +127,12 @@ public class HoSoBenhNhan {
     }
 
     public void setPhuongPhapDieuTri(String phuongPhapDieuTri) {
+        if (phuongPhapDieuTri == null || phuongPhapDieuTri.trim().isEmpty()) {
+            throw new IllegalArgumentException("Phương pháp điều trị không được để trống");
+        }
+        if (phuongPhapDieuTri.length() > 255) {
+            throw new IllegalArgumentException("Phương pháp điều trị không được vượt quá 255 ký tự");
+        }
         this.phuongPhapDieuTri = phuongPhapDieuTri;
     }
 
@@ -110,6 +141,9 @@ public class HoSoBenhNhan {
     }
 
     public void setTienSuBenh(String tienSuBenh) {
+        if (tienSuBenh != null && tienSuBenh.length() > 255) {
+            throw new IllegalArgumentException("Tiền sử bệnh không được vượt quá 255 ký tự");
+        }
         this.tienSuBenh = tienSuBenh;
     }
 
@@ -118,6 +152,9 @@ public class HoSoBenhNhan {
     }
 
     public void setDiUng(String diUng) {
+        if (diUng != null && diUng.length() > 255) {
+            throw new IllegalArgumentException("Dị ứng không được vượt quá 255 ký tự");
+        }
         this.diUng = diUng;
     }
 
@@ -126,6 +163,9 @@ public class HoSoBenhNhan {
     }
 
     public void setBenhLyNen(String benhLyNen) {
+        if (benhLyNen != null && benhLyNen.length() > 255) {
+            throw new IllegalArgumentException("Bệnh lý nền không được vượt quá 255 ký tự");
+        }
         this.benhLyNen = benhLyNen;
     }
 
@@ -134,6 +174,9 @@ public class HoSoBenhNhan {
     }
 
     public void setNguoiLienHe(String nguoiLienHe) {
+        if (nguoiLienHe != null && nguoiLienHe.length() > 40) {
+            throw new IllegalArgumentException("Người liên hệ không được vượt quá 40 ký tự");
+        }
         this.nguoiLienHe = nguoiLienHe;
     }
 
@@ -142,6 +185,10 @@ public class HoSoBenhNhan {
     }
 
     public void setSoDTNLH(String soDTNLH) {
+        if (soDTNLH != null && !soDTNLH.trim().isEmpty()
+                && !soDTNLH.matches("^0[3-9]\\d{8}$")) {
+            throw new IllegalArgumentException("Số điện thoại người liên hệ không hợp lệ");
+        }
         this.soDTNLH = soDTNLH;
     }
 
@@ -150,6 +197,9 @@ public class HoSoBenhNhan {
     }
 
     public void setGhiChu(String ghiChu) {
+        if (ghiChu != null && ghiChu.length() > 255) {
+            throw new IllegalArgumentException("Ghi chú không được vượt quá 255 ký tự");
+        }
         this.ghiChu = ghiChu;
     }
 

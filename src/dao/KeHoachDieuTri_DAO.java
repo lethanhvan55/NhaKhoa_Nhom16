@@ -196,4 +196,35 @@ public class KeHoachDieuTri_DAO {
         }
         return danhSachDichVu;
     }
+
+    public String sinhMaKeHoachMoi() {
+        String sql = "SELECT MAX(CAST(RIGHT(MaKeHoach, 4) AS INT)) AS MaxMa "
+                + "FROM KeHoachDieuTri";
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement stmt = con.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                int so = rs.getInt("MaxMa") + 1;
+
+                if (rs.wasNull()) {
+                    so = 1;
+                }
+
+                if (so > 9999) {
+                    System.err.println("Đã vượt quá số lượng mã kế hoạch!");
+                    return null;
+                }
+
+                return String.format("KH%04d", so);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi sinh mã kế hoạch: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }
