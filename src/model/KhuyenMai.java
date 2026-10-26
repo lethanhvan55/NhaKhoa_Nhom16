@@ -1,7 +1,5 @@
-
 package model;
 
-//import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class KhuyenMai {
@@ -10,23 +8,23 @@ public class KhuyenMai {
     private String tenKM;
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
-    private String dichVuApDung;
-    private String dieuKien;
+    private double giaTriToiThieu;
     private double chietKhau;
+    private int soLuong;
     private String trangThai;
 
     public KhuyenMai() {
     }
 
-    public KhuyenMai(String maKM, String maThayThe, String tenKM, LocalDate ngayBatDau, LocalDate ngayKetThuc, String dichVuApDung, String dieuKien, double chietKhau, String trangThai) {
+    public KhuyenMai(String maKM, String maThayThe, String tenKM, LocalDate ngayBatDau, LocalDate ngayKetThuc, double giaTriToiThieu, double chietKhau, int soLuong, String trangThai) {
         this.maKM = maKM;
         this.maThayThe = maThayThe;
         this.tenKM = tenKM;
         this.ngayBatDau = ngayBatDau;
         this.ngayKetThuc = ngayKetThuc;
-        this.dichVuApDung = dichVuApDung;
-        this.dieuKien = dieuKien;
+        this.giaTriToiThieu = giaTriToiThieu;
         this.chietKhau = chietKhau;
+        this.soLuong = soLuong;
         this.trangThai = trangThai;
     }
 
@@ -35,6 +33,9 @@ public class KhuyenMai {
     }
 
     public void setMaKM(String maKM) {
+        if (maKM == null || !maKM.matches("^KM\\d{4}$")) {
+            throw new IllegalArgumentException("Mã khuyến mãi sai định dạng");
+        }
         this.maKM = maKM;
     }
 
@@ -43,6 +44,9 @@ public class KhuyenMai {
     }
 
     public void setMaThayThe(String maThayThe) {
+        if (maThayThe == null || maThayThe.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã thay thế không được trống");
+        }
         this.maThayThe = maThayThe;
     }
 
@@ -51,6 +55,9 @@ public class KhuyenMai {
     }
 
     public void setTenKM(String tenKM) {
+        if (tenKM == null || tenKM.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên khuyến mãi không được trống");
+        }
         this.tenKM = tenKM;
     }
 
@@ -59,6 +66,12 @@ public class KhuyenMai {
     }
 
     public void setNgayBatDau(LocalDate ngayBatDau) {
+        if (ngayBatDau == null) {
+            throw new IllegalArgumentException("Ngày bắt đầu không được rỗng");
+        }
+        if (ngayKetThuc != null && ngayKetThuc.isBefore(ngayBatDau)) {
+            throw new IllegalArgumentException("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu");
+        }
         this.ngayBatDau = ngayBatDau;
     }
 
@@ -67,23 +80,24 @@ public class KhuyenMai {
     }
 
     public void setNgayKetThuc(LocalDate ngayKetThuc) {
+        if (ngayKetThuc == null) {
+            throw new IllegalArgumentException("Ngày kết thúc không được rỗng");
+        }
+        if (ngayBatDau != null && ngayKetThuc.isBefore(ngayBatDau)) {
+            throw new IllegalArgumentException("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu");
+        }
         this.ngayKetThuc = ngayKetThuc;
     }
 
-    public String getDichVuApDung() {
-        return dichVuApDung;
+    public double getGiaTriToiThieu() {
+        return giaTriToiThieu;
     }
 
-    public void setDichVuApDung(String dichVuApDung) {
-        this.dichVuApDung = dichVuApDung;
-    }
-
-    public String getDieuKien() {
-        return dieuKien;
-    }
-
-    public void setDieuKien(String dieuKien) {
-        this.dieuKien = dieuKien;
+    public void setGiaTriToiThieu(double giaTriToiThieu) {
+        if (giaTriToiThieu < 0) {
+            throw new IllegalArgumentException("Giá trị tối thiểu không được âm");
+        }
+        this.giaTriToiThieu = giaTriToiThieu;
     }
 
     public double getChietKhau() {
@@ -91,7 +105,21 @@ public class KhuyenMai {
     }
 
     public void setChietKhau(double chietKhau) {
+        if (chietKhau < 0 || chietKhau > 100) {
+            throw new IllegalArgumentException("Chiết khấu phải từ 0 đến 100%");
+        }
         this.chietKhau = chietKhau;
+    }
+
+    public int getSoLuong() {
+        return soLuong;
+    }
+
+    public void setSoLuong(int soLuong) {
+        if (soLuong < 0) {
+            throw new IllegalArgumentException("Số lượng không được âm");
+        }
+        this.soLuong = soLuong;
     }
 
     public String getTrangThai() {
@@ -110,9 +138,9 @@ public class KhuyenMai {
                 ", tenKM='" + tenKM + '\'' +
                 ", ngayBatDau=" + ngayBatDau +
                 ", ngayKetThuc=" + ngayKetThuc +
-                ", dichVuApDung='" + dichVuApDung + '\'' +
-                ", dieuKien='" + dieuKien + '\'' +
+                ", giaTriToiThieu=" + giaTriToiThieu +
                 ", chietKhau=" + chietKhau +
+                ", soLuong=" + soLuong +
                 ", trangThai='" + trangThai + '\'' +
                 '}';
     }
