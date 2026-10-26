@@ -1,15 +1,9 @@
-
 package dao;
 
 import connectDB.ConnectDB;
+import model.LichHen;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,7 +13,6 @@ import java.util.Map;
 
 public class LichHenDAO {
 
-    // CREATE: Thêm lịch hẹn
     public boolean themLichHen(
             String maLichHen,
             String maBenhNhan,
@@ -60,17 +53,21 @@ public class LichHenDAO {
         }
     }
 
-    // READ: Lấy danh sách lịch hẹn
-    public List<Map<String, Object>> getAllLichHen()
-            throws SQLException {
-
+    public List<Map<String, Object>> getAllLichHen() throws SQLException {
         List<Map<String, Object>> danhSach = new ArrayList<>();
 
         String sql = """
-            SELECT MaLichHen, MaBenhNhan, MaDichVu, MaPhong, MaNV,
-                   NgayHen, GioHen, TrangThai, GhiChu
-            FROM LichHen
-            ORDER BY NgayHen DESC, GioHen DESC
+            SELECT lh.*, 
+                   bn.HoTen AS TenBenhNhan, 
+                   p.TenPhong, 
+                   nv.HoTen AS TenBacSi, 
+                   dv.TenDV 
+            FROM LichHen lh
+            LEFT JOIN BenhNhan bn ON lh.MaBenhNhan = bn.MaBenhNhan
+            LEFT JOIN PhongDieuTri p ON lh.MaPhong = p.MaPhong
+            LEFT JOIN NhanVien nv ON lh.MaNV = nv.MaNV
+            LEFT JOIN DichVu dv ON lh.MaDichVu = dv.MaDV
+            ORDER BY lh.NgayHen ASC, lh.GioHen ASC
             """;
 
         try (Connection con = ConnectDB.getInstance().getConnection();
@@ -79,64 +76,24 @@ public class LichHenDAO {
 
             while (rs.next()) {
                 Map<String, Object> row = new LinkedHashMap<>();
-
                 row.put("MaLichHen", rs.getString("MaLichHen").trim());
                 row.put("MaBenhNhan", rs.getString("MaBenhNhan").trim());
-                row.put("MaDichVu", rs.getString("MaDichVu").trim());
-                row.put("MaPhong", rs.getString("MaPhong").trim());
-                row.put("MaNV", rs.getString("MaNV").trim());
+                row.put("TenBenhNhan", rs.getString("TenBenhNhan") != null ? rs.getString("TenBenhNhan").trim() : "");
+                row.put("TenPhong", rs.getString("TenPhong") != null ? rs.getString("TenPhong").trim() : "");
+                row.put("TenBacSi", rs.getString("TenBacSi") != null ? rs.getString("TenBacSi").trim() : "");
+                row.put("TenDV", rs.getString("TenDV") != null ? rs.getString("TenDV").trim() : "");
                 row.put("NgayHen", rs.getDate("NgayHen").toLocalDate());
-                row.put("GioHen",
-                        rs.getTimestamp("GioHen").toLocalDateTime());
+                Timestamp gioHen = rs.getTimestamp("GioHen");
+                row.put("GioHen", gioHen != null ? gioHen.toLocalDateTime() : null);
                 row.put("TrangThai", rs.getString("TrangThai"));
                 row.put("GhiChu", rs.getString("GhiChu"));
 
                 danhSach.add(row);
             }
         }
-
         return danhSach;
     }
 
-    // READ: Tìm lịch hẹn theo mã
-    public Map<String, Object> getLichHenTheoMa(String maLichHen)
-            throws SQLException {
-
-        String sql = """
-            SELECT MaLichHen, MaBenhNhan, MaDichVu, MaPhong, MaNV,
-                   NgayHen, GioHen, TrangThai, GhiChu
-            FROM LichHen
-            WHERE MaLichHen = ?
-            """;
-
-        try (Connection con = ConnectDB.getInstance().getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, maLichHen);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) {
-                    return null;
-                }
-
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("MaLichHen", rs.getString("MaLichHen").trim());
-                row.put("MaBenhNhan", rs.getString("MaBenhNhan").trim());
-                row.put("MaDichVu", rs.getString("MaDichVu").trim());
-                row.put("MaPhong", rs.getString("MaPhong").trim());
-                row.put("MaNV", rs.getString("MaNV").trim());
-                row.put("NgayHen", rs.getDate("NgayHen").toLocalDate());
-                row.put("GioHen",
-                        rs.getTimestamp("GioHen").toLocalDateTime());
-                row.put("TrangThai", rs.getString("TrangThai"));
-                row.put("GhiChu", rs.getString("GhiChu"));
-
-                return row;
-            }
-        }
-    }
-
-    // UPDATE: Cập nhật lịch hẹn
     public boolean capNhatLichHen(
             String maLichHen,
             String maBenhNhan,
@@ -179,101 +136,218 @@ public class LichHenDAO {
             }
 
             ps.setString(9, maLichHen);
-
             return ps.executeUpdate() > 0;
         }
     }
 
-    // DELETE: Xóa lịch hẹn theo mã
     public boolean xoaLichHen(String maLichHen) throws SQLException {
-
         String sql = "DELETE FROM LichHen WHERE MaLichHen = ?";
-
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setString(1, maLichHen);
-
             return ps.executeUpdate() > 0;
         }
     }
 
-    public List<Object[]> getDanhSachChoCheckIn() throws SQLException {
-        List<Object[]> danhSach = new ArrayList<>();
-
-        // Bỏ điều kiện WHERE TrangThai = N'Đã đặt' để hiện toàn bộ
-        String sql = "SELECT MaLichHen, MaBenhNhan, MaDichVu, MaPhong, "
-                + "MaNV, NgayHen, GioHen, TrangThai "
-                + "FROM LichHen "
-                + "ORDER BY NgayHen, GioHen";
-
+    public List<Map<String, String>> getDanhSachTatCaBenhNhan() throws SQLException {
+        List<Map<String, String>> ds = new ArrayList<>();
+        String sql = "SELECT MaBenhNhan, HoTen, NgaySinh, GioiTinh, SoDT, DiaChi FROM BenhNhan";
+        
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
+            
             while (rs.next()) {
-                java.sql.Timestamp gioHen = rs.getTimestamp("GioHen");
-
-                danhSach.add(new Object[] {
-                        rs.getString("MaLichHen").trim(),
-                        rs.getString("MaBenhNhan").trim(),
-                        rs.getString("MaDichVu").trim(),
-                        rs.getString("MaPhong").trim(),
-                        rs.getString("MaNV").trim(),
-                        rs.getDate("NgayHen"),
-                        gioHen == null ? null : gioHen.toLocalDateTime(),
-                        rs.getString("TrangThai")
-                });
+                Map<String, String> bn = new LinkedHashMap<>();
+                bn.put("MaBenhNhan", rs.getString("MaBenhNhan").trim());
+                bn.put("HoTen", rs.getString("HoTen") != null ? rs.getString("HoTen").trim() : "");
+                Date ngaySinh = rs.getDate("NgaySinh");
+                bn.put("NgaySinh", ngaySinh != null ? ngaySinh.toString() : "");
+                int gioiTinh = rs.getInt("GioiTinh");
+                bn.put("GioiTinh", gioiTinh == 1 ? "Nam" : "Nữ");
+                
+                bn.put("SoDienThoai", rs.getString("SoDT") != null ? rs.getString("SoDT").trim() : "");
+                bn.put("DiaChi", rs.getString("DiaChi") != null ? rs.getString("DiaChi").trim() : "");
+                
+                ds.add(bn);
             }
         }
-
-        return danhSach;
+        return ds;
     }
 
-    public Object[] timLichHenCheckIn(String maLichHen)
-            throws SQLException {
-
-        String sql = "SELECT MaLichHen, MaBenhNhan, MaDichVu, MaPhong, "
-                + "MaNV, NgayHen, GioHen, TrangThai "
-                + "FROM LichHen WHERE MaLichHen = ?";
-
+    public boolean themBenhNhanMoiDayDu(String maBN, String hoTen, LocalDate ngaySinh, String gioiTinh, String sdt, String email, String diaChi) throws SQLException {
+        String sql = "INSERT INTO BenhNhan (MaBenhNhan, HoTen, NgaySinh, GioiTinh, SoDT, Email, DiaChi) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, maLichHen.trim());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    java.sql.Timestamp gioHen = rs.getTimestamp("GioHen");
-
-                    return new Object[] {
-                            rs.getString("MaLichHen").trim(),
-                            rs.getString("MaBenhNhan").trim(),
-                            rs.getString("MaDichVu").trim(),
-                            rs.getString("MaPhong").trim(),
-                            rs.getString("MaNV").trim(),
-                            rs.getDate("NgayHen"),
-                            gioHen == null ? null : gioHen.toLocalDateTime(),
-                            rs.getString("TrangThai")
-                    };
-                }
+            ps.setString(1, maBN);
+            ps.setString(2, hoTen);
+            ps.setDate(3, Date.valueOf(ngaySinh));
+            ps.setString(4, gioiTinh); 
+            ps.setString(5, sdt);
+            
+            if (email == null || email.trim().isEmpty()) {
+                ps.setNull(6, Types.VARCHAR);
+            } else {
+                ps.setString(6, email.trim());
             }
-        }
-
-        return null;
-    }
-
-    public boolean checkIn(String maLichHen) throws SQLException {
-        String sql = "UPDATE LichHen "
-                + "SET TrangThai = N'Đang chờ khám' "
-                + "WHERE MaLichHen = ? AND TrangThai = N'Đã đặt'";
-
-        try (Connection con = ConnectDB.getInstance().getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, maLichHen.trim());
+            
+            if (diaChi == null || diaChi.trim().isEmpty()) {
+                ps.setNull(7, Types.NVARCHAR);
+            } else {
+                ps.setString(7, diaChi.trim());
+            }
+            
             return ps.executeUpdate() > 0;
         }
     }
 
+    public String sinhMaBenhNhanTuDong() throws SQLException {
+        String sql = "SELECT MAX(MaBenhNhan) FROM BenhNhan";
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                String maxMa = rs.getString(1);
+                if (maxMa != null) {
+                    int so = Integer.parseInt(maxMa.replaceAll("\\D+", ""));
+                    return String.format("BN%04d", so + 1);
+                }
+            }
+        }
+        return "BN0001";
+    }
+
+    public List<Map<String, String>> getDanhSachNhaSi() throws SQLException {
+        List<Map<String, String>> ds = new ArrayList<>();
+        String sql = "SELECT MaNV, HoTen FROM NhanVien WHERE ChucVu = N'Nha sĩ'"; 
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Map<String, String> bs = new LinkedHashMap<>();
+                bs.put("MaNV", rs.getString("MaNV").trim());
+                bs.put("HoTen", rs.getString("HoTen").trim());
+                ds.add(bs);
+            }
+        }
+        return ds;
+    }
+
+    public List<Map<String, String>> getDanhSachDichVu() throws SQLException {
+        List<Map<String, String>> ds = new ArrayList<>();
+        String sql = "SELECT MaDV, TenDV FROM DichVu"; 
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Map<String, String> dv = new LinkedHashMap<>();
+                dv.put("MaDV", rs.getString("MaDV").trim());
+                dv.put("TenDV", rs.getString("TenDV").trim());
+                ds.add(dv);
+            }
+        }
+        return ds;
+    }
+
+    public List<Map<String, String>> getDanhSachPhongDieuTri() throws SQLException {
+        List<Map<String, String>> ds = new ArrayList<>();
+        String sql = "SELECT MaPhong, TenPhong FROM PhongDieuTri"; 
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Map<String, String> phong = new LinkedHashMap<>();
+                phong.put("MaPhong", rs.getString("MaPhong").trim());
+                phong.put("TenPhong", rs.getString("TenPhong").trim());
+                ds.add(phong);
+            }
+        }
+        return ds;
+    }
+
+    public List<LichHen> getDanhSachLichHenModel() throws SQLException {
+        List<LichHen> ds = new ArrayList<>();
+        String sql = "SELECT * FROM LichHen ORDER BY MaLichHen ASC";
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                LichHen lh = new LichHen();
+                lh.setMaLichHen(rs.getString("MaLichHen").trim());
+                ds.add(lh);
+            }
+        }
+        return ds;
+    }
+    public List<Map<String, Object>> getDanhSachChoCheckIn(String tuKhoa, LocalDate ngayTimKiem) throws SQLException {
+        List<Map<String, Object>> danhSach = new ArrayList<>();
+        
+        StringBuilder sql = new StringBuilder("""
+            SELECT lh.*, 
+                   bn.HoTen AS TenBenhNhan, 
+                   p.TenPhong, 
+                   nv.HoTen AS TenBacSi, 
+                   dv.TenDV 
+            FROM LichHen lh
+            LEFT JOIN BenhNhan bn ON lh.MaBenhNhan = bn.MaBenhNhan
+            LEFT JOIN PhongDieuTri p ON lh.MaPhong = p.MaPhong
+            LEFT JOIN NhanVien nv ON lh.MaNV = nv.MaNV
+            LEFT JOIN DichVu dv ON lh.MaDichVu = dv.MaDV
+            WHERE 1=1
+            """);
+
+        if (ngayTimKiem != null) {
+            sql.append(" AND lh.NgayHen = ?");
+        }
+        if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
+            sql.append(" AND (lh.MaLichHen LIKE ? OR lh.MaBenhNhan LIKE ? OR bn.HoTen LIKE ?)");
+        }
+        
+        sql.append(" ORDER BY lh.NgayHen ASC, lh.GioHen ASC");
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            
+            int index = 1;
+            if (ngayTimKiem != null) {
+                ps.setDate(index++, Date.valueOf(ngayTimKiem));
+            }
+            if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
+                String searchPattern = "%" + tuKhoa.trim() + "%";
+                ps.setString(index++, searchPattern);
+                ps.setString(index++, searchPattern);
+                ps.setString(index++, searchPattern);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("MaLichHen", rs.getString("MaLichHen").trim());
+                    row.put("MaBenhNhan", rs.getString("MaBenhNhan").trim());
+                    row.put("TenBenhNhan", rs.getString("TenBenhNhan") != null ? rs.getString("TenBenhNhan").trim() : "");
+                    row.put("TenPhong", rs.getString("TenPhong") != null ? rs.getString("TenPhong").trim() : "");
+                    row.put("TenBacSi", rs.getString("TenBacSi") != null ? rs.getString("TenBacSi").trim() : "");
+                    row.put("TenDV", rs.getString("TenDV") != null ? rs.getString("TenDV").trim() : "");
+                    row.put("NgayHen", rs.getDate("NgayHen").toLocalDate());
+                    Timestamp gioHen = rs.getTimestamp("GioHen");
+                    row.put("GioHen", gioHen != null ? gioHen.toLocalDateTime() : null);
+                    row.put("TrangThai", rs.getString("TrangThai"));
+                    row.put("GhiChu", rs.getString("GhiChu"));
+
+                    danhSach.add(row);
+                }
+            }
+        }
+        return danhSach;
+    }
+
+    public boolean capNhatTrangThaiCheckIn(String maLichHen, String trangThaiMoi) throws SQLException {
+        String sql = "UPDATE LichHen SET TrangThai = ? WHERE MaLichHen = ?";
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, trangThaiMoi);
+            ps.setString(2, maLichHen);
+            return ps.executeUpdate() > 0;
+        }
+    }
 }
