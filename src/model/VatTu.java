@@ -1,3 +1,4 @@
+
 package model;
 
 import java.time.LocalDate;
@@ -11,27 +12,27 @@ public class VatTu {
     private LocalDate hanSuDung;
     private String hinhAnh;
     private String moTa;
-
+    
 
     public VatTu() {
     }
 
-
+    
     public VatTu(String maVT, String tenVatTu, String donViTinh, int soLuongTon, int soLuongToiThieu,
-                 LocalDate hanSuDung, String moTa, String hinhAnh) {
-        super();
-        this.maVT = maVT;
-        this.tenVatTu = tenVatTu;
-        this.donViTinh = donViTinh;
-        this.soLuongTon = soLuongTon;
-        this.soLuongToiThieu = soLuongToiThieu;
-        this.hanSuDung = hanSuDung;
-        this.moTa = moTa;
-        this.hinhAnh = hinhAnh;
-    }
+			LocalDate hanSuDung, String moTa, String hinhAnh) {
+		super();
+		this.maVT = maVT;
+		this.tenVatTu = tenVatTu;
+		this.donViTinh = donViTinh;
+		this.soLuongTon = soLuongTon;
+		this.soLuongToiThieu = soLuongToiThieu;
+		this.hanSuDung = hanSuDung;
+		this.moTa = moTa;
+		this.hinhAnh = hinhAnh;
+	}
 
 
-    public String getMaVT() {
+	public String getMaVT() {
         return maVT;
     }
 
@@ -88,13 +89,13 @@ public class VatTu {
     }
 
 
-    public String getHinhAnh() {
-        return hinhAnh;
-    }
+	public String getHinhAnh() {
+		return hinhAnh;
+	}
 
 
-    public void setHinhAnh(String hinhAnh) {
-        this.hinhAnh = hinhAnh;
-    }
-
+	public void setHinhAnh(String hinhAnh) {
+		this.hinhAnh = hinhAnh;
+	}
+    
 }

@@ -4,24 +4,13 @@ import dao.VatTuDAO;
 import model.VatTu;
 import utils.GiaoDienStyle;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -30,8 +19,10 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -40,6 +31,7 @@ import javax.swing.JTextField;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class VatTuPanel extends JPanel implements ActionListener {
 
@@ -57,12 +49,13 @@ public class VatTuPanel extends JPanel implements ActionListener {
     private JTextField txtTonToiThieu;
     private JTextField txtGiaBan;
     private JTextField txtHanSuDung;
-    private JTextField txtNhaCungCap;
+    private JTextField txtHinhAnh; // Ô hiển thị đường dẫn ảnh
 
     private JButton btnThem;
     private JButton btnLuu;
     private JButton btnXoa;
     private JButton btnHuyBo;
+    private JButton btnChonAnh; // Nút mở hộp thoại chọn ảnh
 
     private JPanel pnlLuoianhVatTu;
     private boolean dangThem = false;
@@ -103,7 +96,7 @@ public class VatTuPanel extends JPanel implements ActionListener {
         gbc.insets = new Insets(0, 0, 0, 0);
         pnlMain.add(pnlBenTrai, gbc);
 
-        // Khung thông tin chi tiết chiếm 1 phần (bên phải, nhỏ bằng 1/2 khung trái)
+        // Khung thông tin chi tiết chiếm 1 phần (bên phải)
         gbc.gridx = 1;
         gbc.weightx = 0.33;
         gbc.insets = new Insets(0, 15, 0, 0);
@@ -171,16 +164,15 @@ public class VatTuPanel extends JPanel implements ActionListener {
                     mauNenAnh = new Color(255, 245, 225);
                 }
 
-                // Dùng moTa hoặc tạm thời hiển thị giá (tùy chỉnh nếu có trường giá riêng)
                 String giaStr = "ĐVT: " + vt.getDonViTinh();
                 JPanel card = productCard(
                         vt.getMaVT(),
                         vt.getTenVatTu(),
-                        vt.getDonViTinh(),
                         String.valueOf(ton),
                         giaStr,
                         trangThai,
                         mauNenAnh,
+                        vt.getHinhAnh(),
                         vt.getDonViTinh()
                 );
 
@@ -215,9 +207,9 @@ public class VatTuPanel extends JPanel implements ActionListener {
         cboDonViTinh.setSelectedItem(vt.getDonViTinh());
         txtSoLuongTon.setText(String.valueOf(vt.getSoLuongTon()));
         txtTonToiThieu.setText(String.valueOf(vt.getSoLuongToiThieu()));
-        txtGiaBan.setText("0"); // Hoặc lấy giá nếu model có trường giá
+        txtGiaBan.setText("0");
         txtHanSuDung.setText(vt.getHanSuDung() != null ? vt.getHanSuDung().format(dateFormatter) : "");
-        txtNhaCungCap.setText(vt.getMoTa() != null ? vt.getMoTa() : "");
+        txtHinhAnh.setText(vt.getHinhAnh() != null ? vt.getHinhAnh() : "");
 
         dangThem = false;
         setEditableForm(true);
@@ -228,11 +220,11 @@ public class VatTuPanel extends JPanel implements ActionListener {
     private JPanel productCard(
             String code,
             String name,
-            String unit,
             String stock,
             String price,
             String status,
             Color imageBg,
+            String imagePath,
             String illustrationText) {
 
         JPanel product = new JPanel(new BorderLayout(0, 6));
@@ -242,8 +234,7 @@ public class VatTuPanel extends JPanel implements ActionListener {
                 new EmptyBorder(8, 8, 8, 8)
         ));
 
-        ProductIllustration image =
-                new ProductIllustration(imageBg, illustrationText);
+        ProductIllustration image = new ProductIllustration(imageBg, imagePath, illustrationText);
         image.setPreferredSize(new Dimension(185, 95));
         product.add(image, BorderLayout.NORTH);
 
@@ -303,13 +294,31 @@ public class VatTuPanel extends JPanel implements ActionListener {
     // ==================== HÌNH MINH HỌA VẬT TƯ ====================
 
     private static class ProductIllustration extends JPanel {
+        private final String imagePath;
+        private final String fallbackText;
+        private Image img;
 
-        private final String text;
-
-        public ProductIllustration(Color bg, String text) {
+        public ProductIllustration(Color bg, String imagePath, String fallbackText) {
             setBackground(bg);
             setPreferredSize(new Dimension(185, 95));
-            this.text = text;
+            this.imagePath = imagePath;
+            this.fallbackText = fallbackText;
+
+            if (imagePath != null && !imagePath.isEmpty()) {
+                try {
+                    File f = new File(imagePath);
+                    if (f.exists()) {
+                        img = new ImageIcon(imagePath).getImage();
+                    } else {
+                        URL imgUrl = getClass().getResource("/" + imagePath);
+                        if (imgUrl != null) {
+                            img = new ImageIcon(imgUrl).getImage();
+                        }
+                    }
+                } catch (Exception e) {
+                    img = null;
+                }
+            }
         }
 
         @Override
@@ -321,12 +330,36 @@ public class VatTuPanel extends JPanel implements ActionListener {
                     RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON
             );
+            g2.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR
+            );
 
-            int h = getHeight();
+            int panelWidth = getWidth();
+            int panelHeight = getHeight();
 
-            g2.setColor(new Color(100, 115, 130));
-            g2.setFont(new Font("Arial", Font.BOLD, 12));
-            g2.drawString(text, 15, h / 2 + 5);
+            if (img != null) {
+                int imgWidth = img.getWidth(this);
+                int imgHeight = img.getHeight(this);
+
+                if (imgWidth > 0 && imgHeight > 0) {
+                    double scaleX = (double) (panelWidth - 16) / imgWidth;
+                    double scaleY = (double) (panelHeight - 12) / imgHeight;
+                    double scale = Math.min(scaleX, scaleY);
+
+                    int drawWidth = (int) (imgWidth * scale);
+                    int drawHeight = (int) (imgHeight * scale);
+
+                    int x = (panelWidth - drawWidth) / 2;
+                    int y = (panelHeight - drawHeight) / 2;
+
+                    g2.drawImage(img, x, y, drawWidth, drawHeight, this);
+                }
+            } else {
+                g2.setColor(new Color(100, 115, 130));
+                g2.setFont(new Font("Arial", Font.BOLD, 12));
+                g2.drawString(fallbackText, 15, panelHeight / 2 + 5);
+            }
 
             g2.dispose();
         }
@@ -374,7 +407,14 @@ public class VatTuPanel extends JPanel implements ActionListener {
         txtTonToiThieu = taoOThongTinNhap("");
         txtGiaBan = taoOThongTinNhap("");
         txtHanSuDung = taoOThongTinNhap("");
-        txtNhaCungCap = taoOThongTinNhap("");
+
+        txtHinhAnh = taoOThongTin("");
+        btnChonAnh = taoNut("Chọn ảnh...", new Color(90, 105, 120), 85);
+
+        JPanel pnlChonAnh = new JPanel(new BorderLayout(5, 0));
+        pnlChonAnh.setBackground(MAU_TRANG);
+        pnlChonAnh.add(txtHinhAnh, BorderLayout.CENTER);
+        pnlChonAnh.add(btnChonAnh, BorderLayout.EAST);
 
         pnlForm.add(taoDongNhap("Mã vật tư:", txtMaVT));
         pnlForm.add(Box.createVerticalStrut(8));
@@ -397,7 +437,7 @@ public class VatTuPanel extends JPanel implements ActionListener {
         pnlForm.add(taoDongNhap("Hạn sử dụng:", txtHanSuDung));
         pnlForm.add(Box.createVerticalStrut(8));
 
-        pnlForm.add(taoDongNhap("Nhà cung cấp:", txtNhaCungCap));
+        pnlForm.add(taoDongNhap("Hình ảnh:", pnlChonAnh));
         pnlForm.add(Box.createVerticalGlue());
 
         JScrollPane scrForm = new JScrollPane(pnlForm);
@@ -412,11 +452,7 @@ public class VatTuPanel extends JPanel implements ActionListener {
 
         btnLuu = taoNut("Lưu", MAU_TEAL, 65);
         btnXoa = taoNut("Xóa", MAU_DO, 65);
-        btnHuyBo = taoNut(
-                "Hủy",
-                new Color(110, 120, 135),
-                65
-        );
+        btnHuyBo = taoNut("Hủy", new Color(110, 120, 135), 65);
 
         pnlNut.add(btnLuu);
         pnlNut.add(btnXoa);
@@ -428,8 +464,6 @@ public class VatTuPanel extends JPanel implements ActionListener {
 
         return pnl;
     }
-
-    // ==================== CÁC DÒNG NHẬP LIỆU ====================
 
     private JPanel taoDongNhap(String nhan, Component control) {
         JPanel pnl = new JPanel(new BorderLayout(5, 0));
@@ -453,6 +487,7 @@ public class VatTuPanel extends JPanel implements ActionListener {
         btnLuu.addActionListener(this);
         btnXoa.addActionListener(this);
         btnHuyBo.addActionListener(this);
+        btnChonAnh.addActionListener(this);
     }
 
     @Override
@@ -463,7 +498,6 @@ public class VatTuPanel extends JPanel implements ActionListener {
             dangThem = true;
             clearForm();
 
-            // Sinh ngẫu nhiên 4 chữ số an toàn khớp với CHECK constraint trong SQL (VTXXXX)
             int randomCode = (int) (Math.random() * 9000) + 1000;
             txtMaVT.setText("VT" + randomCode);
 
@@ -480,49 +514,111 @@ public class VatTuPanel extends JPanel implements ActionListener {
             clearForm();
             dangThem = false;
             setEditableForm(false);
+        } else if (source.equals(btnChonAnh)) {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Hình ảnh (JPG, PNG, JPEG)", "jpg", "png", "jpeg"));
+            int result = fileChooser.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                txtHinhAnh.setText(selectedFile.getAbsolutePath());
+            }
         }
     }
 
-    // ==================== XỬ LÝ LƯU (INSERT / UPDATE) ====================
+    // ==================== XỬ LÝ LƯU & RÀNG BUỘC KHÔNG CHO ĐỂ TRỐNG ====================
 
     private void xuLyLuuVatTu() {
         String maVT = txtMaVT.getText().trim();
         String tenVT = txtTenVT.getText().trim();
         String dvt = cboDonViTinh.getSelectedItem().toString();
+        String strSoLuongTon = txtSoLuongTon.getText().trim();
+        String strTonToiThieu = txtTonToiThieu.getText().trim();
+        String strGiaBan = txtGiaBan.getText().trim();
+        String strHanSuDung = txtHanSuDung.getText().trim();
+        String hinhAnh = txtHinhAnh.getText().trim();
 
+        // 1. Ràng buộc: Tên vật tư không được để trống
         if (tenVT.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Vui lòng nhập tên vật tư!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "Tên vật tư không được để trống! Vui lòng nhập đầy đủ.", "Lỗi nhập liệu", JOptionPane.WARNING_MESSAGE);
+            txtTenVT.requestFocus();
+            return;
+        }
+
+        // 2. Ràng buộc: Số lượng tồn không được để trống & phải là số nguyên >= 0
+        int soLuongTon = 0;
+        if (strSoLuongTon.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Số lượng tồn không được để trống! Vui lòng nhập số nguyên (>= 0).", "Lỗi nhập liệu", JOptionPane.WARNING_MESSAGE);
+            txtSoLuongTon.requestFocus();
+            return;
+        }
+        try {
+            soLuongTon = Integer.parseInt(strSoLuongTon);
+            if (soLuongTon < 0) {
+                JOptionPane.showMessageDialog(this, "Số lượng tồn không được là số âm (-). Vui lòng nhập lại!", "Lỗi giá trị", JOptionPane.ERROR_MESSAGE);
+                txtSoLuongTon.requestFocus();
+                return;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Số lượng tồn phải là một số nguyên hợp lệ.", "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
+            txtSoLuongTon.requestFocus();
+            return;
+        }
+
+        // 3. Ràng buộc: Tồn tối thiểu không được để trống & phải là số nguyên >= 0
+        int tonToiThieu = 0;
+        if (strTonToiThieu.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Mức tồn tối thiểu không được để trống! Vui lòng nhập số nguyên (>= 0).", "Lỗi nhập liệu", JOptionPane.WARNING_MESSAGE);
+            txtTonToiThieu.requestFocus();
+            return;
+        }
+        try {
+            tonToiThieu = Integer.parseInt(strTonToiThieu);
+            if (tonToiThieu < 0) {
+                JOptionPane.showMessageDialog(this, "Tồn tối thiểu không được là số âm (-). Vui lòng nhập lại!", "Lỗi giá trị", JOptionPane.ERROR_MESSAGE);
+                txtTonToiThieu.requestFocus();
+                return;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Tồn tối thiểu phải là một số nguyên hợp lệ.", "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
+            txtTonToiThieu.requestFocus();
+            return;
+        }
+
+        // 4. Ràng buộc: Giá bán không được để trống
+        if (strGiaBan.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Giá bán không được để trống! Vui lòng nhập giá bán vật tư.", "Lỗi nhập liệu", JOptionPane.WARNING_MESSAGE);
+            txtGiaBan.requestFocus();
+            return;
+        }
+
+        // 5. Ràng buộc: Hạn sử dụng không được để trống & đúng định dạng dd/MM/yyyy
+        LocalDate hsd = null;
+        if (strHanSuDung.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Hạn sử dụng không được để trống! Vui lòng nhập theo định dạng dd/MM/yyyy (Ví dụ: 31/12/2026).", "Lỗi nhập liệu", JOptionPane.WARNING_MESSAGE);
+            txtHanSuDung.requestFocus();
+            return;
+        }
+        try {
+            hsd = LocalDate.parse(strHanSuDung, dateFormatter);
+        } catch (Exception e1) {
+            try {
+                hsd = LocalDate.parse(strHanSuDung);
+            } catch (Exception e2) {
+                JOptionPane.showMessageDialog(this, "Hạn sử dụng sai định dạng hoặc không hợp lệ!\nVui lòng nhập đúng định dạng: dd/MM/yyyy.", "Lỗi định dạng ngày", JOptionPane.ERROR_MESSAGE);
+                txtHanSuDung.requestFocus();
+                return;
+            }
+        }
+
+        // 6. Ràng buộc: Hình ảnh không được để trống (Phải chọn ảnh)
+        if (hinhAnh.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn ảnh minh họa cho vật tư trước khi lưu!", "Thiếu hình ảnh", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
-            int soLuongTon = txtSoLuongTon.getText().trim().isEmpty() ? 0 : Integer.parseInt(txtSoLuongTon.getText().trim());
-            int tonToiThieu = txtTonToiThieu.getText().trim().isEmpty() ? 5 : Integer.parseInt(txtTonToiThieu.getText().trim());
-
-            // Xử lý ngày tháng an toàn hơn, hỗ trợ cả dd/MM/yyyy và yyyy-MM-dd
-            LocalDate hsd = null;
-            String dateStr = txtHanSuDung.getText().trim();
-            if (!dateStr.isEmpty()) {
-                try {
-                    hsd = LocalDate.parse(dateStr, dateFormatter);
-                } catch (Exception e1) {
-                    try {
-                        hsd = LocalDate.parse(dateStr); // Thử định dạng chuẩn YYYY-MM-DD nếu người dùng nhập kiểu khác
-                    } catch (Exception e2) {
-                        JOptionPane.showMessageDialog(this, "Hạn sử dụng không đúng định dạng dd/MM/yyyy!", "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
-            }
-
-            String moTa = txtNhaCungCap.getText().trim();
-            String hinhAnh = "images/" + maVT.toLowerCase() + ".png";
-
+            // Sử dụng MoTa mặc định nếu cần thiết hoặc để trống tùy ý
+            String moTa = "";
             VatTu vt = new VatTu(maVT, tenVT, dvt, soLuongTon, tonToiThieu, hsd, moTa, hinhAnh);
 
             boolean success;
@@ -543,20 +639,16 @@ public class VatTuPanel extends JPanel implements ActionListener {
             dangThem = false;
             setEditableForm(false);
 
-        } catch (NumberFormatException nfe) {
-            JOptionPane.showMessageDialog(this, "Số lượng tồn và tồn tối thiểu phải là kiểu số nguyên hợp lệ!", "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(
                     this,
                     "Lỗi khi lưu dữ liệu vào cơ sở dữ liệu: " + ex.getMessage(),
-                    "Lỗi",
+                    "Lỗi CSDL",
                     JOptionPane.ERROR_MESSAGE
             );
         }
     }
-
-    // ==================== XỬ LÝ XÓA (DELETE) ====================
 
     private void xuLyXoaVatTu() {
         String maVT = txtMaVT.getText().trim();
@@ -596,15 +688,13 @@ public class VatTuPanel extends JPanel implements ActionListener {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(
                         this,
-                        "Lỗi khi xóa dữ liệu từ cơ sở dữ liệu (Vật tư có thể đang được sử dụng ở chi tiết phiếu nhập)!",
+                        "Lỗi khi xóa dữ liệu từ cơ sở dữ liệu!",
                         "Lỗi",
                         JOptionPane.ERROR_MESSAGE
                 );
             }
         }
     }
-
-    // ==================== TRẠNG THÁI FORM ====================
 
     private void setEditableForm(boolean editable) {
         txtMaVT.setEditable(false);
@@ -614,7 +704,8 @@ public class VatTuPanel extends JPanel implements ActionListener {
         txtTonToiThieu.setEditable(editable);
         txtGiaBan.setEditable(editable);
         txtHanSuDung.setEditable(editable);
-        txtNhaCungCap.setEditable(editable);
+        txtHinhAnh.setEditable(false);
+        btnChonAnh.setEnabled(editable);
 
         btnLuu.setEnabled(editable);
         btnXoa.setEnabled(!dangThem && !txtMaVT.getText().trim().isEmpty());
@@ -628,10 +719,8 @@ public class VatTuPanel extends JPanel implements ActionListener {
         txtTonToiThieu.setText("");
         txtGiaBan.setText("");
         txtHanSuDung.setText("");
-        txtNhaCungCap.setText("");
+        txtHinhAnh.setText("");
     }
-
-    // ==================== CÁC THÀNH PHẦN DÙNG CHUNG ====================
 
     private JPanel taoPanelTrang() {
         JPanel pnl = new JPanel();

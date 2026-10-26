@@ -1,16 +1,12 @@
-
 package model;
 
-//import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.Date;
 
 public class KhuyenMai {
     private String maKM;
-    private String maThayThe;
     private String tenKM;
-    private LocalDate ngayBatDau;
-    private LocalDate ngayKetThuc;
-    private String dichVuApDung;
+    private Date ngayBatDau;
+    private Date ngayKetThuc;
     private String dieuKien;
     private double chietKhau;
     private String trangThai;
@@ -18,16 +14,15 @@ public class KhuyenMai {
     public KhuyenMai() {
     }
 
-    public KhuyenMai(String maKM, String maThayThe, String tenKM, LocalDate ngayBatDau, LocalDate ngayKetThuc, String dichVuApDung, String dieuKien, double chietKhau, String trangThai) {
-        this.maKM = maKM;
-        this.maThayThe = maThayThe;
-        this.tenKM = tenKM;
-        this.ngayBatDau = ngayBatDau;
-        this.ngayKetThuc = ngayKetThuc;
-        this.dichVuApDung = dichVuApDung;
-        this.dieuKien = dieuKien;
-        this.chietKhau = chietKhau;
-        this.trangThai = trangThai;
+    public KhuyenMai(String maKM, String tenKM, Date ngayBatDau, Date ngayKetThuc, 
+                     String dieuKien, double chietKhau, String trangThai) {
+        setMaKM(maKM);
+        setTenKM(tenKM);
+        setNgayBatDau(ngayBatDau);
+        setNgayKetThuc(ngayKetThuc);
+        setDieuKien(dieuKien);
+        setChietKhau(chietKhau);
+        setTrangThai(trangThai);
     }
 
     public String getMaKM() {
@@ -35,15 +30,10 @@ public class KhuyenMai {
     }
 
     public void setMaKM(String maKM) {
-        this.maKM = maKM;
-    }
-
-    public String getMaThayThe() {
-        return maThayThe;
-    }
-
-    public void setMaThayThe(String maThayThe) {
-        this.maThayThe = maThayThe;
+        if (maKM == null || maKM.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã khuyến mãi không được để trống!");
+        }
+        this.maKM = maKM.trim();
     }
 
     public String getTenKM() {
@@ -51,31 +41,35 @@ public class KhuyenMai {
     }
 
     public void setTenKM(String tenKM) {
-        this.tenKM = tenKM;
+        if (tenKM == null || tenKM.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên khuyến mãi không được để trống!");
+        }
+        this.tenKM = tenKM.trim();
     }
 
-    public LocalDate getNgayBatDau() {
+    public Date getNgayBatDau() {
         return ngayBatDau;
     }
 
-    public void setNgayBatDau(LocalDate ngayBatDau) {
+    public void setNgayBatDau(Date ngayBatDau) {
+        if (ngayBatDau == null) {
+            throw new IllegalArgumentException("Ngày bắt đầu không được để trống!");
+        }
         this.ngayBatDau = ngayBatDau;
     }
 
-    public LocalDate getNgayKetThuc() {
+    public Date getNgayKetThuc() {
         return ngayKetThuc;
     }
 
-    public void setNgayKetThuc(LocalDate ngayKetThuc) {
+    public void setNgayKetThuc(Date ngayKetThuc) {
+        if (ngayKetThuc == null) {
+            throw new IllegalArgumentException("Ngày kết thúc không được để trống!");
+        }
+        if (this.ngayBatDau != null && ngayKetThuc.before(this.ngayBatDau)) {
+            throw new IllegalArgumentException("Ngày kết thúc không được trước ngày bắt đầu!");
+        }
         this.ngayKetThuc = ngayKetThuc;
-    }
-
-    public String getDichVuApDung() {
-        return dichVuApDung;
-    }
-
-    public void setDichVuApDung(String dichVuApDung) {
-        this.dichVuApDung = dichVuApDung;
     }
 
     public String getDieuKien() {
@@ -83,7 +77,10 @@ public class KhuyenMai {
     }
 
     public void setDieuKien(String dieuKien) {
-        this.dieuKien = dieuKien;
+        if (dieuKien == null || dieuKien.trim().isEmpty()) {
+            throw new IllegalArgumentException("Điều kiện khuyến mãi không được để trống!");
+        }
+        this.dieuKien = dieuKien.trim();
     }
 
     public double getChietKhau() {
@@ -91,6 +88,9 @@ public class KhuyenMai {
     }
 
     public void setChietKhau(double chietKhau) {
+        if (chietKhau < 0 || chietKhau > 100) {
+            throw new IllegalArgumentException("Chiết khấu phải nằm trong khoảng từ 0 đến 100 (%)!");
+        }
         this.chietKhau = chietKhau;
     }
 
@@ -99,21 +99,9 @@ public class KhuyenMai {
     }
 
     public void setTrangThai(String trangThai) {
-        this.trangThai = trangThai;
-    }
-
-    @Override
-    public String toString() {
-        return "KhuyenMai{" +
-                "maKM='" + maKM + '\'' +
-                ", maThayThe='" + maThayThe + '\'' +
-                ", tenKM='" + tenKM + '\'' +
-                ", ngayBatDau=" + ngayBatDau +
-                ", ngayKetThuc=" + ngayKetThuc +
-                ", dichVuApDung='" + dichVuApDung + '\'' +
-                ", dieuKien='" + dieuKien + '\'' +
-                ", chietKhau=" + chietKhau +
-                ", trangThai='" + trangThai + '\'' +
-                '}';
+        if (trangThai == null || trangThai.trim().isEmpty()) {
+            throw new IllegalArgumentException("Trạng thái khuyến mãi không được để trống!");
+        }
+        this.trangThai = trangThai.trim();
     }
 }
