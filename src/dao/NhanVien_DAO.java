@@ -75,10 +75,9 @@ public class NhanVien_DAO {
     }
 
     public boolean insert(NhanVien nv) {
-        String maMoi = sinhMaNVMoi();
-
-        if (maMoi == null || maMoi.isEmpty()) {
-            System.err.println("Không tạo được mã nhân viên!");
+        if (nv == null || nv.getMaNV() == null
+                || nv.getMaNV().trim().isEmpty()) {
+            System.err.println("[NhanVien_DAO] Mã nhân viên không hợp lệ!");
             return false;
         }
 
@@ -90,22 +89,21 @@ public class NhanVien_DAO {
         Connection con = ConnectDB.getConnection();
 
         if (con == null) {
-            System.err.println("Chưa kết nối database!");
+            System.err.println("[NhanVien_DAO] Chưa kết nối database!");
             return false;
         }
 
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, maMoi);
+            ps.setString(1, nv.getMaNV().trim());
             ps.setString(2, nv.getHoTen());
             ps.setString(3, nv.getSoDT());
 
             if (nv.getNgayVaoLam() != null) {
-                ps.setDate(4, Date.valueOf(nv.getNgayVaoLam()));
+                ps.setDate(4, java.sql.Date.valueOf(nv.getNgayVaoLam()));
             } else {
-                ps.setDate(4, new Date(System.currentTimeMillis()));
+                ps.setNull(4, Types.DATE);
             }
 
-            // GioiTinh là Boolean
             if (nv.getGioiTinh() != null) {
                 ps.setBoolean(5, nv.getGioiTinh());
             } else {
@@ -117,16 +115,10 @@ public class NhanVien_DAO {
             ps.setString(8, nv.getEmail());
             ps.setString(9, nv.getDiaChi());
 
-            int rows = ps.executeUpdate();
+            return ps.executeUpdate() > 0;
 
-            if (rows > 0) {
-                nv.setMaNV(maMoi);
-                return true;
-            }
-
-            return false;
-
-        } catch (SQLException e) {System.err.println("[NhanVien_DAO] insert lỗi: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("[NhanVien_DAO] insert lỗi: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

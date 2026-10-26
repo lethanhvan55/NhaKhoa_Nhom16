@@ -355,22 +355,8 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
-//        if (source == btnLamMoi) {
-//            taiDanhSachHoSo();
-//            xoaForm();
-//            datTrangThaiBanDau();
-//            tblHoSo.clearSelection();
-//        }
         if (source == btnThem) {
-            dangThem = true;
-            xoaForm();
-
-            txtMaHoSo.setEditable(false);
-            btnLuu.setEnabled(true);
-            btnXoa.setEnabled(false);
-            btnThem.setEnabled(false);
-
-            txtMaBN.requestFocusInWindow();
+            themHoSo();
         } else if (source == btnLuu) {
             luuHoSo();
         } else if (source == btnXoa) {
@@ -389,10 +375,12 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         if (row >= 0) {
             hienThiChiTiet(row);
 
-            dangThem = false;
-            btnThem.setEnabled(true);
-            btnLuu.setEnabled(true);
-            btnXoa.setEnabled(true);
+            // Nếu đang thêm mới thì không chuyển sang chế độ cập nhật
+            if (!dangThem) {
+                btnThem.setEnabled(true);
+                btnLuu.setEnabled(true);
+                btnXoa.setEnabled(true);
+            }
         }
     }
 
@@ -547,7 +535,32 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         Object value = modelTable.getValueAt(row, column);
         return value == null ? "" : value.toString();
     }
+    private void themHoSo() {
+        // Kiểm tra dữ liệu đã nhập
+        if (!kiemTraDuLieu()) {
+            return;
+        }
 
+        // Sinh mã hồ sơ mới nếu chưa có
+        if (txtMaHoSo.getText().trim().isEmpty()) {
+            String maHoSoMoi = hoSoDAO.sinhMaHoSoMoi();
+
+            if (maHoSoMoi.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Không thể sinh mã hồ sơ mới!"
+                );
+                return;
+            }
+
+            txtMaHoSo.setText(maHoSoMoi);
+        }
+
+        dangThem = true;
+
+        // Lưu dữ liệu hồ sơ
+        luuHoSo();
+    }
     private void luuHoSo() {
         if (!kiemTraDuLieu()) {
             return;
@@ -605,25 +618,17 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
             if (dangThem) {
                 thanhCong = hoSoDAO.insert(hs);
             } else {
-                if (txtMaHoSo.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "Vui lòng chọn hồ sơ cần cập nhật.",
-                            "Thông báo",
-                            JOptionPane.WARNING_MESSAGE
-                    );
-                    return;
-                }
-
                 thanhCong = hoSoDAO.update(hs);
             }
 
             if (thanhCong) {
+                String thongBao = dangThem
+                        ? "Thêm hồ sơ bệnh nhân thành công!"
+                        : "Cập nhật hồ sơ bệnh nhân thành công!";
+
                 JOptionPane.showMessageDialog(
                         this,
-                        dangThem
-                                ? "Thêm hồ sơ bệnh nhân thành công!"
-                                : "Cập nhật hồ sơ bệnh nhân thành công!",
+                        thongBao,
                         "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE
                 );
@@ -631,14 +636,17 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
                 taiDanhSachHoSo();
                 xoaForm();
                 datTrangThaiBanDau();
+                tblHoSo.clearSelection();
+
             } else {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Không thể lưu hồ sơ. Vui lòng kiểm tra lại dữ liệu.",
-                        "Thông báo",
-                        JOptionPane.WARNING_MESSAGE
+                        "Không thể lưu hồ sơ. Vui lòng kiểm tra dữ liệu!",
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE
                 );
             }
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(
                     this,
