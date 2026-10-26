@@ -59,7 +59,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
     private JTextField txtSoDTNLH;
     private JTextArea txtGhiChu;
 
-//    private JButton btnTimKiem;
+    //    private JButton btnTimKiem;
 //    private JButton btnLamMoi;
     private JButton btnThem;
     private JButton btnLuu;
@@ -342,7 +342,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
     }
 
     private void dangKySuKien() {
-       // btnLamMoi.addActionListener(this);
+        // btnLamMoi.addActionListener(this);
         btnThem.addActionListener(this);
         btnLuu.addActionListener(this);
         btnXoa.addActionListener(this);

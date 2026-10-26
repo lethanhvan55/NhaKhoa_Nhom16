@@ -78,10 +78,10 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
 
 //    private JButton btnTimKiemPhongDieuTri;
 //    private JButton btnQuanLyPhongDieuTri;
-    
+
     private JButton btnTimKiemDichVu;
     private JButton btnCapNhatDichVu;
-    
+
     private JButton btnTimKiemVatTu;
     private JButton btnCapNhatVatTu;
 
@@ -223,21 +223,21 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         btnDichVu = taoNutMenu("Dịch vụ ▼",FontAwesomeSolid.TOOTH);
         btnTimKiemDichVu = taoNutCon("Tìm kiếm dịch vụ",FontAwesomeSolid.TEETH_OPEN);
         btnCapNhatDichVu = taoNutCon("Cập nhật dịch vụ", FontAwesomeSolid.TOOTH);
-        
+
         pnlMenuDichVu = taoPanelMenuCon();
         pnlMenuDichVu.add(btnTimKiemDichVu);
         pnlMenuDichVu.add(btnCapNhatDichVu);
         pnlMenuDichVu.setVisible(false);
-        
+
         btnVatTu = taoNutMenu("Vật tư ▼",FontAwesomeSolid.BOXES);
         btnTimKiemVatTu = taoNutCon("Tìm kiếm vật tư",FontAwesomeSolid.SEARCH_PLUS);
         btnCapNhatVatTu = taoNutCon("Cập nhật vật tư", FontAwesomeSolid.BOXES);
-        
+
         pnlMenuVatTu = taoPanelMenuCon();
         pnlMenuVatTu.add(btnTimKiemVatTu);
         pnlMenuVatTu.add(btnCapNhatVatTu);
         pnlMenuVatTu.setVisible(false);
-        
+
         btnHoaDon = taoNutMenu("Hóa đơn ▼", FontAwesomeSolid.FILE_INVOICE_DOLLAR);
         btnTaoHoaDon = taoNutCon("Tạo hóa đơn", FontAwesomeSolid.CALENDAR_CHECK);
         btnTraCuuHoaDon = taoNutCon("Tra cứu hóa đơn",FontAwesomeSolid.SEARCH);
@@ -269,11 +269,11 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
 //        pnlDanhSachManHinh.add(btnDieuTri);
 //        pnlDanhSachManHinh.add(pnlMenuDieuTri);
 //        pnlDanhSachManHinh.add(taoDuongKe());
-        
+
         pnlDanhSachManHinh.add(btnDichVu);
         pnlDanhSachManHinh.add(pnlMenuDichVu);
         pnlDanhSachManHinh.add(taoDuongKe());
-        
+
         pnlDanhSachManHinh.add(btnVatTu);
         pnlDanhSachManHinh.add(pnlMenuVatTu);
         pnlDanhSachManHinh.add(taoDuongKe());
@@ -357,9 +357,9 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
         btn.addActionListener(this);
         return btn;
     }
-    
+
     private JButton taoNutSubCon(String tenNut,FontAwesomeSolid tenIcon) {
-    	JButton btn = new JButton(tenNut);
+        JButton btn = new JButton(tenNut);
         btn.setFont(new Font("Arial", Font.PLAIN, 13));
         btn.setForeground(mauTrang);
         btn.setBackground(mauMenu);
@@ -417,7 +417,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
             capNhatMenuCon(pnlMenuLichHen, btnLichHen, dangMoLichHen, "Lịch hẹn");
             if (dangMoLichHen) capNhatMauNut(btnLichHen);
         }
-       
+
         else if (o == btnTiepNhanLichHen) {
             capNhatMauNut(btnTiepNhanLichHen);
             parentView.hienThiManHinh("Tiếp nhận lịch hẹn");
@@ -499,7 +499,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
             capNhatMenuCon(pnlMenuDichVu, btnDichVu, dangMoDichVu, "Dịch Vụ");
             if (dangMoDichVu) capNhatMauNut(btnDichVu);
         }
-       
+
         else if (o == btnTimKiemDichVu) {
             capNhatMauNut(btnTimKiemDichVu);
             parentView.hienThiManHinh("Tìm kiếm dịch vụ");
@@ -513,7 +513,7 @@ public class LeftMenuPanel extends JPanel implements ActionListener {
             capNhatMenuCon(pnlMenuVatTu, btnVatTu, dangMoVatTu, "Vật tư");
             if (dangMoVatTu) capNhatMauNut(btnVatTu);
         }
-       
+
         else if (o == btnTimKiemVatTu) {
             capNhatMauNut(btnTimKiemVatTu);
             parentView.hienThiManHinh("Tìm kiếm vật tư");
