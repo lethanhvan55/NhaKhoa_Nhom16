@@ -1,5 +1,6 @@
 package ui;
 
+import com.microsoft.sqlserver.jdbc.SQLServerCallableStatement;
 import utils.UIHelper;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 
@@ -17,8 +18,9 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
-import com.toedter.calendar.JDateChooser;
+import java.time.ZoneId;
 
+import com.toedter.calendar.JDateChooser;
 import dao.NhanVien_DAO;
 import model.NhanVien;
 
@@ -44,7 +46,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
     private JButton btnLuu;
     private JButton btnXoa;
     private JButton btnHuy;
-
+    private final NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
     // true: đang thêm mới
     // false: đang chỉnh sửa nhân viên đã chọn
     private boolean dangThem = true;
@@ -514,17 +516,12 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
     // ==================== TẢI DANH SÁCH NHÂN VIÊN ====================
 
     private void taiDanhSachNhanVien() {
-        NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
-
-        List<NhanVien> dsNhanVien =
-                nhanVienDAO.getAllNhanVien();
+        List<NhanVien> dsNhanVien = nhanVienDAO.getAllNhanVien();
 
         mdlNhanVien.setRowCount(0);
 
         if (dsNhanVien == null) {
-            lblTongSoNhanVien.setText(
-                    "Tổng số: 0 nhân viên"
-            );
+            lblTongSoNhanVien.setText("Tổng số: 0 nhân viên");
             return;
         }
 
@@ -536,9 +533,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
             if (nv.getGioiTinh() == null) {
                 gioiTinh = "Chưa xác định";
             } else {
-                gioiTinh = nv.getGioiTinh()
-                        ? "Nam"
-                        : "Nữ";
+                gioiTinh = nv.getGioiTinh() ? "Nam" : "Nữ";
             }
 
             mdlNhanVien.addRow(new Object[]{
@@ -556,8 +551,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         }
 
         lblTongSoNhanVien.setText(
-                "Tổng số: " + dsNhanVien.size()
-                        + " nhân viên"
+                "Tổng số: " + dsNhanVien.size() + " nhân viên"
         );
     }
 
@@ -568,10 +562,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         Object o = e.getSource();
 
         if (o == btnThem) {
-            clearForm();
-            dangThem = true;
-            txtMaNV.setEditable(true);
-            txtMaNV.requestFocusInWindow();
+            xuLyThemNhanVien();
 
         } else if (o == btnLuu) {
             xuLyLuuNhanVien();
@@ -773,6 +764,84 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
 
     // ==================== THÊM / CẬP NHẬT NHÂN VIÊN ====================
 
+    private void xuLyThemNhanVien() {
+        if (!kiemTraDuLieu()) {
+            return;
+        }
+
+        try {
+            String maNV = txtMaNV.getText().trim();
+            String hoTen = txtHoTen.getText().trim();
+
+            String soDT = txtSoDT.getText().trim();
+            String email = txtEmail.getText().trim();
+            String diaChi = txtDiaChi.getText().trim();
+
+            // Chuyển ngày từ JDateChooser sang LocalDate.
+            LocalDate ngayVaoLam = txtNgayVaoLam.getDate()
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
+            // Chuyển giới tính sang Boolean.
+            Boolean gioiTinh = null;
+
+            if (cboGioiTinh.getSelectedIndex() != 0) {
+                gioiTinh = cboGioiTinh.getSelectedItem()
+                        .toString()
+                        .equals("Nam");
+            }
+
+            String chucVu = cboChucVu.getSelectedItem().toString();
+            String trangThai = cboTrangThai.getSelectedItem().toString();
+
+            NhanVien nv = new NhanVien(
+                    maNV,
+                    hoTen,
+                    soDT.isEmpty() ? null : soDT,
+                    ngayVaoLam,
+                    gioiTinh,
+                    chucVu,
+                    trangThai,
+                    email.isEmpty() ? null : email,
+                    diaChi.isEmpty() ? null : diaChi
+            );
+
+            // Ghi nhân viên mới xuống database.
+            boolean ketQua = nhanVienDAO.insert(nv);
+
+            if (ketQua) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Thêm nhân viên thành công!",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                taiDanhSachNhanVien();
+                clearForm();
+
+            } else {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Thêm nhân viên thất bại! "
+                                + "Hãy kiểm tra mã nhân viên và dữ liệu SQL Server.",
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Lỗi khi thêm nhân viên: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
     private void xuLyLuuNhanVien() {
         try {
             if (!kiemTraDuLieu()) {
@@ -852,9 +921,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
             } else {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Không thể lưu nhân viên. "
-                                + "Vui lòng kiểm tra mã nhân viên "
-                                + "hoặc dữ liệu trong cơ sở dữ liệu!",
+                        "Không thể lưu nhân viên. Vui lòng kiểm tra dữ liệu!",
                         "Lỗi",
                         JOptionPane.ERROR_MESSAGE
                 );
