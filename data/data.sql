@@ -88,19 +88,31 @@ GO
 
 
 -- =========================================================
--- 5. DU LIEU VAT TU
+-- 5. DỮ LIỆU VẬT TƯ (Mã định dạng VTxxxx)
 -- =========================================================
-INSERT INTO VatTu(MaVT, TenVatTu, DonViTinh, SoLuongTon,SoLuongToiThieu, HanSuDung, MoTa, HinhAnh)
+INSERT INTO VatTu
+    (MaVT, TenVatTu, DonViTinh, SoLuongTon, SoLuongToiThieu, HanSuDung, MoTa, HinhAnh)
 VALUES
-('VT0001', N'Thuốc tê dạng ống Lignocaine', N'Ống',150, 20, '2028-12-31',N'Thuốc tê sử dụng khi tiểu phẫu', N'images/thuoc_te.png'),
+('VT0001', N'Thuốc tê dạng ống Lignocaine', N'Ống', 150, 20, '2028-12-31', N'Thuốc tê sử dụng khi tiểu phẫu', N'images/thuoc_te.png'),
+('VT0002', N'Chất trám Composite', N'Tuýp', 30, 5, '2027-06-30', N'Vật liệu trám răng thẩm mỹ', N'images/composite.png'),
+('VT0003', N'Bông gòn y tế', N'Gói', 200, 30, NULL, N'Dụng cụ sát khuẩn và cầm máu', N'images/bong_gon.png'),
+('VT0004', N'Kim tiêm nha khoa', N'Cái', 500, 50, '2029-01-01', N'Kim tiêm dùng một lần', N'images/kim_tiem.png'),
+('VT0005', N'Khẩu trang y tế', N'Hộp', 50, 10, NULL, N'Vật tư bảo hộ y tế', N'images/khau_trang.png'),
 
-('VT0002', N'Chất trám Composite', N'Tuýp',30, 5, '2027-06-30',N'Vật liệu trám răng thẩm mỹ', N'images/composite.png'),
-
-('VT0003', N'Bông gòn y tế', N'Gói',200, 30, NULL,N'Dụng cụ sát khuẩn và cầm máu', N'images/bong_gon.png'),
-
-('VT0004', N'Kim tiêm nha khoa', N'Cái',500, 50, '2029-01-01',N'Kim tiêm dùng một lần', N'images/kim_tiem.png'),
-
-('VT0005', N'Khẩu trang y tế', N'Hộp',50, 10, NULL,N'Vật tư bảo hộ y tế', N'images/khau_trang.png');
+('VT0006', N'Bông gòn y tế', N'Gói', 40, 10, NULL, N'Dụng cụ sát khuẩn và cầm máu', N'img/Bonggon.jpg'),
+('VT0007', N'Chỉ nha khoa', N'Cuộn', 120, 25, '2030-05-20', N'Vật liệu vệ sinh kẽ răng', N'img/Chinhakhoa.jpg'),
+('VT0008', N'Dung dịch sát trùng', N'Lọ', 60, 15, '2028-08-10', N'Dung dịch sát khuẩn dụng cụ và bề mặt', N'img/Dungdichsatkhuan.jpg');
+GO
+GO
+UPDATE VatTu SET HinhAnh = 'img/thuocte.jpg' WHERE MaVT = 'VT0001';
+UPDATE VatTu SET HinhAnh = 'img/composite.jpg' WHERE MaVT = 'VT0002';
+UPDATE VatTu SET HinhAnh = 'img/bonggon.jpg' WHERE MaVT = 'VT0003';
+UPDATE VatTu SET HinhAnh = 'img/kimtiem.jpg' WHERE MaVT = 'VT0004';
+UPDATE VatTu SET HinhAnh = 'img/khautrang.jpg' WHERE MaVT = 'VT0005';
+GO
+UPDATE VatTu SET HinhAnh = 'img/gangtay.jpg' WHERE MaVT = 'VT0003';
+GO
+UPDATE VatTu SET TenVatTu = N'Găng Tay Y Tế ' WHERE MaVT = 'VT0003';
 GO
 
 
