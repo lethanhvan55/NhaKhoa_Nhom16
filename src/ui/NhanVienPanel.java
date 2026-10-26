@@ -7,31 +7,47 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
+
+import com.toedter.calendar.JDateChooser;
+
+import dao.NhanVien_DAO;
+import model.NhanVien;
 
 public class NhanVienPanel extends JPanel implements ActionListener, MouseListener {
 
-    private JTextField codeField;
-    private JTextField nameField;
-    private JTextField phoneField;
-    private JTextField emailField;
+    private JTextField txtMaNV;
+    private JTextField txtHoTen;
+    private JTextField txtSoDT;
+    private JTextField txtEmail;
+    private JDateChooser txtNgayVaoLam;
+    private JTextField txtDiaChi;
 
-    private JComboBox<String> positionCombo;
-    private JComboBox<String> statusCombo;
+    private JComboBox<String> cboGioiTinh;
+    private JComboBox<String> cboChucVu;
+    private JComboBox<String> cboTrangThai;
 
-    private JTable table;
-    private DefaultTableModel model;
+    private JTable tblNhanVien;
+    private DefaultTableModel mdlNhanVien;
 
-    private JLabel totalLabel;
+    private JLabel lblTongSoNhanVien;
 
-    private JButton addBtn;
-    private JButton saveBtn;
-    private JButton deleteBtn;
-    private JButton cancelBtn;
+    private JButton btnThem;
+    private JButton btnLuu;
+    private JButton btnXoa;
+    private JButton btnHuy;
+
+    // true: đang thêm mới
+    // false: đang chỉnh sửa nhân viên đã chọn
+    private boolean dangThem = true;
 
     public NhanVienPanel() {
         setLayout(new BorderLayout());
@@ -40,273 +56,864 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
 
         add(createContent(), BorderLayout.CENTER);
 
-        // Đăng ký sự kiện cho các nút bấm và bảng dữ liệu
-        addBtn.addActionListener(this);
-        saveBtn.addActionListener(this);
-        deleteBtn.addActionListener(this);
-        cancelBtn.addActionListener(this);
-        table.addMouseListener(this);
+        btnThem.addActionListener(this);
+        btnLuu.addActionListener(this);
+        btnXoa.addActionListener(this);
+        btnHuy.addActionListener(this);
+
+        tblNhanVien.addMouseListener(this);
+
+        clearForm();
+        taiDanhSachNhanVien();
     }
 
-    // Bố cục tổng thể: Khung thông tin chi tiết ở TRÊN (NORTH), Khung danh sách ở DƯỚI (CENTER)
+    // ==================== GIAO DIỆN CHÍNH ====================
+
     private JPanel createContent() {
-        JPanel outer = new JPanel(new BorderLayout(0, 15));
-        outer.setBackground(UIHelper.BG);
+        JPanel pnlNoiDung = new JPanel(new BorderLayout(0, 15));
+        pnlNoiDung.setBackground(UIHelper.BG);
 
-        JPanel topPanel = createFormPanel();
-        // Cố định chiều cao vừa vặn cho khung thông tin chi tiết ở phía trên
-        topPanel.setPreferredSize(new Dimension(0, 210));
+        JPanel pnlThongTin = createFormPanel();
+        pnlThongTin.setPreferredSize(new Dimension(0, 300));
 
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.setBackground(UIHelper.BG);
-        bottomPanel.add(createTablePanel(), BorderLayout.CENTER);
+        JPanel pnlDanhSach = new JPanel(new BorderLayout());
+        pnlDanhSach.setBackground(UIHelper.BG);
+        pnlDanhSach.add(createTablePanel(), BorderLayout.CENTER);
 
-        outer.add(topPanel, BorderLayout.NORTH);
-        outer.add(bottomPanel, BorderLayout.CENTER);
+        pnlNoiDung.add(pnlThongTin, BorderLayout.NORTH);
+        pnlNoiDung.add(pnlDanhSach, BorderLayout.CENTER);
 
-        return outer;
+        return pnlNoiDung;
     }
+
+    // ==================== BẢNG NHÂN VIÊN ====================
 
     private JPanel createTablePanel() {
-        JPanel p = UIHelper.createCardPanel();
-        p.setLayout(new BorderLayout(0, 12));
-        p.setBorder(new CompoundBorder(new LineBorder(UIHelper.BORDER, 1, true), BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(0, 0, 0, 0), "Danh sách nhân viên",
-                TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
-                new Font("Segoe UI", Font.BOLD, 14), UIHelper.NAVY)));
+        JPanel pnlBang = UIHelper.createCardPanel();
+        pnlBang.setLayout(new BorderLayout(0, 12));
 
-        JPanel toolbar = new JPanel(new BorderLayout());
-        toolbar.setOpaque(false);
+        pnlBang.setBorder(new CompoundBorder(
+                new LineBorder(UIHelper.BORDER, 1, true),
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createEmptyBorder(0, 0, 0, 0),
+                        "Danh sách nhân viên",
+                        TitledBorder.DEFAULT_JUSTIFICATION,
+                        TitledBorder.DEFAULT_POSITION,
+                        new Font("Segoe UI", Font.BOLD, 14),
+                        UIHelper.NAVY
+                )
+        ));
 
-        JLabel subTitle = new JLabel("Quản lý thông tin nhân sự phòng khám");
-        subTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        subTitle.setForeground(UIHelper.MUTED);
-        toolbar.add(subTitle, BorderLayout.WEST);
+        JPanel pnlThanhCongCu = new JPanel(new BorderLayout());
+        pnlThanhCongCu.setOpaque(false);
 
-        addBtn = new JButton("Thêm nhân viên");
-        UIHelper.styleButton(addBtn, true, FontAwesomeSolid.USER_PLUS);
-        toolbar.add(addBtn, BorderLayout.EAST);
+        JLabel lblMoTa = new JLabel(
+                "Quản lý thông tin nhân sự phòng khám"
+        );
+        lblMoTa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblMoTa.setForeground(UIHelper.MUTED);
 
-        p.add(toolbar, BorderLayout.NORTH);
+        pnlThanhCongCu.add(lblMoTa, BorderLayout.WEST);
 
-        String[] cols = {"STT", "Mã NV", "Họ và tên", "Số điện thoại", "Email", "Chức vụ", "Trạng thái"};
+        btnThem = new JButton("Thêm nhân viên");
+        UIHelper.styleButton(
+                btnThem,
+                true,
+                FontAwesomeSolid.USER_PLUS
+        );
 
-        model = new DefaultTableModel(cols, 0) {
+        pnlThanhCongCu.add(btnThem, BorderLayout.EAST);
+        pnlBang.add(pnlThanhCongCu, BorderLayout.NORTH);
+
+        String[] tieuDeCot = {
+                "STT",
+                "Mã NV",
+                "Họ và tên",
+                "Số điện thoại",
+                "Ngày vào làm",
+                "Giới tính",
+                "Chức vụ",
+                "Trạng thái",
+                "Email",
+                "Địa chỉ"
+        };
+
+        mdlNhanVien = new DefaultTableModel(tieuDeCot, 0) {
             @Override
-            public boolean isCellEditable(int r, int c) {
+            public boolean isCellEditable(int dong, int cot) {
                 return false;
             }
         };
 
-        table = new JTable(model);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        table.setForeground(UIHelper.TEXT);
-        table.setBackground(Color.WHITE);
-        table.setRowHeight(36);
-        table.setGridColor(new Color(230, 240, 250));
-        table.setShowVerticalLines(false);
-        table.setSelectionBackground(new Color(220, 235, 252));
-        table.setSelectionForeground(UIHelper.NAVY);
+        tblNhanVien = new JTable(mdlNhanVien);
 
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        table.getTableHeader().setForeground(Color.WHITE);
-        table.getTableHeader().setBackground(UIHelper.NAVY);
-        table.getTableHeader().setPreferredSize(new Dimension(0, 36));
-        table.getTableHeader().setReorderingAllowed(false);
+        tblNhanVien.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tblNhanVien.setForeground(UIHelper.TEXT);
+        tblNhanVien.setBackground(Color.WHITE);
+        tblNhanVien.setRowHeight(36);
+        tblNhanVien.setGridColor(new Color(230, 240, 250));
+        tblNhanVien.setShowVerticalLines(false);
+        tblNhanVien.setSelectionBackground(new Color(220, 235, 252));
+        tblNhanVien.setSelectionForeground(UIHelper.NAVY);
+        tblNhanVien.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        tblNhanVien.getTableHeader().setFont(
+                new Font("Segoe UI", Font.BOLD, 12)
+        );
+        tblNhanVien.getTableHeader().setForeground(Color.WHITE);
+        tblNhanVien.getTableHeader().setBackground(UIHelper.NAVY);
+        tblNhanVien.getTableHeader().setPreferredSize(
+                new Dimension(0, 36)
+        );
+        tblNhanVien.getTableHeader().setReorderingAllowed(false);
 
-        // Tự động phân bổ độ rộng các cột trải đều
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        int[] columnWidths = {50, 90, 180, 120, 180, 140, 140};
-        for (int i = 0; i < columnWidths.length; i++) {
-            table.getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
+        DefaultTableCellRenderer boCanGiua =
+                new DefaultTableCellRenderer();
+
+        boCanGiua.setHorizontalAlignment(JLabel.CENTER);
+
+        int[] doRongCot = {
+                45, 80, 160, 115, 110,
+                80, 100, 100, 170, 180
+        };
+
+        for (int i = 0; i < doRongCot.length; i++) {
+            tblNhanVien.getColumnModel()
+                    .getColumn(i)
+                    .setPreferredWidth(doRongCot[i]);
         }
-        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-        table.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
-        table.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
 
-        JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(new LineBorder(UIHelper.BORDER, 1, true));
-        scroll.getViewport().setBackground(Color.WHITE);
-        p.add(scroll, BorderLayout.CENTER);
+        tblNhanVien.getColumnModel()
+                .getColumn(0).setCellRenderer(boCanGiua);
 
-        JPanel footer = new JPanel(new BorderLayout());
-        footer.setOpaque(false);
-        totalLabel = new JLabel("Tổng số: 0 nhân viên");
-        totalLabel.setForeground(UIHelper.MUTED);
-        totalLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        footer.add(totalLabel, BorderLayout.WEST);
-        p.add(footer, BorderLayout.SOUTH);
+        tblNhanVien.getColumnModel()
+                .getColumn(1).setCellRenderer(boCanGiua);
 
-        return p;
+        tblNhanVien.getColumnModel()
+                .getColumn(3).setCellRenderer(boCanGiua);
+
+        tblNhanVien.getColumnModel()
+                .getColumn(4).setCellRenderer(boCanGiua);
+
+        tblNhanVien.getColumnModel()
+                .getColumn(5).setCellRenderer(boCanGiua);
+
+        JScrollPane scrDanhSach = new JScrollPane(tblNhanVien);
+        scrDanhSach.setBorder(
+                new LineBorder(UIHelper.BORDER, 1, true)
+        );
+        scrDanhSach.getViewport().setBackground(Color.WHITE);
+
+        pnlBang.add(scrDanhSach, BorderLayout.CENTER);
+
+        JPanel pnlChan = new JPanel(new BorderLayout());
+        pnlChan.setOpaque(false);
+
+        lblTongSoNhanVien = new JLabel("Tổng số: 0 nhân viên");
+        lblTongSoNhanVien.setForeground(UIHelper.MUTED);
+        lblTongSoNhanVien.setFont(
+                new Font("Segoe UI", Font.PLAIN, 12)
+        );
+
+        pnlChan.add(lblTongSoNhanVien, BorderLayout.WEST);
+        pnlBang.add(pnlChan, BorderLayout.SOUTH);
+
+        return pnlBang;
     }
 
-    // Khung form thông tin chi tiết bố trí dạng lưới ngang (2 hàng, 4 cột)
+    // ==================== FORM THÔNG TIN ====================
+
     private JPanel createFormPanel() {
-        JPanel p = UIHelper.createCardPanel();
-        p.setLayout(new BorderLayout(0, 8));
-        p.setBorder(new CompoundBorder(new LineBorder(UIHelper.BORDER, 1, true), BorderFactory.createTitledBorder(
-                BorderFactory.createEmptyBorder(0, 0, 0, 0), "Thông tin chi tiết",
-                TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
-                new Font("Segoe UI", Font.BOLD, 14), UIHelper.NAVY)));
+        JPanel pnlForm = UIHelper.createCardPanel();
+        pnlForm.setLayout(new BorderLayout(0, 8));
 
-        JPanel formGrid = new JPanel(new GridLayout(2, 4, 15, 6));
-        formGrid.setBackground(Color.WHITE);
-        formGrid.setBorder(new EmptyBorder(2, 10, 2, 10));
+        pnlForm.setBorder(new CompoundBorder(
+                new LineBorder(UIHelper.BORDER, 1, true),
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createEmptyBorder(0, 0, 0, 0),
+                        "Thông tin chi tiết",
+                        TitledBorder.DEFAULT_JUSTIFICATION,
+                        TitledBorder.DEFAULT_POSITION,
+                        new Font("Segoe UI", Font.BOLD, 14),
+                        UIHelper.NAVY
+                )
+        ));
 
-        codeField = new JTextField();
-        nameField = new JTextField();
-        phoneField = new JTextField();
-        emailField = new JTextField();
+        JPanel pnlLuoi = new JPanel(
+                new GridLayout(3, 3, 15, 8)
+        );
 
-        positionCombo = new JComboBox<>(new String[]{
-                "Chọn chức vụ", "Lễ tân", "Bác sĩ", "Phụ tá", "Quản lý"
-        });
-        UIHelper.styleComboBox(positionCombo);
+        pnlLuoi.setBackground(Color.WHITE);
+        pnlLuoi.setBorder(new EmptyBorder(5, 10, 5, 10));
 
-        statusCombo = new JComboBox<>(new String[]{
-                "Chọn trạng thái", "Đang làm việc", "Tạm nghỉ", "Đã nghỉ việc"
-        });
-        UIHelper.styleComboBox(statusCombo);
+        txtMaNV = new JTextField();
+        txtHoTen = new JTextField();
+        txtSoDT = new JTextField();
+        txtEmail = new JTextField();
+        txtDiaChi = new JTextField();
 
-        // Thêm các trường vào lưới hiển thị
-        formGrid.add(createFieldWrapper("Mã nhân viên *", codeField));
-        formGrid.add(createFieldWrapper("Họ và tên *", nameField));
-        formGrid.add(createFieldWrapper("Số điện thoại *", phoneField));
-        formGrid.add(createFieldWrapper("Email", emailField));
-        formGrid.add(createFieldWrapper("Chức vụ *", positionCombo));
-        formGrid.add(createFieldWrapper("Trạng thái", statusCombo));
+        txtNgayVaoLam = new JDateChooser();
+        txtNgayVaoLam.setDateFormatString("yyyy-MM-dd");
+        txtNgayVaoLam.setPreferredSize(
+                new Dimension(0, 32)
+        );
+        txtNgayVaoLam.setFont(
+                new Font("Segoe UI", Font.PLAIN, 12)
+        );
 
-        p.add(formGrid, BorderLayout.CENTER);
+        cboGioiTinh = new JComboBox<>(
+                new String[]{"Chọn giới tính", "Nam", "Nữ"}
+        );
 
-        // Các nút thao tác chức năng đặt gọn ở góc phải phía dưới form
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        actions.setOpaque(false);
-        actions.setBorder(new EmptyBorder(0, 0, 0, 5));
+        cboChucVu = new JComboBox<>(
+                new String[]{
+                        "Chọn chức vụ",
+                        "Quản lý",
+                        "Lễ tân",
+                        "Nha sĩ"
+                }
+        );
 
-        saveBtn = new JButton("Lưu");
-        deleteBtn = new JButton("Xóa");
-        cancelBtn = new JButton("Hủy");
+        cboTrangThai = new JComboBox<>(
+                new String[]{
+                        "Chọn trạng thái",
+                        "Đang làm",
+                        "Tạm nghỉ"
+                }
+        );
 
-        UIHelper.styleButton(saveBtn, true, FontAwesomeSolid.SAVE);
-        UIHelper.styleButton(deleteBtn, false, FontAwesomeSolid.TRASH_ALT);
-        UIHelper.styleButton(cancelBtn, false, FontAwesomeSolid.TIMES);
-        deleteBtn.setForeground(new Color(215, 38, 56));
+        UIHelper.styleComboBox(cboGioiTinh);
+        UIHelper.styleComboBox(cboChucVu);
+        UIHelper.styleComboBox(cboTrangThai);
 
-        saveBtn.setPreferredSize(new Dimension(85, 30));
-        deleteBtn.setPreferredSize(new Dimension(85, 30));
-        cancelBtn.setPreferredSize(new Dimension(85, 30));
+        pnlLuoi.add(
+                createFieldWrapper("Mã nhân viên *", txtMaNV)
+        );
 
-        actions.add(saveBtn);
-        actions.add(deleteBtn);
-        actions.add(cancelBtn);
-        p.add(actions, BorderLayout.SOUTH);
+        pnlLuoi.add(
+                createFieldWrapper("Họ và tên *", txtHoTen)
+        );
 
-        return p;
+        pnlLuoi.add(
+                createFieldWrapper("Số điện thoại", txtSoDT)
+        );
+
+        pnlLuoi.add(
+                createFieldWrapper(
+                        "Ngày vào làm * (yyyy-MM-dd)",
+                        txtNgayVaoLam
+                )
+        );
+
+        pnlLuoi.add(
+                createFieldWrapper("Giới tính", cboGioiTinh)
+        );
+
+        pnlLuoi.add(
+                createFieldWrapper("Chức vụ *", cboChucVu)
+        );
+
+        pnlLuoi.add(
+                createFieldWrapper("Trạng thái *", cboTrangThai)
+        );
+
+        pnlLuoi.add(
+                createFieldWrapper("Email", txtEmail)
+        );
+
+        pnlLuoi.add(
+                createFieldWrapper("Địa chỉ", txtDiaChi)
+        );
+
+        pnlForm.add(pnlLuoi, BorderLayout.CENTER);
+
+        JPanel pnlNut = new JPanel(
+                new FlowLayout(FlowLayout.RIGHT, 8, 0)
+        );
+
+        pnlNut.setOpaque(false);
+        pnlNut.setBorder(new EmptyBorder(0, 0, 5, 5));
+
+        btnLuu = new JButton("Lưu");
+        btnXoa = new JButton("Xóa");
+        btnHuy = new JButton("Hủy");
+
+        UIHelper.styleButton(
+                btnLuu, true, FontAwesomeSolid.SAVE
+        );
+
+        UIHelper.styleButton(
+                btnXoa, false, FontAwesomeSolid.TRASH_ALT
+        );
+
+        UIHelper.styleButton(
+                btnHuy, false, FontAwesomeSolid.TIMES
+        );
+
+        btnXoa.setForeground(new Color(215, 38, 56));
+
+        btnLuu.setPreferredSize(new Dimension(85, 30));
+        btnXoa.setPreferredSize(new Dimension(85, 30));
+        btnHuy.setPreferredSize(new Dimension(85, 30));
+
+        pnlNut.add(btnLuu);
+        pnlNut.add(btnXoa);
+        pnlNut.add(btnHuy);
+
+        pnlForm.add(pnlNut, BorderLayout.SOUTH);
+
+        return pnlForm;
     }
 
-    private JPanel createFieldWrapper(String label, JComponent comp) {
-        JPanel wrap = new JPanel(new BorderLayout(0, 2));
-        wrap.setBackground(Color.WHITE);
-        JLabel l = new JLabel(label);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        l.setForeground(UIHelper.TEXT);
-        if (comp instanceof JTextField) {
-            UIHelper.styleTextField((JTextField) comp);
+    private JPanel createFieldWrapper(
+            String tieuDe,
+            JComponent thanhPhan
+    ) {
+        JPanel pnlTruong = new JPanel(
+                new BorderLayout(0, 2)
+        );
+
+        pnlTruong.setBackground(Color.WHITE);
+
+        JLabel lblTieuDe = new JLabel(tieuDe);
+        lblTieuDe.setFont(
+                new Font("Segoe UI", Font.BOLD, 11)
+        );
+        lblTieuDe.setForeground(UIHelper.TEXT);
+
+        if (thanhPhan instanceof JTextField) {
+            UIHelper.styleTextField((JTextField) thanhPhan);
         }
-        wrap.add(l, BorderLayout.NORTH);
-        wrap.add(comp, BorderLayout.CENTER);
-        return wrap;
+
+        pnlTruong.add(lblTieuDe, BorderLayout.NORTH);
+        pnlTruong.add(thanhPhan, BorderLayout.CENTER);
+
+        return pnlTruong;
     }
+
+    // ==================== XÓA TRẮNG FORM ====================
 
     public void clearForm() {
-        table.clearSelection();
-        codeField.setText("");
-        nameField.setText("");
-        phoneField.setText("");
-        emailField.setText("");
-        positionCombo.setSelectedIndex(0);
-        statusCombo.setSelectedIndex(0);
-        codeField.requestFocus();
+        if (tblNhanVien != null) {
+            tblNhanVien.clearSelection();
+        }
+
+        txtMaNV.setText("");
+        txtHoTen.setText("");
+        txtSoDT.setText("");
+        txtEmail.setText("");
+        txtDiaChi.setText("");
+
+        txtNgayVaoLam.setDate(null);
+
+        cboGioiTinh.setSelectedIndex(0);
+        cboChucVu.setSelectedIndex(0);
+        cboTrangThai.setSelectedIndex(0);
+
+        dangThem = true;
+
+        txtMaNV.setEditable(true);
+        txtMaNV.requestFocusInWindow();
     }
+
+    // ==================== HIỂN THỊ DỮ LIỆU LÊN FORM ====================
 
     private void hienThiThongTinLenForm() {
-        int r = table.convertRowIndexToModel(table.getSelectedRow());
-        codeField.setText(String.valueOf(model.getValueAt(r, 1)));
-        nameField.setText(String.valueOf(model.getValueAt(r, 2)));
-        phoneField.setText(String.valueOf(model.getValueAt(r, 3)));
-        emailField.setText(String.valueOf(model.getValueAt(r, 4)));
-        positionCombo.setSelectedItem(String.valueOf(model.getValueAt(r, 5)));
-        statusCombo.setSelectedItem(String.valueOf(model.getValueAt(r, 6)));
+        int dongDuocChon = tblNhanVien.getSelectedRow();
+
+        if (dongDuocChon < 0) {
+            return;
+        }
+
+        int dong = tblNhanVien.convertRowIndexToModel(
+                dongDuocChon
+        );
+
+        txtMaNV.setText(
+                giaTriRongNeuNull(
+                        mdlNhanVien.getValueAt(dong, 1)
+                )
+        );
+
+        txtHoTen.setText(
+                giaTriRongNeuNull(
+                        mdlNhanVien.getValueAt(dong, 2)
+                )
+        );
+
+        txtSoDT.setText(
+                giaTriRongNeuNull(
+                        mdlNhanVien.getValueAt(dong, 3)
+                )
+        );
+
+        Object ngay = mdlNhanVien.getValueAt(dong, 4);
+
+        if (ngay != null && !"null".equals(ngay.toString())) {
+            txtNgayVaoLam.setDate(
+                    java.sql.Date.valueOf(
+                            LocalDate.parse(ngay.toString())
+                    )
+            );
+        } else {
+            txtNgayVaoLam.setDate(null);
+        }
+
+        String gioiTinh = giaTriRongNeuNull(
+                mdlNhanVien.getValueAt(dong, 5)
+        );
+
+        if ("Nam".equals(gioiTinh)) {
+            cboGioiTinh.setSelectedItem("Nam");
+        } else if ("Nữ".equals(gioiTinh)) {
+            cboGioiTinh.setSelectedItem("Nữ");
+        } else {
+            cboGioiTinh.setSelectedIndex(0);
+        }
+
+        String chucVu = giaTriRongNeuNull(
+                mdlNhanVien.getValueAt(dong, 6)
+        );
+
+        cboChucVu.setSelectedItem(chucVu);
+
+        String trangThai = giaTriRongNeuNull(
+                mdlNhanVien.getValueAt(dong, 7)
+        );
+
+        cboTrangThai.setSelectedItem(trangThai);
+
+        txtEmail.setText(
+                giaTriRongNeuNull(
+                        mdlNhanVien.getValueAt(dong, 8)
+                )
+        );
+
+        txtDiaChi.setText(
+                giaTriRongNeuNull(
+                        mdlNhanVien.getValueAt(dong, 9)
+                )
+        );
+
+        // Đang chỉnh sửa nhân viên đã tồn tại.
+        dangThem = false;
+
+        // Không cho sửa mã của nhân viên hiện có.
+        txtMaNV.setEditable(false);
     }
 
-    // =========================================================================
-    // XỬ LÝ SỰ KIỆN NÚT BẤM (ACTIONLISTENER)
-    // =========================================================================
+    private String giaTriRongNeuNull(Object giaTri) {
+        if (giaTri == null
+                || "null".equals(String.valueOf(giaTri))) {
+            return "";
+        }
+
+        return String.valueOf(giaTri);
+    }
+
+    // ==================== TẢI DANH SÁCH NHÂN VIÊN ====================
+
+    private void taiDanhSachNhanVien() {
+        NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
+
+        List<NhanVien> dsNhanVien =
+                nhanVienDAO.getAllNhanVien();
+
+        mdlNhanVien.setRowCount(0);
+
+        if (dsNhanVien == null) {
+            lblTongSoNhanVien.setText(
+                    "Tổng số: 0 nhân viên"
+            );
+            return;
+        }
+
+        int stt = 1;
+
+        for (NhanVien nv : dsNhanVien) {
+            String gioiTinh;
+
+            if (nv.getGioiTinh() == null) {
+                gioiTinh = "Chưa xác định";
+            } else {
+                gioiTinh = nv.getGioiTinh()
+                        ? "Nam"
+                        : "Nữ";
+            }
+
+            mdlNhanVien.addRow(new Object[]{
+                    stt++,
+                    nv.getMaNV(),
+                    nv.getHoTen(),
+                    nv.getSoDT() == null ? "" : nv.getSoDT(),
+                    nv.getNgayVaoLam(),
+                    gioiTinh,
+                    nv.getChucVu(),
+                    nv.getTrangThai(),
+                    nv.getEmail() == null ? "" : nv.getEmail(),
+                    nv.getDiaChi() == null ? "" : nv.getDiaChi()
+            });
+        }
+
+        lblTongSoNhanVien.setText(
+                "Tổng số: " + dsNhanVien.size()
+                        + " nhân viên"
+        );
+    }
+
+    // ==================== XỬ LÝ NÚT ====================
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
-        if (source.equals(addBtn)) {
+        Object o = e.getSource();
+
+        if (o == btnThem) {
             clearForm();
-        } else if (source.equals(saveBtn)) {
+            dangThem = true;
+            txtMaNV.setEditable(true);
+            txtMaNV.requestFocusInWindow();
+
+        } else if (o == btnLuu) {
             xuLyLuuNhanVien();
-        } else if (source.equals(deleteBtn)) {
+
+        } else if (o == btnXoa) {
             xuLyXoaNhanVien();
-        } else if (source.equals(cancelBtn)) {
+
+        } else if (o == btnHuy) {
             clearForm();
         }
     }
 
-    // =========================================================================
-    // XỬ LÝ SỰ KIỆN CHUỘT TRÊN BẢNG (MOUSELISTENER)
-    // =========================================================================
+    // ==================== CHỌN NHÂN VIÊN TRÊN BẢNG ====================
+
     @Override
     public void mouseClicked(MouseEvent e) {
-        int row = table.getSelectedRow();
-        if (row >= 0) {
+        if (tblNhanVien.getSelectedRow() >= 0) {
             hienThiThongTinLenForm();
         }
     }
 
-    @Override public void mousePressed(MouseEvent e) {}
-    @Override public void mouseReleased(MouseEvent e) {}
-    @Override public void mouseEntered(MouseEvent e) {}
-    @Override public void mouseExited(MouseEvent e) {}
-
-    private void xuLyLuuNhanVien() {
-        String maNV = codeField.getText().trim();
-        String hoTen = nameField.getText().trim();
-        String sdt = phoneField.getText().trim();
-
-        if (maNV.isEmpty() || hoTen.isEmpty() || sdt.isEmpty() || positionCombo.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ các trường bắt buộc (*).", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        JOptionPane.showMessageDialog(this, "Khung logic lưu dữ liệu sẵn sàng.");
+    @Override
+    public void mousePressed(MouseEvent e) {
     }
 
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
+
+    // ==================== KIỂM TRA DỮ LIỆU ====================
+
+    private boolean kiemTraDuLieu() {
+        String maNV = txtMaNV.getText().trim();
+        String hoTen = txtHoTen.getText().trim();
+        String soDT = txtSoDT.getText().trim();
+        String email = txtEmail.getText().trim();
+        String diaChi = txtDiaChi.getText().trim();
+
+        String chucVu = cboChucVu.getSelectedIndex() == 0
+                ? ""
+                : cboChucVu.getSelectedItem().toString();
+
+        String trangThai = cboTrangThai.getSelectedIndex() == 0
+                ? ""
+                : cboTrangThai.getSelectedItem().toString();
+
+        // Kiểm tra mã nhân viên.
+        if (maNV.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng nhập mã nhân viên!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            txtMaNV.requestFocusInWindow();
+            return false;
+        }
+
+        if (!maNV.matches("^NV\\d{4}$")) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Mã nhân viên phải có dạng NV0001!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            txtMaNV.requestFocusInWindow();
+            return false;
+        }
+
+        // Kiểm tra họ tên.
+        if (hoTen.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng nhập họ và tên!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            txtHoTen.requestFocusInWindow();
+            return false;
+        }
+
+        if (hoTen.length() > 40) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Họ tên không được vượt quá 40 ký tự!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+
+        if (!hoTen.matches(
+                "^[\\p{L}]+(?:[ '\\u2019-][\\p{L}]+)*$")) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Họ tên chỉ được chứa chữ cái và khoảng trắng hợp lệ!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+
+        // Kiểm tra số điện thoại.
+        if (!soDT.isEmpty()
+                && !soDT.matches("0[3-9]\\d{8}")) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Số điện thoại phải có 10 chữ số "
+                            + "và bắt đầu bằng số 03 đến 09!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+
+        // Kiểm tra độ dài email.
+        if (email.length() > 30) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Email không được vượt quá 30 ký tự!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+
+        // Kiểm tra định dạng email.
+        if (!email.isEmpty()
+                && !email.matches(
+                "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Email không đúng định dạng!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+
+        // Kiểm tra địa chỉ.
+        if (diaChi.length() > 60) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Địa chỉ không được vượt quá 60 ký tự!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+
+        // Kiểm tra ngày vào làm.
+        Date ngayChon = txtNgayVaoLam.getDate();
+
+        if (ngayChon == null) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng chọn ngày vào làm!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+
+        LocalDate ngayVaoLam = ngayChon.toInstant()
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalDate();
+
+        if (ngayVaoLam.isAfter(LocalDate.now())) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Ngày vào làm không được lớn hơn ngày hiện tại!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+
+        // Kiểm tra chức vụ và trạng thái.
+        if (chucVu.isEmpty() || trangThai.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng chọn chức vụ và trạng thái!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+
+        return true;
+    }
+
+    // ==================== THÊM / CẬP NHẬT NHÂN VIÊN ====================
+
+    private void xuLyLuuNhanVien() {
+        try {
+            if (!kiemTraDuLieu()) {
+                return;
+            }
+
+            String maNV = txtMaNV.getText().trim();
+            String hoTen = txtHoTen.getText().trim();
+            String soDT = txtSoDT.getText().trim();
+            String email = txtEmail.getText().trim();
+            String diaChi = txtDiaChi.getText().trim();
+
+            String gioiTinhText =
+                    cboGioiTinh.getSelectedIndex() == 0
+                            ? ""
+                            : cboGioiTinh.getSelectedItem().toString();
+
+            String chucVu =
+                    cboChucVu.getSelectedItem().toString();
+
+            String trangThai =
+                    cboTrangThai.getSelectedItem().toString();
+
+            Date ngayChon = txtNgayVaoLam.getDate();
+
+            LocalDate ngayVaoLam = ngayChon.toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate();
+
+            // Chuyển giới tính sang Boolean.
+            Boolean gioiTinh = null;
+
+            if ("Nam".equals(gioiTinhText)) {
+                gioiTinh = true;
+            } else if ("Nữ".equals(gioiTinhText)) {
+                gioiTinh = false;
+            }
+
+            // Tạo đối tượng nhân viên.
+            NhanVien nv = new NhanVien(
+                    maNV,
+                    hoTen,
+                    soDT.isEmpty() ? null : soDT,
+                    ngayVaoLam,
+                    gioiTinh,
+                    chucVu,
+                    trangThai,
+                    email.isEmpty() ? null : email,
+                    diaChi.isEmpty() ? null : diaChi
+            );
+
+            NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
+
+            boolean ketQua;
+
+            if (dangThem) {
+                // Đang thêm nhân viên mới.
+                ketQua = nhanVienDAO.insert(nv);
+            } else {
+                // Đang cập nhật nhân viên đã chọn.
+                ketQua = nhanVienDAO.update(nv);
+            }
+
+            if (ketQua) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        dangThem
+                                ? "Thêm nhân viên thành công!"
+                                : "Cập nhật nhân viên thành công!",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                taiDanhSachNhanVien();
+                clearForm();
+
+            } else {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Không thể lưu nhân viên. "
+                                + "Vui lòng kiểm tra mã nhân viên "
+                                + "hoặc dữ liệu trong cơ sở dữ liệu!",
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Lỗi khi lưu nhân viên: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+
+            ex.printStackTrace();
+        }
+    }
+
+    // ==================== XÓA NHÂN VIÊN ====================
+
     private void xuLyXoaNhanVien() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần xóa từ bảng!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+        int dongDuocChon = tblNhanVien.getSelectedRow();
+
+        if (dongDuocChon < 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng chọn nhân viên cần xóa từ bảng!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(
+        int dong = tblNhanVien.convertRowIndexToModel(dongDuocChon);
+
+        String maNV = mdlNhanVien.getValueAt(dong, 1).toString();
+
+        int xacNhan = JOptionPane.showConfirmDialog(
                 this,
-                "Bạn có chắc chắn muốn xóa nhân viên này không?",
-                "Xác nhận xóa",
+                "Bạn có chắc chắn muốn ẩn nhân viên " + maNV + " khỏi bảng không?",
+                "Xác nhận",
                 JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
+                JOptionPane.WARNING_MESSAGE);
+
+        if (xacNhan != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        mdlNhanVien.removeRow(dong);
+
+        lblTongSoNhanVien.setText(
+                "Tổng số: " + mdlNhanVien.getRowCount() + " nhân viên"
         );
 
-        if (confirm == JOptionPane.YES_OPTION) {
-            model.removeRow(row);
-            clearForm();
-            JOptionPane.showMessageDialog(this, "Đã xóa nhân viên thành công.");
-        }
+        // Xóa thông tin trên form
+        clearForm();
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Đã xóa nhân viên khỏi bảng!",
+                "Thông báo",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 }
