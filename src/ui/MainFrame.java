@@ -24,11 +24,22 @@ public class MainFrame extends JFrame {
     private JLabel lblTenNguoiDung;
     private JLabel lblVaiTro;
 
+<<<<<<< HEAD
     // Khai báo tham chiếu trực tiếp đến 2 Panel cần đồng bộ dữ liệu
     private TiepNhanLichHenPanel pnlTiepNhanLichHen;
     private CheckInPanel pnlCheckIn;
+=======
+    private String maNVHienTai;
+
+>>>>>>> fd09755545d17bb547fdec3bd661d908d92b81d1
 
     public MainFrame() {
+        this(null);
+    }
+
+    public MainFrame(String maNV) {
+        this.maNVHienTai = maNV;
+
         khoiTaoCuaSo();
         taoMenu();
         taoNoiDung();
@@ -58,7 +69,7 @@ public class MainFrame extends JFrame {
         pnlNoiDung.add(new HomePanel(), "Trang chủ");
 
         pnlNoiDung.add(
-                new HoSoBenhNhanPanel(),
+                new HoSoBenhNhanPanel(maNVHienTai),
                 "Hồ sơ bệnh nhân"
         );
 
