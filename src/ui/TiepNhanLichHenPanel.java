@@ -230,7 +230,11 @@ public class TiepNhanLichHenPanel extends JPanel
         codeField.setEditable(false);
         codeField.setBackground(new Color(245, 248, 252));
 
-        maBenhNhanField = new JTextField();
+        // CHỈNH SỬA: Đặt mã bệnh nhân tự động sinh và không cho sửa trực tiếp
+        maBenhNhanField = new JTextField("BN001");
+        maBenhNhanField.setEditable(false);
+        maBenhNhanField.setBackground(new Color(245, 248, 252));
+
         patientField = new JTextField();
         phoneField = new JTextField();
 
@@ -279,7 +283,7 @@ public class TiepNhanLichHenPanel extends JPanel
         UIHelper.styleComboBox(statusCombo);
 
         formGrid.add(createFieldWrapper("Mã lịch hẹn", codeField));
-        formGrid.add(createFieldWrapper("Mã bệnh nhân *", maBenhNhanField));
+        formGrid.add(createFieldWrapper("Mã bệnh nhân", maBenhNhanField)); // Bỏ dấu * vì đã tự sinh
         formGrid.add(createFieldWrapper("Tên bệnh nhân *", patientField));
 
         formGrid.add(createFieldWrapper("Số điện thoại *", phoneField));
@@ -340,11 +344,11 @@ public class TiepNhanLichHenPanel extends JPanel
     public void clearForm() {
         table.clearSelection();
 
-        codeField.setText(
-                String.format("LH%03d", model.getRowCount() + 1)
-        );
+        // Tự động sinh mã lịch hẹn và mã bệnh nhân dựa trên số lượng dòng hiện tại
+        int nextId = model.getRowCount() + 1;
+        codeField.setText(String.format("LH%03d", nextId));
+        maBenhNhanField.setText(String.format("BN%03d", nextId));
 
-        maBenhNhanField.setText("");
         patientField.setText("");
         phoneField.setText("");
 
@@ -453,6 +457,7 @@ public class TiepNhanLichHenPanel extends JPanel
     private void layDanhSachLichHenTuCSDL() {
         model.setRowCount(0);
         capNhatTongSo();
+        clearForm(); // Gọi để khởi tạo mã ban đầu đúng
     }
 
     // ==================== THÊM / SỬA ====================
@@ -472,7 +477,7 @@ public class TiepNhanLichHenPanel extends JPanel
         String bacSi = dentistCombo.getSelectedIndex() > 0
                 ? String.valueOf(dentistCombo.getSelectedItem()) : "";
 
-        if (maBN.isEmpty() || benhNhan.isEmpty()
+        if (benhNhan.isEmpty()
                 || sdt.isEmpty() || ngay.isEmpty()
                 || bacSi.isEmpty()
                 || serviceCombo.getSelectedIndex() == 0) {
