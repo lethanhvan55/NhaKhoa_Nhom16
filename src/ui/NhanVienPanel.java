@@ -422,7 +422,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         dangThem = true;
 
         txtMaNV.setEditable(false);
-      //  txtMaNV.requestFocusInWindow();
+        //  txtMaNV.requestFocusInWindow();
     }
 
     // ==================== HIỂN THỊ DỮ LIỆU LÊN FORM ====================
@@ -653,9 +653,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
             return false;
         }
 
-        LocalDate ngayVaoLam = txtNgayVaoLam.getDate().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
+        LocalDate ngayVaoLam = txtNgayVaoLam.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
         if (ngayVaoLam.isAfter(LocalDate.now())) {
             JOptionPane.showMessageDialog(this,
