@@ -64,7 +64,7 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
         setBackground(mauNen);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        taoTieuDe();
+        //taoTieuDe();
         taoNoiDung();
         loadDuLieuBang(null, null);
     }
@@ -73,13 +73,13 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
         loadDuLieuBang(null, null);
     }
 
-    private void taoTieuDe() {
+ /*   private void taoTieuDe() {
         JPanel pnlTieuDe = new JPanel(new BorderLayout());
         pnlTieuDe.setOpaque(false);
 
-        JLabel lblTieuDe = new JLabel("CHECK IN BỆNH NHÂN");
-        lblTieuDe.setFont(new Font("Arial", Font.BOLD, 24));
-        lblTieuDe.setForeground(mauChu);
+    //    JLabel lblTieuDe = new JLabel("CHECK IN BỆNH NHÂN");
+    //    lblTieuDe.setFont(new Font("Arial", Font.BOLD, 24));
+    //    lblTieuDe.setForeground(mauChu);
 
         JLabel lblMoTa = new JLabel("Xác nhận bệnh nhân đã đến phòng khám theo lịch hẹn");
         lblMoTa.setFont(new Font("Arial", Font.PLAIN, 13));
@@ -87,7 +87,7 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
 
         JPanel pnlText = new JPanel(new GridLayout(2, 1, 0, 5));
         pnlText.setOpaque(false);
-        pnlText.add(lblTieuDe);
+     //   pnlText.add(lblTieuDe);
         pnlText.add(lblMoTa);
 
         pnlTieuDe.add(pnlText, BorderLayout.CENTER);
@@ -95,7 +95,7 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
 
         add(pnlTieuDe, BorderLayout.NORTH);
     }
-
+*/
     private void taoNoiDung() {
         JPanel pnlNoiDung = new JPanel(new BorderLayout(15, 15));
         pnlNoiDung.setOpaque(false);
@@ -192,8 +192,8 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
         pnlDanhSach.add(scrBang, BorderLayout.CENTER);
 
         pnlNoiDung.add(pnlTraCuu, BorderLayout.NORTH);
-        pnlNoiDung.add(pnlThongTin, BorderLayout.CENTER);
-        pnlNoiDung.add(pnlDanhSach, BorderLayout.SOUTH);
+        pnlNoiDung.add(pnlThongTin, BorderLayout.SOUTH);
+        pnlNoiDung.add(pnlDanhSach, BorderLayout.CENTER);
 
         pnlTraCuu.setPreferredSize(new Dimension(100, 100));
         pnlThongTin.setPreferredSize(new Dimension(100, 270));
@@ -222,6 +222,7 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
             xuLyXacNhanCheckIn();
         }
     }
+
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
@@ -258,31 +259,56 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
 
     private void xuLyXacNhanCheckIn() {
         int dong = tblChoCheckIn.getSelectedRow();
+
         if (dong < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn lịch hẹn cần check-in từ bảng!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng chọn lịch hẹn cần check-in từ bảng!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
             return;
         }
 
         String maLH = tblChoCheckIn.getValueAt(dong, 0).toString();
         String trangThaiHienTai = tblChoCheckIn.getValueAt(dong, 7).toString();
 
-        if (trangThaiHienTai.equals("Đang chờ khám")) {
-            JOptionPane.showMessageDialog(this, "Lịch hẹn này đã ở trạng thái 'Đang chờ khám' rồi!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+        if (!"Đã đặt".equals(trangThaiHienTai)) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Chỉ có thể check-in lịch hẹn có trạng thái 'Đã đặt'!",
+                    "Không thể check-in",
+                    JOptionPane.WARNING_MESSAGE
+            );
             return;
         }
 
         try {
             boolean kq = lichHenDAO.capNhatTrangThaiCheckIn(maLH, "Đang chờ khám");
+
             if (kq) {
-                JOptionPane.showMessageDialog(this, "Check-in thành công! Trạng thái đã chuyển thành 'Đang chờ khám'.");
-                loadDuLieuBang(null, null); 
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Check-in thành công! Trạng thái đã chuyển thành 'Đang chờ khám'."
+                );
+                loadDuLieuBang(null, null);
                 xoaForm();
             } else {
-                JOptionPane.showMessageDialog(this, "Check-in thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Check-in thất bại! Lịch hẹn có thể đã được cập nhật trước đó.",
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Lỗi cơ sở dữ liệu: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Lỗi cơ sở dữ liệu: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
