@@ -103,14 +103,14 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pnlDanhSach, pnlChiTiet);
 
-        splitPane.setResizeWeight(0.45);
+        splitPane.setResizeWeight(0.75);
         splitPane.setContinuousLayout(true);
         splitPane.setOneTouchExpandable(true);
         splitPane.setBorder(null);
 
         add(splitPane, BorderLayout.CENTER);
 
-        splitPane.setDividerLocation(0.45);
+        splitPane.setDividerLocation(0.75);
     }
 
     private JPanel taoPanelDanhSach() {
@@ -163,18 +163,6 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         scrollTable.getViewport().setBackground(WHITE);
 
         panel.add(scrollTable, BorderLayout.CENTER);
-
-        JPanel pnlNutChiTiet = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-        pnlNutChiTiet.setBackground(WHITE);
-
-
-        btnXemChiTiet = GiaoDienStyle.taoNut("Xem chi tiết", BLUE, 13);
-
-        btnXemChiTiet.setPreferredSize(new Dimension(140, 36));
-
-        pnlNutChiTiet.add(btnXemChiTiet);
-
-        panel.add(pnlNutChiTiet, BorderLayout.SOUTH);
 
         return panel;
     }
@@ -324,8 +312,11 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         btnLuu = GiaoDienStyle.taoNut("Lưu", GREEN, 13);
         btnXoa = GiaoDienStyle.taoNut("Xóa", RED, 13);
         btnHuy = GiaoDienStyle.taoNut("Làm mới", MUTED, 13);
+        btnXemChiTiet = GiaoDienStyle.taoNut("Xem chi tiết", BLUE, 13);
 
-        JButton[] dsNut = {btnThem, btnLuu, btnXoa, btnHuy};
+        JButton[] dsNut = {
+                btnThem, btnLuu, btnXoa, btnHuy, btnXemChiTiet
+        };
 
         for (JButton nut : dsNut) {
             nut.setFont(new Font("Arial", Font.BOLD, 13));
@@ -338,6 +329,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         pnlNut.add(btnLuu);
         pnlNut.add(btnXoa);
         pnlNut.add(btnHuy);
+        pnlNut.add(btnXemChiTiet);
 
         panel.add(pnlNut, BorderLayout.SOUTH);
 
@@ -354,7 +346,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
 
     private JScrollPane taoScroll(JTextArea textArea) {
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(180, 55));
+        scrollPane.setPreferredSize(new Dimension(180, 30));
         return scrollPane;
     }
 
