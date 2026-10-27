@@ -191,13 +191,12 @@ GO
 
 -- =========================================================
 -- 13. DU LIEU HOA DON
--- Gán mã rõ ràng vì bảng không được xác nhận có trigger tự sinh mã
 -- =========================================================
 INSERT INTO HoaDon
-    (MaHD, MaBenhNhan, MaNV, NgayLap, ChietKhau, MaKM, TrangThai)
+    (MaHD, MaBenhNhan, MaNV, NgayLap, ChietKhau, VAT, MaKM, TrangThai)
 VALUES
-('HD0001', 'BN0001', 'NV0004', '2026-04-01', 0.00, NULL, N'Đã thanh toán'),
-('HD0002', 'BN0002', 'NV0004', '2026-04-05', 10.00, 'KM0002', N'Đã thanh toán');
+('HD0001', 'BN0001', 'NV0004', '2026-04-01 09:00:00', 0.00, 5.00, NULL, N'Đã thanh toán'),
+('HD0002', 'BN0002', 'NV0004', '2026-04-05 14:00:00', 10.00, 5.00, 'KM0002', N'Đã thanh toán');
 GO
 
 -- =========================================================
