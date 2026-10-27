@@ -266,26 +266,23 @@ CREATE TABLE HoaDon (
 MaHD CHAR(6) PRIMARY KEY,
 MaBenhNhan CHAR(6) NOT NULL,
 MaNV CHAR(6) NOT NULL,
+MaLichHen CHAR(8) NOT NULL,
 NgayLap DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
 ChietKhau DECIMAL(5,2) NOT NULL DEFAULT 0,
 VAT DECIMAL(5,2) NOT NULL DEFAULT 0,
 MaKM CHAR(6) NULL,
 TrangThai NVARCHAR(50) NOT NULL DEFAULT N'Chưa thanh toán',
-
 CONSTRAINT CK_HoaDon_MaHD CHECK (MaHD LIKE 'HD[0-9][0-9][0-9][0-9]'),
 CONSTRAINT FK_HoaDon_BenhNhan FOREIGN KEY (MaBenhNhan) REFERENCES BenhNhan(MaBenhNhan),
-
 CONSTRAINT FK_HoaDon_NhanVien FOREIGN KEY (MaNV) REFERENCES NhanVien(MaNV),
-
+CONSTRAINT FK_HoaDon_LichHen FOREIGN KEY (MaLichHen) REFERENCES LichHen(MaLichHen),
+CONSTRAINT UQ_HoaDon_MaLichHen UNIQUE (MaLichHen),
 CONSTRAINT FK_HoaDon_KhuyenMai FOREIGN KEY (MaKM) REFERENCES KhuyenMai(MaKM),
-
 CONSTRAINT CK_HoaDon_ChietKhau CHECK (ChietKhau >= 0 AND ChietKhau <= 100),
-
 CONSTRAINT CK_HoaDon_VAT CHECK (VAT >= 0 AND VAT <= 100),
 CONSTRAINT CK_HoaDon_TrangThai CHECK (TrangThai IN (N'Đã thanh toán', N'Chưa thanh toán'))
 );
 GO
-
 -- =========================================================
 -- 15. CHI TIẾT HÓA ĐƠN
 -- =========================================================
