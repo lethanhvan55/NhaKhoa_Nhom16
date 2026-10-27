@@ -206,10 +206,13 @@ public class KeHoachDieuTri_DAO {
              ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
-                int so = rs.getInt("MaxMa") + 1;
+                int maxMa = rs.getInt("MaxMa");
 
+                int so;
                 if (rs.wasNull()) {
                     so = 1;
+                } else {
+                    so = maxMa + 1;
                 }
 
                 if (so > 9999) {

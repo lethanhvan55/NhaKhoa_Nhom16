@@ -2,6 +2,7 @@ package ui;
 
 import dao.BenhNhan_DAO;
 import dao.HoSoBenhNhan_DAO;
+import dao.KeHoachDieuTri_DAO;
 import model.HoSoBenhNhan;
 import model.BenhNhan;
 import model.NhanVien;
@@ -24,8 +25,7 @@ import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
 
-public class HoSoBenhNhanPanel extends JPanel
-        implements ActionListener, MouseListener {
+public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseListener {
 
     private final Color NAVY = GiaoDienStyle.MAU_NAVY;
     private final Color BG = GiaoDienStyle.MAU_NEN;
@@ -38,7 +38,6 @@ public class HoSoBenhNhanPanel extends JPanel
     private JTable tblHoSo;
     private DefaultTableModel modelTable;
 
-    // Các trường nhập liệu
     private JTextField txtMaBenhNhan;
     private JTextField txtMaKeHoach;
 
@@ -58,13 +57,14 @@ public class HoSoBenhNhanPanel extends JPanel
     private JButton btnLuu;
     private JButton btnXoa;
     private JButton btnHuy;
+    private JButton btnXemChiTiet;
 
-    // Mã nhân viên đang đăng nhập
     private final String maNVHienTai;
 
     private final HoSoBenhNhan_DAO hoSoDAO = new HoSoBenhNhan_DAO();
     private final BenhNhan_DAO benhNhanDAO = new BenhNhan_DAO();
-    // Thông tin hồ sơ đang chọn
+    private final KeHoachDieuTri_DAO keHoachDAO = new KeHoachDieuTri_DAO();
+
     private String maHoSoDangChon = "";
     private String maBenhNhanDangChon = "";
     private String maNhanVienDangChon = "";
@@ -101,11 +101,7 @@ public class HoSoBenhNhanPanel extends JPanel
         JPanel pnlDanhSach = taoPanelDanhSach();
         JPanel pnlChiTiet = taoPanelChiTiet();
 
-        JSplitPane splitPane = new JSplitPane(
-                JSplitPane.VERTICAL_SPLIT,
-                pnlDanhSach,
-                pnlChiTiet
-        );
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pnlDanhSach, pnlChiTiet);
 
         splitPane.setResizeWeight(0.45);
         splitPane.setContinuousLayout(true);
@@ -114,18 +110,13 @@ public class HoSoBenhNhanPanel extends JPanel
 
         add(splitPane, BorderLayout.CENTER);
 
-        SwingUtilities.invokeLater(() ->
-                splitPane.setDividerLocation(0.45)
-        );
+        splitPane.setDividerLocation(0.45);
     }
 
     private JPanel taoPanelDanhSach() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         panel.setBackground(WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 225, 230)),
-                new EmptyBorder(12, 12, 12, 12)
-        ));
+        panel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(220, 225, 230)), new EmptyBorder(12, 12, 12, 12)));
 
         JLabel lblDanhSach = new JLabel("Danh sách hồ sơ bệnh nhân");
         lblDanhSach.setFont(new Font("Arial", Font.BOLD, 17));
@@ -135,9 +126,9 @@ public class HoSoBenhNhanPanel extends JPanel
 
         String[] columns = {
                 "Mã hồ sơ",
-                "Tên bệnh nhân",
-                "Nhân viên phụ trách",
-                "Mã kế hoac",
+                "Mã BN",
+                "Mã NV",
+                "Mã KH",
                 "Ngày khám",
                 "Tình trạng răng miệng",
                 "Chẩn đoán",
@@ -165,23 +156,103 @@ public class HoSoBenhNhanPanel extends JPanel
 
         GiaoDienStyle.dinhDangBang(tblHoSo);
 
-        JScrollPane scrollTable = new JScrollPane(
-                tblHoSo,
-                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-        );
+        JScrollPane scrollTable = new JScrollPane(tblHoSo, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-        scrollTable.setBorder(BorderFactory.createLineBorder(
-                new Color(220, 225, 230)
-        ));
+        scrollTable.setBorder(BorderFactory.createLineBorder(new Color(220, 225, 230)));
 
         scrollTable.getViewport().setBackground(WHITE);
 
         panel.add(scrollTable, BorderLayout.CENTER);
 
+        JPanel pnlNutChiTiet = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        pnlNutChiTiet.setBackground(WHITE);
+
+
+        btnXemChiTiet = GiaoDienStyle.taoNut("Xem chi tiết", BLUE, 13);
+
+        btnXemChiTiet.setPreferredSize(new Dimension(140, 36));
+
+        pnlNutChiTiet.add(btnXemChiTiet);
+
+        panel.add(pnlNutChiTiet, BorderLayout.SOUTH);
+
         return panel;
     }
+    private void xemChiTiet() {
+        int row = tblHoSo.getSelectedRow();
 
+        if (row < 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng chọn hồ sơ bệnh nhân cần xem chi tiết!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        int modelRow = tblHoSo.convertRowIndexToModel(row);
+
+        String maBN = layGiaTriBang(modelRow, 1);
+        String maKH = layGiaTriBang(modelRow, 3);
+
+        BenhNhan bn = benhNhanDAO.getBenhNhanTheoMa(maBN);
+
+        if (bn == null) {
+            hienThiCanhBao("Không tìm thấy thông tin bệnh nhân!");
+            return;
+        }
+
+        String gioiTinh = bn.isGioiTinh() ? "Nam" : "Nữ";
+
+        String thongTinBN =
+                "THÔNG TIN BỆNH NHÂN\n"
+                        + "Mã bệnh nhân: " + bn.getMaBenhNhan() + "\n"
+                        + "Họ tên: " + bn.getHoTen() + "\n"
+                        + "Ngày sinh: " + bn.getNgaySinh() + "\n"
+                        + "Giới tính: " + gioiTinh + "\n"
+                        + "Số điện thoại: " + bn.getSoDT() + "\n"
+                        + "Email: " + bn.getEmail() + "\n"
+                        + "Địa chỉ: " + bn.getDiaChi();
+
+
+        String thongTinHS =
+                "\n\nTHÔNG TIN HỒ SƠ KHÁM BỆNH\n"
+                        + "Mã hồ sơ: " + layGiaTriBang(modelRow, 0) + "\n"
+                        + "Ngày khám: " + layGiaTriBang(modelRow, 4) + "\n"
+                        + "Tình trạng răng miệng: " + layGiaTriBang(modelRow, 5) + "\n"
+                        + "Chẩn đoán: " + layGiaTriBang(modelRow, 6) + "\n"
+                        + "Phương pháp điều trị: " + layGiaTriBang(modelRow, 7) + "\n"
+                        + "Tiền sử bệnh: " + layGiaTriBang(modelRow, 8) + "\n"
+                        + "Dị ứng: " + layGiaTriBang(modelRow, 9) + "\n"
+                        + "Bệnh lý nền: " + layGiaTriBang(modelRow, 10) + "\n"
+                        + "Ghi chú: " + layGiaTriBang(modelRow, 13);
+
+        String thongTinKH =
+                "\n\nTHÔNG TIN KẾ HOẠCH ĐIỀU TRỊ\n"
+                        + "Mã kế hoạch: " + maKH + "\n"
+                        + "Chẩn đoán: " + layGiaTriBang(modelRow, 6);
+
+        JTextArea txtChiTiet = new JTextArea(
+                thongTinBN + thongTinHS + thongTinKH
+        );
+
+        txtChiTiet.setEditable(false);
+        txtChiTiet.setLineWrap(true);
+        txtChiTiet.setWrapStyleWord(true);
+        txtChiTiet.setFont(new Font("Arial", Font.PLAIN, 14));
+        txtChiTiet.setCaretPosition(0);
+
+        JScrollPane scroll = new JScrollPane(txtChiTiet);
+        scroll.setPreferredSize(new Dimension(550, 450));
+
+        JOptionPane.showMessageDialog(
+                this,
+                scroll,
+                "Chi tiết bệnh nhân và kế hoạch điều trị",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
     private JPanel taoPanelChiTiet() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         panel.setBackground(WHITE);
@@ -196,10 +267,9 @@ public class HoSoBenhNhanPanel extends JPanel
 
         panel.add(lblChiTiet, BorderLayout.NORTH);
 
-        // Trường mã liên kết
         txtMaBenhNhan = new JTextField();
         txtMaKeHoach = new JTextField();
-        txtMaBenhNhan.setEditable(true);
+        txtMaBenhNhan.setEditable(false);
         txtMaKeHoach.setEditable(false);
 
         txtMaBenhNhan.setToolTipText("Nhập mã bệnh nhân đã tồn tại");
@@ -225,15 +295,12 @@ public class HoSoBenhNhanPanel extends JPanel
         JPanel pnlTrai = new JPanel(new GridBagLayout());
         pnlTrai.setBackground(WHITE);
 
-        themTruong(pnlTrai, 0, "Tên bệnh nhân:", txtMaBenhNhan);
+        themTruong(pnlTrai, 0, "Mã bệnh nhân:", txtMaBenhNhan);
         themTruong(pnlTrai, 1, "Ngày khám:", dcNgayKham);
-        themTruong(pnlTrai, 2, "Tình trạng răng miệng:",
-                taoScroll(txtTinhTrangRangMieng));
-        themTruong(pnlTrai, 3, "Phương pháp điều trị:",
-                taoScroll(txtPhuongPhapDieuTri));
+        themTruong(pnlTrai, 2, "Tình trạng răng miệng:", taoScroll(txtTinhTrangRangMieng));
+        themTruong(pnlTrai, 3, "Phương pháp điều trị:", taoScroll(txtPhuongPhapDieuTri));
         themTruong(pnlTrai, 4, "Dị ứng:", taoScroll(txtDiUng));
-        themTruong(pnlTrai, 5, "Người liên hệ:",
-                taoScroll(txtNguoiLienHe));
+        themTruong(pnlTrai, 5, "Người liên hệ:", taoScroll(txtNguoiLienHe));
 
         JPanel pnlPhai = new JPanel(new GridBagLayout());
         pnlPhai.setBackground(WHITE);
@@ -250,11 +317,7 @@ public class HoSoBenhNhanPanel extends JPanel
 
         panel.add(pnlForm, BorderLayout.CENTER);
 
-        JPanel pnlNut = new JPanel(
-                new java.awt.FlowLayout(
-                        java.awt.FlowLayout.CENTER, 10, 5
-                )
-        );
+        JPanel pnlNut = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 10, 5));
         pnlNut.setBackground(WHITE);
 
         btnThem = GiaoDienStyle.taoNut("Thêm mới", BLUE, 13);
@@ -295,12 +358,7 @@ public class HoSoBenhNhanPanel extends JPanel
         return scrollPane;
     }
 
-    private void themTruong(
-            JPanel panel,
-            int row,
-            String ten,
-            JComponent component
-    ) {
+    private void themTruong(JPanel panel, int row, String ten, JComponent component) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 5, 4, 5);
         gbc.anchor = GridBagConstraints.NORTHWEST;
@@ -323,6 +381,7 @@ public class HoSoBenhNhanPanel extends JPanel
 
     private void dangKySuKien() {
         btnThem.addActionListener(this);
+        btnXemChiTiet.addActionListener(this);
         btnLuu.addActionListener(this);
         btnXoa.addActionListener(this);
         btnHuy.addActionListener(this);
@@ -335,7 +394,11 @@ public class HoSoBenhNhanPanel extends JPanel
 
         if (source == btnThem) {
             themHoSo();
-        } else if (source == btnLuu) {
+        }
+        else if (source == btnXemChiTiet) {
+            xemChiTiet();
+        }
+        else if (source == btnLuu) {
             suaHoSo();
         } else if (source == btnXoa) {
             xoaHoSo();
@@ -360,14 +423,19 @@ public class HoSoBenhNhanPanel extends JPanel
         for (HoSoBenhNhan hs : dsHoSo) {
             Object[] row = {
                     hs.getMaHoSo(),
-                    layTenBenhNhan(hs),
-                    layTenNhanVien(hs),
-                    layMaKeHoach(hs),
-                    hs.getNgayKham() == null
-                            ? "" : hs.getNgayKham().toString(),
+
+                    hs.getMaBenhNhan() == null ? "" : hs.getMaBenhNhan().getMaBenhNhan(),
+
+                    hs.getMaNV() == null ? "" : hs.getMaNV().getMaNV(),
+
+                    hs.getMaKeHoach() == null ? "" : hs.getMaKeHoach().getMaKeHoach(),
+
+                    hs.getNgayKham() == null ? "" : hs.getNgayKham().toString(),
+
                     hs.getTinhTrangRangMieng(),
                     hs.getChanDoan(),
                     hs.getPhuongPhapDieuTri(),
+
                     hs.getTienSuBenh() == null ? "" : hs.getTienSuBenh(),
                     hs.getDiUng() == null ? "" : hs.getDiUng(),
                     hs.getBenhLyNen() == null ? "" : hs.getBenhLyNen(),
@@ -381,21 +449,15 @@ public class HoSoBenhNhanPanel extends JPanel
     }
 
     private String layTenBenhNhan(HoSoBenhNhan hs) {
-        return hs.getMaBenhNhan() == null
-                ? ""
-                : hs.getMaBenhNhan().getHoTen();
+        return hs.getMaBenhNhan() == null ? "" : hs.getMaBenhNhan().getHoTen();
     }
 
     private String layTenNhanVien(HoSoBenhNhan hs) {
-        return hs.getMaNV() == null
-                ? ""
-                : hs.getMaNV().getHoTen();
+        return hs.getMaNV() == null ? "" : hs.getMaNV().getHoTen();
     }
 
     private String layMaKeHoach(HoSoBenhNhan hs) {
-        return hs.getMaKeHoach() == null
-                ? ""
-                : hs.getMaKeHoach().getMaKeHoach();
+        return hs.getMaKeHoach() == null ? "" : hs.getMaKeHoach().getMaKeHoach();
     }
 
     // ===================== CHỌN HỒ SƠ =====================
@@ -439,7 +501,6 @@ public class HoSoBenhNhanPanel extends JPanel
         txtMaKeHoach.setText(layGiaTriBang(row, 3));
 
         String ngayKham = layGiaTriBang(row, 4);
-
         try {
             if (!ngayKham.isEmpty()) {
                 LocalDate localDate = LocalDate.parse(ngayKham);
@@ -473,7 +534,6 @@ public class HoSoBenhNhanPanel extends JPanel
         return value == null ? "" : value.toString();
     }
 
-    // ===================== THÊM HỒ SƠ =====================
 
     private void themHoSo() {
         if (!kiemTraDuLieu()) {
@@ -486,100 +546,25 @@ public class HoSoBenhNhanPanel extends JPanel
         }
 
         try {
-            // Nhập thông tin bệnh nhân mới
-            String hoTen = JOptionPane.showInputDialog(
-                    this, "Nhập họ tên bệnh nhân:");
 
-            if (hoTen == null || hoTen.trim().isEmpty()) {
-                hienThiCanhBao("Họ tên bệnh nhân không được để trống!");
-                return;
-            }
+            JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
 
-            String ngaySinhStr = JOptionPane.showInputDialog(
-                    this, "Nhập ngày sinh (yyyy-MM-dd):");
+            Chon_ThemBNDialog dialog = new Chon_ThemBNDialog(parent);
+            dialog.setVisible(true);
 
-            if (ngaySinhStr == null || ngaySinhStr.trim().isEmpty()) {
-                hienThiCanhBao("Ngày sinh không được để trống!");
-                return;
-            }
-
-            java.time.LocalDate ngaySinh;
-
-            try {
-                ngaySinh = java.time.LocalDate.parse(ngaySinhStr.trim());
-            } catch (java.time.format.DateTimeParseException ex) {
-                hienThiCanhBao("Ngày sinh phải có định dạng yyyy-MM-dd!");
-                return;
-            }
-
-            if (ngaySinh.isAfter(java.time.LocalDate.now())) {
-                hienThiCanhBao("Ngày sinh không được ở tương lai!");
-                return;
-            }
-
-            String[] gioiTinhs = {"Nam", "Nữ"};
-
-            int chonGioiTinh = JOptionPane.showOptionDialog(
-                    this,
-                    "Chọn giới tính bệnh nhân:",
-                    "Giới tính",
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    gioiTinhs,
-                    gioiTinhs[0]
-            );
-
-            if (chonGioiTinh < 0) {
-                return;
-            }
-
-            String soDT = JOptionPane.showInputDialog(
-                    this, "Nhập số điện thoại bệnh nhân:");
-
-            if (soDT == null || !soDT.trim().matches("^0[3-9]\\d{8}$")) {
-                hienThiCanhBao("Số điện thoại phải có 10 chữ số hợp lệ!");
-                return;
-            }
-
-            String email = JOptionPane.showInputDialog(
-                    this, "Nhập email (có thể bỏ trống):");
-
-            String diaChi = JOptionPane.showInputDialog(
-                    this, "Nhập địa chỉ (có thể bỏ trống):");
-
-            // Tự sinh mã bệnh nhân
-            String maBN = benhNhanDAO.sinhMaBenhNhanMoi();
+            String maBN = dialog.getMaBenhNhanChon();
 
             if (maBN == null || maBN.trim().isEmpty()) {
-                hienThiCanhBao("Không thể sinh mã bệnh nhân!");
                 return;
             }
 
-            // Tạo bệnh nhân
-            BenhNhan bn = new BenhNhan();
-            bn.setMaBenhNhan(maBN);
-            bn.setHoTen(hoTen.trim());
-            bn.setNgaySinh(ngaySinh);
-            bn.setGioiTinh(chonGioiTinh == 0);
-            bn.setSoDT(soDT.trim());
-            bn.setEmail(email == null || email.trim().isEmpty()
-                    ? null : email.trim());
-            bn.setDiaChi(diaChi == null || diaChi.trim().isEmpty()
-                    ? null : diaChi.trim());
+            BenhNhan bn = benhNhanDAO.getBenhNhanTheoMa(maBN);
 
-            // Thêm bệnh nhân trước để đảm bảo khóa ngoại
-            boolean themBenhNhan = benhNhanDAO.insert(bn);
-
-            if (!themBenhNhan) {
-                hienThiCanhBao(
-                        "Thêm bệnh nhân thất bại! "
-                                + "Kiểm tra số điện thoại có bị trùng không."
-                );
+            if (bn == null) {
+                hienThiCanhBao("Không tìm thấy thông tin bệnh nhân!");
                 return;
             }
 
-            // Lấy thông tin hồ sơ
             java.util.Date ngayKhamDate = dcNgayKham.getDate();
 
             if (ngayKhamDate == null) {
@@ -587,23 +572,36 @@ public class HoSoBenhNhanPanel extends JPanel
                 return;
             }
 
-            java.time.LocalDate ngayKham = ngayKhamDate.toInstant()
-                    .atZone(java.time.ZoneId.systemDefault())
-                    .toLocalDate();
+            LocalDate ngayKham = ngayKhamDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-            String maKH = txtMaKeHoach.getText().trim();
+            String maKH = keHoachDAO.sinhMaKeHoachMoi();
+
+            if (maKH == null || maKH.trim().isEmpty()) {
+                hienThiCanhBao("Không thể sinh mã kế hoạch điều trị!");
+                return;
+            }
+
+            KeHoachDieuTri kh = new KeHoachDieuTri();
+            kh.setMaKeHoach(maKH);
+            kh.setMaBenhNhan(bn);
+            kh.setChanDoan(txtChanDoan.getText().trim());
+            kh.setNgayBatDau(ngayKham);
+            kh.setNgayKetThuc(ngayKham);
+            kh.setChiPhiDuKien(0);
+            kh.setTrangThai("Chưa bắt đầu");
+
+            boolean themKeHoach = keHoachDAO.themKeHoach(kh);
+
+            if (!themKeHoach) {
+                hienThiCanhBao("Thêm kế hoạch điều trị thất bại!");
+                return;
+            }
+
+            txtMaKeHoach.setText(maKH);
 
             NhanVien nv = new NhanVien();
             nv.setMaNV(maNVHienTai.trim());
 
-            KeHoachDieuTri kh = null;
-
-            if (!maKH.isEmpty()) {
-                kh = new KeHoachDieuTri();
-                kh.setMaKeHoach(maKH);
-            }
-
-            // Tạo hồ sơ; DAO sẽ tự sinh MaHoSo
             HoSoBenhNhan hs = new HoSoBenhNhan(
                     null,
                     bn,
@@ -625,7 +623,6 @@ public class HoSoBenhNhanPanel extends JPanel
 
             if (themHoSo) {
                 txtMaBenhNhan.setText(maBN);
-
                 JOptionPane.showMessageDialog(
                         this,
                         "Thêm bệnh nhân và hồ sơ thành công!"
@@ -652,7 +649,7 @@ public class HoSoBenhNhanPanel extends JPanel
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Lỗi khi thêm hồ sơ: " + ex.getMessage(),
+                  "Lỗi khi thêm hồ sơ: " + ex.getMessage(),
                     "Lỗi",
                     JOptionPane.ERROR_MESSAGE
             );
@@ -748,8 +745,6 @@ public class HoSoBenhNhanPanel extends JPanel
         }
     }
 
-    // ===================== KIỂM TRA DỮ LIỆU =====================
-
     private boolean kiemTraDuLieu() {
         if (dcNgayKham.getDate() == null) {
             hienThiCanhBao("Vui lòng chọn ngày khám.");
@@ -814,7 +809,6 @@ public class HoSoBenhNhanPanel extends JPanel
         return value.trim();
     }
 
-    // ===================== XÓA HỒ SƠ =====================
 
     private void xoaHoSo() {
         if (maHoSoDangChon == null || maHoSoDangChon.isEmpty()) {
@@ -871,7 +865,6 @@ public class HoSoBenhNhanPanel extends JPanel
         }
     }
 
-    // ===================== LÀM MỚI FORM =====================
 
     private void xoaForm() {
         txtMaBenhNhan.setText("");
