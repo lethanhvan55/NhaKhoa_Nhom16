@@ -234,7 +234,7 @@ public class TaiKhoanPanel extends JPanel {
     }
 
     private void xuLyThem() {
-        String tenDN = txtTenDN.getText().trim();
+       /* String tenDN = txtTenDN.getText().trim();
         String matKhau = new String(txtMatKhau.getPassword()).trim();
         String maNVStr = txtNhanVien.getText().trim();
         String quyen = cboQuyen.getSelectedItem().toString();
@@ -267,7 +267,16 @@ public class TaiKhoanPanel extends JPanel {
             xuLyLamMoi();
         } else {
             JOptionPane.showMessageDialog(this, "Thêm thất bại (Trùng tên đăng nhập, sai mã nhân viên hoặc lỗi CSDL)!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-        }
+        } */
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Tài khoản được tạo tự động khi thêm nhân viên.\n"
+                            + "Mật khẩu mặc định là 123456.\n"
+                            + "Vui lòng chọn tài khoản trong bảng để đổi mật khẩu.",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
     }
 
     private void xuLySua() {
@@ -337,6 +346,9 @@ public class TaiKhoanPanel extends JPanel {
         cboTrangThai.setSelectedIndex(0);
         txtTimKiem.setText("");
         table.clearSelection();
+        txtNhanVien.setEditable(false);
+        txtNhanVien.setFocusable(false);
+
     }
 
     private void xuLyTimKiem() {
@@ -368,6 +380,7 @@ public class TaiKhoanPanel extends JPanel {
             txtNhanVien.setText(tableModel.getValueAt(row, 2) != null ? tableModel.getValueAt(row, 2).toString() : "");
             cboQuyen.setSelectedItem(tableModel.getValueAt(row, 3).toString());
             cboTrangThai.setSelectedItem(tableModel.getValueAt(row, 4).toString());
+            txtNhanVien.setEditable(false);
         }
     }
 
@@ -408,5 +421,6 @@ public class TaiKhoanPanel extends JPanel {
         btnThem.setEnabled(status);
         btnSua.setEnabled(status);
         btnXoa.setEnabled(status);
+
     }
 }

@@ -97,11 +97,7 @@ public class TaiKhoan_DAO {
             pst.setString(1, tk.getTenDangNhap());
             pst.setString(2, tk.getMatKhau());
 
-            if (tk.getMaNV() != null && tk.getMaNV().getMaNV() != null && !tk.getMaNV().getMaNV().isEmpty()) {
-                pst.setString(3, tk.getMaNV().getMaNV());
-            } else {
-                pst.setNull(3, java.sql.Types.VARCHAR);
-            }
+            pst.setString(3, tk.getMaNV().getMaNV().trim());
 
             pst.setString(4, tk.getQuyen());
             pst.setString(5, tk.getTrangThai());
@@ -123,12 +119,7 @@ public class TaiKhoan_DAO {
 
             pst.setString(1, tk.getMatKhau());
 
-            if (tk.getMaNV() != null && tk.getMaNV().getMaNV() != null && !tk.getMaNV().getMaNV().isEmpty()) {
-                pst.setString(2, tk.getMaNV().getMaNV());
-            } else {
-                pst.setNull(2, java.sql.Types.VARCHAR);
-            }
-
+            pst.setString(2, tk.getMaNV().getMaNV().trim());
             pst.setString(3, tk.getQuyen());
             pst.setString(4, tk.getTrangThai());
             pst.setString(5, tk.getTenDangNhap());
