@@ -1,6 +1,7 @@
 package ui;
 
 import dao.DichVu_DAO;
+import dao.HoaDonDao;
 import model.DichVu;
 import utils.GiaoDienStyle;
 
@@ -54,16 +55,22 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
     private final Map<String, DichVu> dichVuDaChon = new LinkedHashMap<>();
   //  private final Map<String, Integer> soLuongDaChon = new LinkedHashMap<>();
     private  final  Map<String, Integer> soLuongDaChon = new LinkedHashMap<>();
+    private final Map<String, Map<String, DichVu>> dichVuTheoLichHen = new LinkedHashMap<>();
+    private final Map<String, Map<String, Integer>> soLuongTheoLichHen = new LinkedHashMap<>();
+    private HoaDonDao hoaDonDao;
+    private String maLichHenDangChon = null;
 
     public TaoHoaDonPanel() {
         setLayout(new BorderLayout(10, 10));
         setBackground(MAU_NEN);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         dichVuDAO = new DichVu_DAO();
+        hoaDonDao = new HoaDonDao();
 
         taoGiaoDien();
         dangKySuKien();
         taiDanhSachLichHenTuCSDL();
+
 
     }
 
@@ -392,14 +399,18 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
 
         }
     }
+    public void refreshData(){
+        taiDanhSachLichHenTuCSDL();
+    }
 
     @Override
     public void mouseClicked(MouseEvent e) {
         if (e.getSource().equals(tblLichHen)) {
             int row = tblLichHen.getSelectedRow();
             if (row >= 0) {
-                String maLH = String.valueOf(modelLichHen.getValueAt(row, 0));
-                taiThongTinChiTietLichHenTuCSDL(maLH);
+                maLichHenDangChon = String.valueOf(modelLichHen.getValueAt(row, 0)).trim();
+                taiThongTinChiTietLichHenTuCSDL(maLichHenDangChon);
+                taiDichVuTheoLichHen(maLichHenDangChon);
             }
         }
     }
@@ -410,122 +421,97 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
     @Override public void mouseExited(MouseEvent e) {}
 
     // ==================== CÁC HÀM KHUNG GỌI DAO / CSDL ====================
-    private void moDialogThemDichVu() {
-        List<DichVu> danhSach = dichVuDAO.getAllDichVu();
 
-        if (danhSach.isEmpty()) {
+    private void taiDichVuTheoLichHen(String maLH) {
+        dichVuDaChon.clear();
+        soLuongDaChon.clear();
+        modelDichVu.setRowCount(0);
+
+        if (dichVuTheoLichHen.containsKey(maLH)) {
+            dichVuDaChon.putAll(dichVuTheoLichHen.get(maLH));
+            soLuongDaChon.putAll(soLuongTheoLichHen.get(maLH));
+        } else {
+            List<Map<String, Object>> danhSach =
+                    hoaDonDao.getDanhSachDichVuTheoLichHen(maLH);
+
+            if (danhSach != null) {
+                for (Map<String, Object> row : danhSach) {
+                    String maDV = row.get("MaDV").toString().trim();
+                    String tenDV = row.get("TenDV").toString();
+                    double donGia = ((Number) row.get("DonGia")).doubleValue();
+
+                    DichVu dv = new DichVu();
+                    dv.setMaDV(maDV);
+                    dv.setTenDV(tenDV);
+                    dv.setDonGia(donGia);
+
+                    dichVuDaChon.put(maDV, dv);
+                    soLuongDaChon.put(maDV, 1);
+                }
+            }
+
+            luuDichVuTamTheoLichHen(maLH);
+        }
+
+        capNhatBangDichVu();
+    }
+
+    private void luuDichVuTamTheoLichHen(String maLH) {
+        if (maLH == null || maLH.isEmpty()) {
+            return;
+        }
+
+        dichVuTheoLichHen.put(
+                maLH,
+                new LinkedHashMap<>(dichVuDaChon)
+        );
+
+        soLuongTheoLichHen.put(
+                maLH,
+                new LinkedHashMap<>(soLuongDaChon)
+        );
+    }
+
+
+
+
+    private void moDialogThemDichVu() {
+        if (maLichHenDangChon == null || maLichHenDangChon.isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Không có dịch vụ trong hệ thống.",
+                    "Vui lòng chọn lịch hẹn trước khi thêm dịch vụ.",
                     "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE
+                    JOptionPane.WARNING_MESSAGE
             );
             return;
         }
 
-        DefaultTableModel model = new DefaultTableModel(
-                new Object[]{"Mã dịch vụ", "Tên dịch vụ", "Đơn giá", "Trạng thái"},
-                0
-        ) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
+        ChonDichVuDialog dialog = new ChonDichVuDialog();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
 
-        for (DichVu dv : danhSach) {
-            model.addRow(new Object[]{
-                    dv.getMaDV().trim(),
-                    dv.getTenDV(),
-                    dv.getDonGia(),
-                    dv.getTrangThai()
-            });
+        DichVu dvDuocChon = dialog.getDichVuDuocChon();
+
+        if (dvDuocChon == null) {
+            return;
         }
 
-        JTable tblChonDichVu = new JTable(model);
-        tblChonDichVu.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tblChonDichVu.setRowHeight(28);
+        String maDV = dvDuocChon.getMaDV().trim();
+        int soLuong = dialog.getSoLuongDuocChon();
 
-        JSpinner spnSoLuong = new JSpinner(
-                new SpinnerNumberModel(1, 1, 100, 1)
-        );
-
-        JPanel pnlSoLuong = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        pnlSoLuong.add(new JLabel("Số lượng:"));
-        pnlSoLuong.add(spnSoLuong);
-
-        JPanel pnlNoiDung = new JPanel(new BorderLayout(5, 10));
-        pnlNoiDung.setBorder(
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        );
-        pnlNoiDung.add(new JScrollPane(tblChonDichVu), BorderLayout.CENTER);
-        pnlNoiDung.add(pnlSoLuong, BorderLayout.SOUTH);
-
-        JDialog dialog = new JDialog(
-                javax.swing.SwingUtilities.getWindowAncestor(this),
-                "Chọn dịch vụ",
-                java.awt.Dialog.ModalityType.APPLICATION_MODAL
-        );
-
-        JButton btnXacNhan = new JButton("Thêm vào hóa đơn");
-        JButton btnDong = new JButton("Đóng");
-
-        JPanel pnlNut = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        pnlNut.add(btnXacNhan);
-        pnlNut.add(btnDong);
-
-        dialog.setLayout(new BorderLayout());
-        dialog.add(pnlNoiDung, BorderLayout.CENTER);
-        dialog.add(pnlNut, BorderLayout.SOUTH);
-        dialog.setSize(650, 400);
-        dialog.setLocationRelativeTo(this);
-
-        btnXacNhan.addActionListener(e -> {
-            int row = tblChonDichVu.getSelectedRow();
-
-            if (row < 0) {
-                JOptionPane.showMessageDialog(
-                        dialog,
-                        "Vui lòng chọn dịch vụ."
-                );
-                return;
-            }
-
-            String maDV = model.getValueAt(row, 0).toString().trim();
-
-            DichVu dvDuocChon = null;
-
-            for (DichVu dv : danhSach) {
-                if (dv.getMaDV().trim().equals(maDV)) {
-                    dvDuocChon = dv;
-                    break;
-                }
-            }
-
-            if (dvDuocChon == null) {
-                JOptionPane.showMessageDialog(
-                        dialog,
-                        "Không tìm thấy thông tin dịch vụ."
-                );
-                return;
-            }
-
-            int soLuong = (Integer) spnSoLuong.getValue();
-
-            dichVuDaChon.put(maDV, dvDuocChon);
-
+        if (dichVuDaChon.containsKey(maDV)) {
             int soLuongCu = soLuongDaChon.getOrDefault(maDV, 0);
             soLuongDaChon.put(maDV, soLuongCu + soLuong);
+        } else {
+            dichVuDaChon.put(maDV, dvDuocChon);
+            soLuongDaChon.put(maDV, soLuong);
+        }
 
-            capNhatBangDichVu();
-
-            dialog.dispose();
-        });
-
-        btnDong.addActionListener(e -> dialog.dispose());
-
-        dialog.setVisible(true);
+        luuDichVuTamTheoLichHen(maLichHenDangChon);
+        capNhatBangDichVu();
     }
+
+
     private void capNhatBangDichVu() {
         modelDichVu.setRowCount(0);
 
@@ -559,11 +545,18 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
     }
     private void taiDanhSachLichHenTuCSDL() {
         modelLichHen.setRowCount(0);
-        try {
-            // TODO: Kết nối DAO truy vấn danh sách lịch hẹn từ Cơ sở dữ liệu SQL Server
-           
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        List<Map<String, Object>> danhSach = hoaDonDao.getDanhSachLichHenDaCheckIn();
+        for (Map<String, Object> row : danhSach) {
+            modelLichHen.addRow(new Object[] {
+                    row.get("MaLichHen"),
+                   // row.get("MaBenhNhan"),
+                    row.get("HoTen"),
+                    row.get("SoDT"),
+                   // row.get("TenDV"),
+                    row.get("NgayHen"),
+                    row.get("GioHen"),
+                    row.get("TrangThai")
+            });
         }
     }
 

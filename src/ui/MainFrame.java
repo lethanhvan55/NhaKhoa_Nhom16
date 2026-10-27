@@ -28,6 +28,7 @@ public class MainFrame extends JFrame {
     private CheckInPanel pnlCheckIn;
 
     private String maNVHienTai;
+    private TaoHoaDonPanel pnlTaoHoaDon;
 
 
     public MainFrame() {
@@ -70,10 +71,9 @@ public class MainFrame extends JFrame {
                 "Hồ sơ bệnh nhân"
         );
 
-        pnlNoiDung.add(
-                new TaoHoaDonPanel(),
-                "Tạo hóa đơn"
-        );
+
+        pnlTaoHoaDon = new TaoHoaDonPanel();
+        pnlNoiDung.add(pnlTaoHoaDon, "Tạo hóa đơn");
 
         // Khởi tạo và gán biến cho Tiếp nhận lịch hẹn
         pnlTiepNhanLichHen = new TiepNhanLichHenPanel();
@@ -209,6 +209,10 @@ public class MainFrame extends JFrame {
         } else if ("Check In".equals(tenManHinh)) {
             if (pnlCheckIn != null) {
                 pnlCheckIn.refreshData();
+            }
+        } else if ("Tạo hóa đơn".equals(tenManHinh)) {
+            if(pnlTaoHoaDon != null) {
+                pnlTaoHoaDon.refreshData();
             }
         }
     }
