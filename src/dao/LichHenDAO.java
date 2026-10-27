@@ -279,7 +279,7 @@ public class LichHenDAO {
         }
         return ds;
     }
-    public List<Map<String, Object>> getDanhSachChoCheckIn(String tuKhoa, LocalDate ngayTimKiem) throws SQLException {
+   /* public List<Map<String, Object>> getDanhSachChoCheckIn(String tuKhoa, LocalDate ngayTimKiem) throws SQLException {
         List<Map<String, Object>> danhSach = new ArrayList<>();
         
         StringBuilder sql = new StringBuilder("""
@@ -340,8 +340,101 @@ public class LichHenDAO {
         }
         return danhSach;
     }
+*/
 
-    public boolean capNhatTrangThaiCheckIn(String maLichHen, String trangThaiMoi) throws SQLException {
+    public List<Map<String, Object>> getDanhSachChoCheckIn(
+            String tuKhoa, LocalDate ngayTimKiem) throws SQLException {
+
+        List<Map<String, Object>> danhSach = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder("""
+        SELECT lh.*,
+               bn.HoTen AS TenBenhNhan,
+               p.TenPhong,
+               nv.HoTen AS TenBacSi,
+               dv.TenDV
+        FROM LichHen lh
+        LEFT JOIN BenhNhan bn ON lh.MaBenhNhan = bn.MaBenhNhan
+        LEFT JOIN PhongDieuTri p ON lh.MaPhong = p.MaPhong
+        LEFT JOIN NhanVien nv ON lh.MaNV = nv.MaNV
+        LEFT JOIN DichVu dv ON lh.MaDichVu = dv.MaDV
+        WHERE 1 = 1
+        """);
+
+        if (ngayTimKiem != null) {
+            sql.append(" AND lh.NgayHen = ?");
+        }
+
+        if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
+            sql.append("""
+             AND (
+                 lh.MaLichHen LIKE ?
+                 OR lh.MaBenhNhan LIKE ?
+                 OR bn.HoTen LIKE ?
+             )
+             """);
+        }
+
+        sql.append(" ORDER BY lh.NgayHen ASC, lh.GioHen ASC");
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+            int index = 1;
+
+            if (ngayTimKiem != null) {
+                ps.setDate(index++, Date.valueOf(ngayTimKiem));
+            }
+
+            if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
+                String searchPattern = "%" + tuKhoa.trim() + "%";
+
+                ps.setString(index++, searchPattern);
+                ps.setString(index++, searchPattern);
+                ps.setString(index++, searchPattern);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+
+                    row.put("MaLichHen", rs.getString("MaLichHen").trim());
+                    row.put("MaBenhNhan", rs.getString("MaBenhNhan").trim());
+
+                    String tenBenhNhan = rs.getString("TenBenhNhan");
+                    row.put("TenBenhNhan",
+                            tenBenhNhan == null ? "" : tenBenhNhan.trim());
+
+                    String tenPhong = rs.getString("TenPhong");
+                    row.put("TenPhong",
+                            tenPhong == null ? "" : tenPhong.trim());
+
+                    String tenBacSi = rs.getString("TenBacSi");
+                    row.put("TenBacSi",
+                            tenBacSi == null ? "" : tenBacSi.trim());
+
+                    String tenDV = rs.getString("TenDV");
+                    row.put("TenDV",
+                            tenDV == null ? "" : tenDV.trim());
+
+                    row.put("NgayHen", rs.getDate("NgayHen").toLocalDate());
+
+                    Timestamp gioHen = rs.getTimestamp("GioHen");
+                    row.put("GioHen",
+                            gioHen == null ? null : gioHen.toLocalDateTime());
+
+                    row.put("TrangThai", rs.getString("TrangThai"));
+                    row.put("GhiChu", rs.getString("GhiChu"));
+
+                    danhSach.add(row);
+                }
+            }
+        }
+
+        return danhSach;
+    }
+
+  /*  public boolean capNhatTrangThaiCheckIn(String maLichHen, String trangThaiMoi) throws SQLException {
         String sql = "UPDATE LichHen SET TrangThai = ? WHERE MaLichHen = ?";
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -349,5 +442,30 @@ public class LichHenDAO {
             ps.setString(2, maLichHen);
             return ps.executeUpdate() > 0;
         }
+    } */
+
+    public boolean capNhatTrangThaiCheckIn(
+            String maLichHen, String trangThaiMoi) throws SQLException {
+
+        if (!"Đang chờ khám".equals(trangThaiMoi)) {
+            throw new IllegalArgumentException("Trạng thái check-in không hợp lệ.");
+        }
+
+        String sql = """
+        UPDATE LichHen
+        SET TrangThai = N'Đang chờ khám'
+        WHERE MaLichHen = ?
+          AND TrangThai = N'Đã đặt'
+        """;
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, maLichHen);
+
+            return ps.executeUpdate() > 0;
+        }
     }
+
+
 }
