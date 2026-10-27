@@ -1,5 +1,6 @@
 package ui;
 
+import dao.BenhNhan_DAO;
 import dao.HoSoBenhNhan_DAO;
 import model.HoSoBenhNhan;
 import model.BenhNhan;
@@ -62,7 +63,7 @@ public class HoSoBenhNhanPanel extends JPanel
     private final String maNVHienTai;
 
     private final HoSoBenhNhan_DAO hoSoDAO = new HoSoBenhNhan_DAO();
-
+    private final BenhNhan_DAO benhNhanDAO = new BenhNhan_DAO();
     // Thông tin hồ sơ đang chọn
     private String maHoSoDangChon = "";
     private String maBenhNhanDangChon = "";
@@ -134,9 +135,9 @@ public class HoSoBenhNhanPanel extends JPanel
 
         String[] columns = {
                 "Mã hồ sơ",
-                "Mã bệnh nhân",
-                "Mã nhân viên",
-                "Mã kế hoạch",
+                "Tên bệnh nhân",
+                "Nhân viên phụ trách",
+                "Mã kế hoac",
                 "Ngày khám",
                 "Tình trạng răng miệng",
                 "Chẩn đoán",
@@ -198,6 +199,8 @@ public class HoSoBenhNhanPanel extends JPanel
         // Trường mã liên kết
         txtMaBenhNhan = new JTextField();
         txtMaKeHoach = new JTextField();
+        txtMaBenhNhan.setEditable(true);
+        txtMaKeHoach.setEditable(false);
 
         txtMaBenhNhan.setToolTipText("Nhập mã bệnh nhân đã tồn tại");
         txtMaKeHoach.setToolTipText("Nhập mã kế hoạch điều trị đã tồn tại");
@@ -222,7 +225,7 @@ public class HoSoBenhNhanPanel extends JPanel
         JPanel pnlTrai = new JPanel(new GridBagLayout());
         pnlTrai.setBackground(WHITE);
 
-        themTruong(pnlTrai, 0, "Mã bệnh nhân:", txtMaBenhNhan);
+        themTruong(pnlTrai, 0, "Tên bệnh nhân:", txtMaBenhNhan);
         themTruong(pnlTrai, 1, "Ngày khám:", dcNgayKham);
         themTruong(pnlTrai, 2, "Tình trạng răng miệng:",
                 taoScroll(txtTinhTrangRangMieng));
@@ -255,7 +258,7 @@ public class HoSoBenhNhanPanel extends JPanel
         pnlNut.setBackground(WHITE);
 
         btnThem = GiaoDienStyle.taoNut("Thêm mới", BLUE, 13);
-        btnLuu = GiaoDienStyle.taoNut("Lưu (Sửa)", GREEN, 13);
+        btnLuu = GiaoDienStyle.taoNut("Lưu", GREEN, 13);
         btnXoa = GiaoDienStyle.taoNut("Xóa", RED, 13);
         btnHuy = GiaoDienStyle.taoNut("Làm mới", MUTED, 13);
 
@@ -357,8 +360,8 @@ public class HoSoBenhNhanPanel extends JPanel
         for (HoSoBenhNhan hs : dsHoSo) {
             Object[] row = {
                     hs.getMaHoSo(),
-                    layMaBenhNhan(hs),
-                    layMaNhanVien(hs),
+                    layTenBenhNhan(hs),
+                    layTenNhanVien(hs),
                     layMaKeHoach(hs),
                     hs.getNgayKham() == null
                             ? "" : hs.getNgayKham().toString(),
@@ -377,19 +380,22 @@ public class HoSoBenhNhanPanel extends JPanel
         }
     }
 
-    private String layMaBenhNhan(HoSoBenhNhan hs) {
+    private String layTenBenhNhan(HoSoBenhNhan hs) {
         return hs.getMaBenhNhan() == null
-                ? "" : hs.getMaBenhNhan().getMaBenhNhan();
+                ? ""
+                : hs.getMaBenhNhan().getHoTen();
     }
 
-    private String layMaNhanVien(HoSoBenhNhan hs) {
+    private String layTenNhanVien(HoSoBenhNhan hs) {
         return hs.getMaNV() == null
-                ? "" : hs.getMaNV().getMaNV();
+                ? ""
+                : hs.getMaNV().getHoTen();
     }
 
     private String layMaKeHoach(HoSoBenhNhan hs) {
         return hs.getMaKeHoach() == null
-                ? "" : hs.getMaKeHoach().getMaKeHoach();
+                ? ""
+                : hs.getMaKeHoach().getMaKeHoach();
     }
 
     // ===================== CHỌN HỒ SƠ =====================
@@ -475,51 +481,131 @@ public class HoSoBenhNhanPanel extends JPanel
         }
 
         if (maNVHienTai == null || maNVHienTai.trim().isEmpty()) {
-            hienThiCanhBao(
-                    "Không xác định được mã nhân viên đang đăng nhập."
-            );
-            return;
-        }
-
-        String maBN = txtMaBenhNhan.getText().trim();
-        String maKH = txtMaKeHoach.getText().trim();
-
-        if (maBN.isEmpty()) {
-            hienThiCanhBao("Vui lòng nhập mã bệnh nhân.");
-            txtMaBenhNhan.requestFocusInWindow();
-            return;
-        }
-
-        if (maKH.isEmpty()) {
-            hienThiCanhBao("Vui lòng nhập mã kế hoạch điều trị.");
-            txtMaKeHoach.requestFocusInWindow();
+            hienThiCanhBao("Không tìm thấy mã nhân viên đang đăng nhập!");
             return;
         }
 
         try {
-            String maHoSo = hoSoDAO.sinhMaHoSoMoi();
+            // Nhập thông tin bệnh nhân mới
+            String hoTen = JOptionPane.showInputDialog(
+                    this, "Nhập họ tên bệnh nhân:");
 
-            if (maHoSo == null || maHoSo.trim().isEmpty()) {
-                hienThiCanhBao("Không thể tạo mã hồ sơ mới.");
+            if (hoTen == null || hoTen.trim().isEmpty()) {
+                hienThiCanhBao("Họ tên bệnh nhân không được để trống!");
                 return;
             }
 
-            LocalDate ngayKham = dcNgayKham.getDate()
-                    .toInstant()
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
+            String ngaySinhStr = JOptionPane.showInputDialog(
+                    this, "Nhập ngày sinh (yyyy-MM-dd):");
 
+            if (ngaySinhStr == null || ngaySinhStr.trim().isEmpty()) {
+                hienThiCanhBao("Ngày sinh không được để trống!");
+                return;
+            }
+
+            java.time.LocalDate ngaySinh;
+
+            try {
+                ngaySinh = java.time.LocalDate.parse(ngaySinhStr.trim());
+            } catch (java.time.format.DateTimeParseException ex) {
+                hienThiCanhBao("Ngày sinh phải có định dạng yyyy-MM-dd!");
+                return;
+            }
+
+            if (ngaySinh.isAfter(java.time.LocalDate.now())) {
+                hienThiCanhBao("Ngày sinh không được ở tương lai!");
+                return;
+            }
+
+            String[] gioiTinhs = {"Nam", "Nữ"};
+
+            int chonGioiTinh = JOptionPane.showOptionDialog(
+                    this,
+                    "Chọn giới tính bệnh nhân:",
+                    "Giới tính",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    gioiTinhs,
+                    gioiTinhs[0]
+            );
+
+            if (chonGioiTinh < 0) {
+                return;
+            }
+
+            String soDT = JOptionPane.showInputDialog(
+                    this, "Nhập số điện thoại bệnh nhân:");
+
+            if (soDT == null || !soDT.trim().matches("^0[3-9]\\d{8}$")) {
+                hienThiCanhBao("Số điện thoại phải có 10 chữ số hợp lệ!");
+                return;
+            }
+
+            String email = JOptionPane.showInputDialog(
+                    this, "Nhập email (có thể bỏ trống):");
+
+            String diaChi = JOptionPane.showInputDialog(
+                    this, "Nhập địa chỉ (có thể bỏ trống):");
+
+            // Tự sinh mã bệnh nhân
+            String maBN = benhNhanDAO.sinhMaBenhNhanMoi();
+
+            if (maBN == null || maBN.trim().isEmpty()) {
+                hienThiCanhBao("Không thể sinh mã bệnh nhân!");
+                return;
+            }
+
+            // Tạo bệnh nhân
             BenhNhan bn = new BenhNhan();
             bn.setMaBenhNhan(maBN);
+            bn.setHoTen(hoTen.trim());
+            bn.setNgaySinh(ngaySinh);
+            bn.setGioiTinh(chonGioiTinh == 0);
+            bn.setSoDT(soDT.trim());
+            bn.setEmail(email == null || email.trim().isEmpty()
+                    ? null : email.trim());
+            bn.setDiaChi(diaChi == null || diaChi.trim().isEmpty()
+                    ? null : diaChi.trim());
+
+            // Thêm bệnh nhân trước để đảm bảo khóa ngoại
+            boolean themBenhNhan = benhNhanDAO.insert(bn);
+
+            if (!themBenhNhan) {
+                hienThiCanhBao(
+                        "Thêm bệnh nhân thất bại! "
+                                + "Kiểm tra số điện thoại có bị trùng không."
+                );
+                return;
+            }
+
+            // Lấy thông tin hồ sơ
+            java.util.Date ngayKhamDate = dcNgayKham.getDate();
+
+            if (ngayKhamDate == null) {
+                hienThiCanhBao("Vui lòng chọn ngày khám!");
+                return;
+            }
+
+            java.time.LocalDate ngayKham = ngayKhamDate.toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDate();
+
+            String maKH = txtMaKeHoach.getText().trim();
 
             NhanVien nv = new NhanVien();
             nv.setMaNV(maNVHienTai.trim());
 
-            KeHoachDieuTri kh = new KeHoachDieuTri();
-            kh.setMaKeHoach(maKH);
+            KeHoachDieuTri kh = null;
 
+            if (!maKH.isEmpty()) {
+                kh = new KeHoachDieuTri();
+                kh.setMaKeHoach(maKH);
+            }
+
+            // Tạo hồ sơ; DAO sẽ tự sinh MaHoSo
             HoSoBenhNhan hs = new HoSoBenhNhan(
-                    maHoSo,
+                    null,
                     bn,
                     nv,
                     kh,
@@ -535,27 +621,29 @@ public class HoSoBenhNhanPanel extends JPanel
                     giaTriHoacNull(txtGhiChu.getText())
             );
 
-            boolean thanhCong = hoSoDAO.insert(hs);
+            boolean themHoSo = hoSoDAO.insert(hs);
 
-            if (thanhCong) {
+            if (themHoSo) {
+                txtMaBenhNhan.setText(maBN);
+
                 JOptionPane.showMessageDialog(
                         this,
-                        "Thêm hồ sơ bệnh nhân thành công!",
+                        "Thêm bệnh nhân và hồ sơ thành công!"
+                                + "\nMã bệnh nhân: " + maBN
+                                + "\nMã hồ sơ: " + hs.getMaHoSo(),
                         "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE
                 );
 
                 taiDanhSachHoSo();
                 xoaForm();
-                tblHoSo.clearSelection();
                 datTrangThaiBanDau();
+
             } else {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Thêm hồ sơ thất bại. Hãy kiểm tra mã bệnh nhân, "
-                                + "mã kế hoạch điều trị và dữ liệu SQL Server.",
-                        "Lỗi",
-                        JOptionPane.ERROR_MESSAGE
+                hienThiCanhBao(
+                        "Bệnh nhân đã được thêm với mã " + maBN
+                                + ", nhưng hồ sơ chưa thêm được. "
+                                + "Kiểm tra mã nhân viên, mã kế hoạch và Console."
                 );
             }
 
