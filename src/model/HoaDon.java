@@ -8,6 +8,7 @@ public class HoaDon {
     private String maHD;
     private BenhNhan maBenhNhan;
     private NhanVien maNV;
+    private LichHen maLichHen;
     private LocalDate ngayLap;
     private double chietKhau;
     private double thueVAT;
@@ -17,14 +18,15 @@ public class HoaDon {
     public HoaDon() {
     }
 
-    public HoaDon(String maHD, BenhNhan maBenhNhan, NhanVien maNV, LocalDate ngayLap, double chietKhau, double thueVAT, KhuyenMai maKM, String trangThai) {
+    public HoaDon(String maHD, BenhNhan maBenhNhan, NhanVien maNV, LichHen maLichHen, LocalDate ngayLap, double chietKhau, KhuyenMai maKM, double thueVAT, String trangThai) {
         this.maHD = maHD;
         this.maBenhNhan = maBenhNhan;
         this.maNV = maNV;
+        this.maLichHen = maLichHen;
         this.ngayLap = ngayLap;
         this.chietKhau = chietKhau;
-        this.thueVAT = thueVAT;
         this.maKM = maKM;
+        this.thueVAT = thueVAT;
         this.trangThai = trangThai;
     }
 
@@ -103,6 +105,15 @@ public class HoaDon {
     public void setTrangThai(String trangThai) {
         this.trangThai = trangThai;
     }
+
+    public LichHen getMaLichHen() {
+        return maLichHen;
+    }
+
+    public void setMaLichHen(LichHen maLichHen) {
+        this.maLichHen = maLichHen;
+    }
+
     public double tinhTienGiam(double tongTienDichVu) {
         return tongTienDichVu * chietKhau / 100.0;
     }
@@ -118,5 +129,6 @@ public class HoaDon {
     public double tinhTongTien(double tongTienDichVu) {
         return tinhTienSauGiam(tongTienDichVu) + tinhTienVAT(tongTienDichVu);
     }
+
 
 }
