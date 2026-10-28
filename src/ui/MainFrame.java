@@ -26,6 +26,7 @@ public class MainFrame extends JFrame {
     // Khai báo tham chiếu trực tiếp đến 2 Panel cần đồng bộ dữ liệu
     private TiepNhanLichHenPanel pnlTiepNhanLichHen;
     private CheckInPanel pnlCheckIn;
+    private HoSoBenhNhanPanel pnlHoSoBenhNhan;
 
     private String maNVHienTai;
     private TaoHoaDonPanel pnlTaoHoaDon;
@@ -66,10 +67,9 @@ public class MainFrame extends JFrame {
 
         pnlNoiDung.add(new HomePanel(), "Trang chủ");
 
-        pnlNoiDung.add(
-                new HoSoBenhNhanPanel(maNVHienTai),
-                "Hồ sơ bệnh nhân"
-        );
+        pnlHoSoBenhNhan = new HoSoBenhNhanPanel(maNVHienTai);
+
+        pnlNoiDung.add(pnlHoSoBenhNhan, "Hồ sơ bệnh nhân");
 
 
         pnlTaoHoaDon = new TaoHoaDonPanel();
@@ -80,7 +80,7 @@ public class MainFrame extends JFrame {
         pnlNoiDung.add(pnlTiepNhanLichHen, "Tiếp nhận lịch hẹn");
 
         // Khởi tạo và gán biến cho Check In
-        pnlCheckIn = new CheckInPanel();
+        pnlCheckIn = new CheckInPanel(this);
         pnlNoiDung.add(pnlCheckIn, "Check In");
 
         pnlNoiDung.add(
@@ -203,9 +203,9 @@ public class MainFrame extends JFrame {
         clNoiDung.show(pnlNoiDung, tenManHinh);
 
         if ("Tiếp nhận lịch hẹn".equals(tenManHinh)) {
-            if (pnlTiepNhanLichHen != null) {
-                pnlTiepNhanLichHen.refreshData();
-            }
+//            if (pnlTiepNhanLichHen != null) {
+//                pnlTiepNhanLichHen.refreshData();
+//            }
         } else if ("Check In".equals(tenManHinh)) {
             if (pnlCheckIn != null) {
                 pnlCheckIn.refreshData();
@@ -215,6 +215,15 @@ public class MainFrame extends JFrame {
                 pnlTaoHoaDon.refreshData();
             }
         }
+    }
+    public void moHoSoBenhNhan(String maBenhNhan) {
+        if (maBenhNhan == null || maBenhNhan.trim().isEmpty()) {
+            return;
+        }
+
+        pnlHoSoBenhNhan.nhanMaBenhNhanTuCheckIn(maBenhNhan);
+
+        hienThiManHinh("Hồ sơ bệnh nhân");
     }
 
     public void dangXuat() {

@@ -150,11 +150,10 @@ GO
 -- =========================================================
 -- 9. DU LIEU LICH LAM VIEC
 -- =========================================================
-INSERT INTO LichLamViec
-    (MaLich, MaPhong, MaNhanVien, NgayLam, CaLam, GioBatDau, GioKetThuc, TrangThai)
+INSERT INTO LichLamViec (MaPhanCong, NgayPhanCong, CaLamViec, MaNhanVien, TrangThai, GhiChu)
 VALUES
-('LLV20260401', 'P00003', 'NV0002', '2026-04-01', 'Sáng', '2026-04-01 08:00:00', '2026-04-01 12:00:00', N'Đã phân công'),
-('LLV20260402', 'P00002', 'NV0003', '2026-04-05', 'Chiều', '2026-04-05 13:30:00', '2026-04-05 17:30:00', N'Đã phân công');
+('PC0001', '2026-04-01', N'Ca sáng (07:30 - 11:30)', 'NV0002', N'Đã phân công', N'Trực phòng P00003'),
+('PC0002', '2026-04-05', N'Ca chiều (13:30 - 17:30)', 'NV0003', N'Đã phân công', N'Trực phòng P00002');
 GO
 
 -- =========================================================
