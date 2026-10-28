@@ -79,53 +79,7 @@ public class TimKiemBenhNhanPanel extends JPanel implements ActionListener, Mous
         dangKySuKien();
         loadDuLieuTimKiem();
     }
-    public void capNhatDuLieu() {
-        // Tải lại danh sách bệnh nhân từ database
-        loadDuLieuTimKiem();
 
-        // Nếu bảng có bệnh nhân thì chọn bệnh nhân đầu tiên
-        if (dtm.getRowCount() > 0) {
-            tblBenhNhan.setRowSelectionInterval(0, 0);
-            hienThiThongTinBenhNhan(0);
-        } else {
-            // Không có bệnh nhân thì xóa toàn bộ thông tin
-            xoaThongTinBenhNhan();
-        }
-    }
-    private void hienThiThongTinBenhNhan(int row) {
-        if (row < 0 || row >= dtm.getRowCount()) {
-            return;
-        }
-
-        String maBenhNhan = String.valueOf(dtm.getValueAt(row, 0));
-
-        // Tab 1: Thông tin chung
-        txtMaBN.setText(maBenhNhan);
-        txtHoTen.setText(String.valueOf(dtm.getValueAt(row, 1)));
-        txtNgaySinh.setText(String.valueOf(dtm.getValueAt(row, 2)));
-        txtGioiTinhChiTiet.setText(String.valueOf(dtm.getValueAt(row, 3)));
-        txtSDT.setText(String.valueOf(dtm.getValueAt(row, 4)));
-        txtEmail.setText(String.valueOf(dtm.getValueAt(row, 5)));
-        txtDiaChi.setText(String.valueOf(dtm.getValueAt(row, 6)));
-        txtGhiChu.setText("Bệnh nhân khám định kỳ tại phòng khám.");
-        // Tab 2 và tab 3: Hồ sơ bệnh án, kế hoạch điều trị
-        hienThiHoSoVaKeHoach(maBenhNhan);
-    }
-
-    private void xoaThongTinBenhNhan() {
-        // Tab 1
-        txtMaBN.setText("");
-        txtHoTen.setText("");
-        txtNgaySinh.setText("");
-        txtGioiTinhChiTiet.setText("");
-        txtSDT.setText("");
-        txtEmail.setText("");
-        txtDiaChi.setText("");
-        txtGhiChu.setText("");
-
-        // Tab 2 và tab 3
-        hienThiHoSoVaKeHoach(null);
-    }
     private void khoiTaoGiaoDien() {
         setLayout(new BorderLayout(10, 10));
         setBackground(mauNen);
@@ -611,6 +565,53 @@ public class TimKiemBenhNhanPanel extends JPanel implements ActionListener, Mous
                 hienThiHoSoVaKeHoach(null);
             }
         }
+    }
+    public void capNhatDuLieu() {
+        // Tải lại danh sách bệnh nhân từ database
+        loadDuLieuTimKiem();
+
+        // Nếu bảng có bệnh nhân thì chọn bệnh nhân đầu tiên
+        if (dtm.getRowCount() > 0) {
+            tblBenhNhan.setRowSelectionInterval(0, 0);
+            hienThiThongTinBenhNhan(0);
+        } else {
+            // Không có bệnh nhân thì xóa toàn bộ thông tin
+            xoaThongTinBenhNhan();
+        }
+    }
+    private void hienThiThongTinBenhNhan(int row) {
+        if (row < 0 || row >= dtm.getRowCount()) {
+            return;
+        }
+
+        String maBenhNhan = String.valueOf(dtm.getValueAt(row, 0));
+
+        // Tab 1: Thông tin chung
+        txtMaBN.setText(maBenhNhan);
+        txtHoTen.setText(String.valueOf(dtm.getValueAt(row, 1)));
+        txtNgaySinh.setText(String.valueOf(dtm.getValueAt(row, 2)));
+        txtGioiTinhChiTiet.setText(String.valueOf(dtm.getValueAt(row, 3)));
+        txtSDT.setText(String.valueOf(dtm.getValueAt(row, 4)));
+        txtEmail.setText(String.valueOf(dtm.getValueAt(row, 5)));
+        txtDiaChi.setText(String.valueOf(dtm.getValueAt(row, 6)));
+        txtGhiChu.setText("Bệnh nhân khám định kỳ tại phòng khám.");
+        // Tab 2 và tab 3: Hồ sơ bệnh án, kế hoạch điều trị
+        hienThiHoSoVaKeHoach(maBenhNhan);
+    }
+
+    private void xoaThongTinBenhNhan() {
+        // Tab 1
+        txtMaBN.setText("");
+        txtHoTen.setText("");
+        txtNgaySinh.setText("");
+        txtGioiTinhChiTiet.setText("");
+        txtSDT.setText("");
+        txtEmail.setText("");
+        txtDiaChi.setText("");
+        txtGhiChu.setText("");
+
+        // Tab 2 và tab 3
+        hienThiHoSoVaKeHoach(null);
     }
     @Override
     public void mouseClicked(MouseEvent e) {
