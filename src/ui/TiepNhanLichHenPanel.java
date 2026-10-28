@@ -1,5 +1,6 @@
 package ui;
 
+import connectDB.ConnectDB;
 import utils.UIHelper;
 import com.toedter.calendar.JDateChooser;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
@@ -8,12 +9,17 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -47,6 +53,8 @@ public class TiepNhanLichHenPanel extends JPanel
 
     private final SimpleDateFormat sdf =
             new SimpleDateFormat("dd/MM/yyyy");
+    private final SimpleDateFormat sqlDateFormat =
+            new SimpleDateFormat("yyyy-MM-dd");
 
     // ==================== CONSTRUCTOR ====================
 
@@ -63,8 +71,20 @@ public class TiepNhanLichHenPanel extends JPanel
 
         table.addMouseListener(this);
 
-        layDanhSachBacSiTuCSDL();
+        // Lắng nghe sự kiện thay đổi ngày hoặc giờ để lọc bác sĩ theo ca từ CSDL
+        dangKySuKienLocBacSi();
+
         layDanhSachLichHenTuCSDL();
+    }
+
+    // ==================== HÀM KẾT NỐI CSDL ====================
+
+    private Connection getConnection() throws Exception {
+        Connection con = ConnectDB.getConnection();
+        if (con == null || con.isClosed()) {
+            throw new SQLException("Không thể thiết lập kết nối tới CSDL.");
+        }
+        return con;
     }
 
     // ==================== BỐ CỤC TỔNG THỂ ====================
@@ -230,7 +250,6 @@ public class TiepNhanLichHenPanel extends JPanel
         codeField.setEditable(false);
         codeField.setBackground(new Color(245, 248, 252));
 
-        // CHỈNH SỬA: Đặt mã bệnh nhân tự động sinh và không cho sửa trực tiếp
         maBenhNhanField = new JTextField("BN001");
         maBenhNhanField.setEditable(false);
         maBenhNhanField.setBackground(new Color(245, 248, 252));
@@ -283,7 +302,7 @@ public class TiepNhanLichHenPanel extends JPanel
         UIHelper.styleComboBox(statusCombo);
 
         formGrid.add(createFieldWrapper("Mã lịch hẹn", codeField));
-        formGrid.add(createFieldWrapper("Mã bệnh nhân", maBenhNhanField)); // Bỏ dấu * vì đã tự sinh
+        formGrid.add(createFieldWrapper("Mã bệnh nhân", maBenhNhanField));
         formGrid.add(createFieldWrapper("Tên bệnh nhân *", patientField));
 
         formGrid.add(createFieldWrapper("Số điện thoại *", phoneField));
@@ -339,12 +358,73 @@ public class TiepNhanLichHenPanel extends JPanel
         return wrap;
     }
 
+    // ==================== XỬ LÝ LỌC BÁC SĨ TỪ BẢNG LICHCHAMVIỆC / LICHVIỆC TRONG CSDL ====================
+
+    private void dangKySuKienLocBacSi() {
+        // Lắng nghe khi đổi ngày
+        dateChooser.getDateEditor().addPropertyChangeListener("date", new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                capNhatDanhSachBacSiTheoCa();
+            }
+        });
+
+        // Lắng nghe khi đổi giờ (để xác định ca Sáng / Chiều / Tối)
+        cboHour.addActionListener(e -> capNhatDanhSachBacSiTheoCa());
+    }
+
+    private void capNhatDanhSachBacSiTheoCa() {
+        dentistCombo.removeAllItems();
+        dentistCombo.addItem("Chọn bác sĩ phụ trách");
+
+        Date selectedDate = dateChooser.getDate();
+        if (selectedDate == null) return;
+
+        String hourStr = (String) cboHour.getSelectedItem();
+        if (hourStr == null) return;
+
+        int hour = Integer.parseInt(hourStr);
+
+        // Xác định chuỗi ca làm việc tương ứng với dữ liệu lưu trong bảng LichLamViec
+        // Ca sáng: 07:00 - 11:59 | Ca chiều: 12:00 - 17:59 | Ca tối: từ 18:00 trở đi
+        String caLamViecText = "";
+        if (hour >= 7 && hour < 12) {
+            caLamViecText = "Ca sáng (07:30 - 11:30)";
+        } else if (hour >= 12 && hour < 18) {
+            caLamViecText = "Ca chiều (13:30 - 17:30)";
+        } else {
+            caLamViecText = "Ca tối (18:00 - 21:00)";
+        }
+
+        String ngaySql = sqlDateFormat.format(selectedDate);
+
+        // Truy vấn CSDL lấy danh sách nhân viên được phân công vào ngày và ca đó
+        String sql = "SELECT nv.MaNV, nv.HoTen FROM LichLamViec llv " +
+                "JOIN NhanVien nv ON llv.MaNhanVien = nv.MaNV " +
+                "WHERE llv.NgayPhanCong = ? AND llv.CaLamViec = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, ngaySql);
+            pstmt.setString(2, caLamViecText);
+
+            ResultSet rs = pstmt.executeQuery();
+            while (rs != null && rs.next()) {
+                String hoTen = rs.getString("HoTen").trim();
+                dentistCombo.addItem(hoTen);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // ==================== LÀM MỚI FORM ====================
 
     public void clearForm() {
         table.clearSelection();
 
-        // Tự động sinh mã lịch hẹn và mã bệnh nhân dựa trên số lượng dòng hiện tại
         int nextId = model.getRowCount() + 1;
         codeField.setText(String.format("LH%03d", nextId));
         maBenhNhanField.setText(String.format("BN%03d", nextId));
@@ -357,9 +437,7 @@ public class TiepNhanLichHenPanel extends JPanel
         cboHour.setSelectedIndex(0);
         cboMinute.setSelectedIndex(0);
 
-        if (dentistCombo.getItemCount() > 0) {
-            dentistCombo.setSelectedIndex(0);
-        }
+        capNhatDanhSachBacSiTheoCa();
 
         serviceCombo.setSelectedIndex(0);
         statusCombo.setSelectedIndex(0);
@@ -441,23 +519,12 @@ public class TiepNhanLichHenPanel extends JPanel
     @Override public void mouseEntered(MouseEvent e) {}
     @Override public void mouseExited(MouseEvent e) {}
 
-    // ==================== DỮ LIỆU BÁC SĨ ====================
-
-    private void layDanhSachBacSiTuCSDL() {
-        dentistCombo.removeAllItems();
-
-        dentistCombo.addItem("Chọn bác sĩ phụ trách");
-        dentistCombo.addItem("BS. Nguyễn Văn Tuấn");
-        dentistCombo.addItem("BS. Trần Thị Hương");
-        dentistCombo.addItem("BS. Lê Minh Hoàng");
-    }
-
-    // ==================== DỮ LIỆU LỊCH HẸN MẪU ====================
+    // ==================== DỮ LIỆU LỊCH HẸN ====================
 
     private void layDanhSachLichHenTuCSDL() {
         model.setRowCount(0);
         capNhatTongSo();
-        clearForm(); // Gọi để khởi tạo mã ban đầu đúng
+        clearForm();
     }
 
     // ==================== THÊM / SỬA ====================
