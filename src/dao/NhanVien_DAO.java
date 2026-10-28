@@ -3,7 +3,12 @@ package dao;
 import connectDB.ConnectDB;
 import model.NhanVien;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +24,6 @@ public class NhanVien_DAO {
 
         Connection con = ConnectDB.getConnection();
 
-        if (con == null) {
-            System.err.println("Chưa kết nối database!");
-            return list;
-        }
-
         try (PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -38,6 +38,7 @@ public class NhanVien_DAO {
 
         return list;
     }
+
     public List<NhanVien> getNhanVienTheoTen(String keyword) {
         List<NhanVien> list = new ArrayList<>();
 
@@ -49,13 +50,8 @@ public class NhanVien_DAO {
 
         Connection con = ConnectDB.getConnection();
 
-        if (con == null) {
-            System.err.println("[NhanVien_DAO] Chưa kết nối database!");
-            return list;
-        }
-
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            String kw = "%" + (keyword == null ? "" : keyword.trim()) + "%";
+            String kw = "%" + keyword.trim() + "%";
 
             ps.setString(1, kw);
             ps.setString(2, kw);
@@ -67,7 +63,7 @@ public class NhanVien_DAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("[NhanVien_DAO] search lỗi: " + e.getMessage());
+            System.err.println("[NhanVien_DAO] Tìm kiếm lỗi: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -75,45 +71,22 @@ public class NhanVien_DAO {
     }
 
     public boolean insert(NhanVien nv) {
-        if (nv == null || nv.getMaNV() == null
-                || nv.getMaNV().trim().isEmpty()) {
-            System.err.println("[NhanVien_DAO] Mã nhân viên không hợp lệ!");
-            return false;
-        }
-
         String sql = "INSERT INTO NhanVien "
-                + "(MaNV, HoTen, SoDT, NgayVaoLam, GioiTinh, "
+                + "(HoTen, SoDT, NgayVaoLam, GioiTinh, "
                 + "ChucVu, TrangThai, Email, DiaChi) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         Connection con = ConnectDB.getConnection();
 
-        if (con == null) {
-            System.err.println("[NhanVien_DAO] Chưa kết nối database!");
-            return false;
-        }
-
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, nv.getMaNV().trim());
-            ps.setString(2, nv.getHoTen());
-            ps.setString(3, nv.getSoDT());
-
-            if (nv.getNgayVaoLam() != null) {
-                ps.setDate(4, java.sql.Date.valueOf(nv.getNgayVaoLam()));
-            } else {
-                ps.setNull(4, Types.DATE);
-            }
-
-            if (nv.getGioiTinh() != null) {
-                ps.setBoolean(5, nv.getGioiTinh());
-            } else {
-                ps.setNull(5, Types.BIT);
-            }
-
-            ps.setString(6, nv.getChucVu());
-            ps.setString(7, nv.getTrangThai());
-            ps.setString(8, nv.getEmail());
-            ps.setString(9, nv.getDiaChi());
+            ps.setString(1, nv.getHoTen());
+            ps.setString(2, nv.getSoDT());
+            ps.setDate(3, Date.valueOf(nv.getNgayVaoLam()));
+            ps.setBoolean(4, nv.getGioiTinh());
+            ps.setString(5, nv.getChucVu());
+            ps.setString(6, nv.getTrangThai());
+            ps.setString(7, nv.getEmail());
+            ps.setString(8, nv.getDiaChi());
 
             return ps.executeUpdate() > 0;
 
@@ -125,27 +98,23 @@ public class NhanVien_DAO {
     }
 
     public boolean update(NhanVien nv) {
-        if (nv == null || nv.getMaNV() == null || nv.getMaNV().trim().isEmpty()) {
-            System.err.println("[NhanVien_DAO] Mã nhân viên không hợp lệ!");
-            return false;
-        }
-
-        String sql = "UPDATE NhanVien SET " + "HoTen = ?, SoDT = ?, NgayVaoLam = ?, GioiTinh = ?, " + "ChucVu = ?, TrangThai = ?, Email = ?, DiaChi = ? " + "WHERE MaNV = ?";
+        String sql = "UPDATE NhanVien SET "
+                + "HoTen = ?, SoDT = ?, NgayVaoLam = ?, GioiTinh = ?, "
+                + "ChucVu = ?, TrangThai = ?, Email = ?, DiaChi = ? "
+                + "WHERE MaNV = ?";
 
         Connection con = ConnectDB.getConnection();
-
-        if (con == null) {System.err.println("[NhanVien_DAO] Chưa kết nối database!");return false;}
 
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, nv.getHoTen());
             ps.setString(2, nv.getSoDT());
 
-            if (nv.getNgayVaoLam() != null) { ps.setDate(3, Date.valueOf(nv.getNgayVaoLam()));}
-            else { ps.setDate(3, Date.valueOf(LocalDate.now()));}
+            LocalDate ngayVaoLam = nv.getNgayVaoLam() != null
+                    ? nv.getNgayVaoLam()
+                    : LocalDate.now();
 
-            if (nv.getGioiTinh() != null) { ps.setBoolean(4, nv.getGioiTinh());}
-            else {ps.setNull(4, Types.BIT);}
-
+            ps.setDate(3, Date.valueOf(ngayVaoLam));
+            ps.setBoolean(4, nv.getGioiTinh());
             ps.setString(5, nv.getChucVu());
             ps.setString(6, nv.getTrangThai());
             ps.setString(7, nv.getEmail());
@@ -154,24 +123,17 @@ public class NhanVien_DAO {
 
             return ps.executeUpdate() > 0;
 
-        } catch (SQLException e) { System.err.println("[NhanVien_DAO] update lỗi: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("[NhanVien_DAO] update lỗi: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
     public boolean delete(String maNV) {
-        if (maNV == null || maNV.trim().isEmpty()) {System.err.println("[NhanVien_DAO] Mã nhân viên cần xóa không hợp lệ!");
-            return false;
-        }
-
         String sql = "DELETE FROM NhanVien WHERE MaNV = ?";
 
         Connection con = ConnectDB.getConnection();
-
-        if (con == null) { System.err.println("[NhanVien_DAO] Chưa kết nối database!");
-            return false;
-        }
 
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maNV);
@@ -185,7 +147,6 @@ public class NhanVien_DAO {
         }
     }
 
-    // ================= SINH MÃ NHÂN VIÊN =================
     public String sinhMaNVMoi() {
         String sql = "SELECT MAX(CAST(SUBSTRING(MaNV, 3, 4) AS INT)) AS SoLonNhat "
                 + "FROM NhanVien "
@@ -193,50 +154,38 @@ public class NhanVien_DAO {
 
         Connection con = ConnectDB.getConnection();
 
-        if (con == null) {
-            System.err.println("[NhanVien_DAO] Chưa kết nối database!");
-            return "";
-        }
-
         try (PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
-            if (rs.next()) {
-                int soLonNhat = rs.getInt("SoLonNhat");
+            rs.next();
+            int soLonNhat = rs.getInt("SoLonNhat");
 
-                if (rs.wasNull()) {
-                    soLonNhat = 0;
-                }
-
-                if (soLonNhat >= 9999) {
-                    System.err.println("[NhanVien_DAO] Đã đạt giới hạn mã NV9999!");
-                    return "";
-                }
-
-                return String.format("NV%04d", soLonNhat + 1);
+            if (rs.wasNull()) {
+                soLonNhat = 0;
             }
+
+            if (soLonNhat >= 9999) {
+                return "";
+            }
+
+            return String.format("NV%04d", soLonNhat + 1);
 
         } catch (SQLException e) {
             System.err.println("[NhanVien_DAO] sinhMaNVMoi lỗi: " + e.getMessage());
             e.printStackTrace();
+            return "";
         }
-
-        return "";
     }
 
-    // ================= ĐỌC DỮ LIỆU NHÂN VIÊN =================
     private NhanVien docNhanVien(ResultSet rs) throws SQLException {
         Date ngaySQL = rs.getDate("NgayVaoLam");
-
-        boolean gt = rs.getBoolean("GioiTinh");
-        Boolean gioiTinh = rs.wasNull() ? null : gt;
 
         return new NhanVien(
                 rs.getString("MaNV"),
                 rs.getString("HoTen"),
                 rs.getString("SoDT"),
                 ngaySQL != null ? ngaySQL.toLocalDate() : null,
-                gioiTinh,
+                rs.getBoolean("GioiTinh"),
                 rs.getString("ChucVu"),
                 rs.getString("TrangThai"),
                 rs.getString("Email"),

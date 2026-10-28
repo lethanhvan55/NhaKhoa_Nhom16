@@ -64,5 +64,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="flatlaf-3.6.2" level="project" />
+    <orderEntry type="library" name="core-3.5.3 (2)" level="project" />
+    <orderEntry type="library" name="javase-3.5.3 (2)" level="project" />
   </component>
 </module>

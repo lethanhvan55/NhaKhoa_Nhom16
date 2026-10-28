@@ -38,6 +38,10 @@ public class ChiTietHoaDon {
 	}
 
 	public void setSoLuong(int soLuong) {
+		if(soLuong < 0) {
+			throw new IllegalArgumentException("Số lượng không được âm.");
+		}
+
 		this.soLuong = soLuong;
 	}
 
@@ -48,11 +52,17 @@ public class ChiTietHoaDon {
 	public void setDonGia(double donGia) {
 		this.donGia = donGia;
 	}
+	public double getThanhTien() {
+		return donGia * soLuong;
+	}
 
 	@Override
 	public String toString() {
-		return "ChiTietHoaDon [maHD=" + maHD + ", maDV=" + maDV + ", soLuong=" + soLuong + ", donGia=" + donGia + "]";
+		return "ChiTietHoaDon{" +
+				"maHD=" + maHD +
+				", maDV=" + maDV +
+				", soLuong=" + soLuong +
+				", donGia=" + donGia +
+				'}';
 	}
-
-   
 }

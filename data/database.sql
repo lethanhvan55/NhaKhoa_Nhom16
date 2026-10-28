@@ -28,13 +28,13 @@ GO
 CREATE TABLE NhanVien (
 MaNV CHAR(6) PRIMARY KEY,
 HoTen NVARCHAR(40) NOT NULL,
-SoDT VARCHAR(10) NULL UNIQUE,
+SoDT VARCHAR(10) NOT NULL UNIQUE,
 NgayVaoLam DATE NOT NULL DEFAULT CAST(GETDATE() AS DATE),
-GioiTinh BIT NULL,
+GioiTinh BIT NOT NULL ,
 ChucVu NVARCHAR(30) NOT NULL,
 TrangThai NVARCHAR(30) NOT NULL,
-Email VARCHAR(30) NULL,
-DiaChi NVARCHAR(60) NULL,
+Email VARCHAR(30) NOT NULL ,
+DiaChi NVARCHAR(60) NOT NULL,
 
 CONSTRAINT CK_NhanVien_MaNV CHECK (MaNV LIKE 'NV[0-9][0-9][0-9][0-9]'),
 CONSTRAINT CK_NhanVien_SoDT CHECK (SoDT IS NULL OR SoDT LIKE '0[3-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
@@ -266,20 +266,23 @@ CREATE TABLE HoaDon (
 MaHD CHAR(6) PRIMARY KEY,
 MaBenhNhan CHAR(6) NOT NULL,
 MaNV CHAR(6) NOT NULL,
+MaLichHen CHAR(8) NOT NULL,
 NgayLap DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
 ChietKhau DECIMAL(5,2) NOT NULL DEFAULT 0,
+VAT DECIMAL(5,2) NOT NULL DEFAULT 0,
 MaKM CHAR(6) NULL,
-TrangThai NVARCHAR(50) NOT NULL,
-
+TrangThai NVARCHAR(50) NOT NULL DEFAULT N'Chưa thanh toán',
 CONSTRAINT CK_HoaDon_MaHD CHECK (MaHD LIKE 'HD[0-9][0-9][0-9][0-9]'),
 CONSTRAINT FK_HoaDon_BenhNhan FOREIGN KEY (MaBenhNhan) REFERENCES BenhNhan(MaBenhNhan),
 CONSTRAINT FK_HoaDon_NhanVien FOREIGN KEY (MaNV) REFERENCES NhanVien(MaNV),
+CONSTRAINT FK_HoaDon_LichHen FOREIGN KEY (MaLichHen) REFERENCES LichHen(MaLichHen),
+CONSTRAINT UQ_HoaDon_MaLichHen UNIQUE (MaLichHen),
 CONSTRAINT FK_HoaDon_KhuyenMai FOREIGN KEY (MaKM) REFERENCES KhuyenMai(MaKM),
 CONSTRAINT CK_HoaDon_ChietKhau CHECK (ChietKhau >= 0 AND ChietKhau <= 100),
+CONSTRAINT CK_HoaDon_VAT CHECK (VAT >= 0 AND VAT <= 100),
 CONSTRAINT CK_HoaDon_TrangThai CHECK (TrangThai IN (N'Đã thanh toán', N'Chưa thanh toán'))
 );
 GO
-
 -- =========================================================
 -- 15. CHI TIẾT HÓA ĐƠN
 -- =========================================================
@@ -304,23 +307,13 @@ USE QL_NK;
 GO
 
 CREATE TABLE ChiTietVatTu_DichVu (
-                                     MaVT CHAR(6) NOT NULL,
-                                     MaDV CHAR(6) NOT NULL,
-                                     SoLuongSuDung INT NOT NULL DEFAULT 1,
-
-                                     CONSTRAINT PK_ChiTietVatTu_DichVu
-                                         PRIMARY KEY (MaVT, MaDV),
-
-                                     CONSTRAINT FK_ChiTietVatTu_DichVu_VatTu
-                                         FOREIGN KEY (MaVT)
-                                             REFERENCES VatTu(MaVT),
-
-                                     CONSTRAINT FK_ChiTietVatTu_DichVu_DichVu
-                                         FOREIGN KEY (MaDV)
-                                             REFERENCES DichVu(MaDV),
-
-                                     CONSTRAINT CK_ChiTietVatTu_DichVu_SoLuong
-                                         CHECK (SoLuongSuDung > 0)
+MaVT CHAR(6) NOT NULL,
+MaDV CHAR(6) NOT NULL,
+SoLuongSuDung INT NOT NULL DEFAULT 1,
+CONSTRAINT PK_ChiTietVatTu_DichVu PRIMARY KEY (MaVT, MaDV),
+CONSTRAINT FK_ChiTietVatTu_DichVu_VatTu FOREIGN KEY (MaVT) REFERENCES VatTu(MaVT),
+CONSTRAINT FK_ChiTietVatTu_DichVu_DichVu FOREIGN KEY (MaDV) REFERENCES DichVu(MaDV),
+CONSTRAINT CK_ChiTietVatTu_DichVu_SoLuong CHECK (SoLuongSuDung > 0)
 );
 GO
 

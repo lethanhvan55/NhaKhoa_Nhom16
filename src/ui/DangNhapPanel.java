@@ -362,19 +362,35 @@ public class DangNhapPanel extends JFrame implements ActionListener {
                 TaiKhoan_DAO tkDAO = new TaiKhoan_DAO();
                 TaiKhoan tk = tkDAO.checkLogin(user, pass);
 
-                if (tk != null) {JOptionPane.showMessageDialog(
-                        this,
-                        "Đăng nhập thành công với quyền: "
-                            + tk.getQuyen(),
-                        "Thông báo",
-                        JOptionPane.INFORMATION_MESSAGE
+                if (tk != null) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Đăng nhập thành công với quyền: " + tk.getQuyen(),
+                            "Thông báo",
+                            JOptionPane.INFORMATION_MESSAGE
                     );
+                    String maNV = "";
 
-                    MainFrame view = new MainFrame();
+                    if (tk.getMaNV() != null) {
+                        maNV = tk.getMaNV().getMaNV();
+                    }
+
+                    if (maNV == null || maNV.trim().isEmpty()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Tài khoản chưa được liên kết với nhân viên!",
+                                "Lỗi đăng nhập",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                    }
+
+                    MainFrame view = new MainFrame(maNV);
                     view.setVisible(true);
-                    this.dispose();
 
-                } else { JOptionPane.showMessageDialog(this,
+                    this.dispose();
+                }
+                else { JOptionPane.showMessageDialog(this,
                         "Tài khoản hoặc mật khẩu không chính xác!",
                         "Lỗi đăng nhập",
                         JOptionPane.ERROR_MESSAGE

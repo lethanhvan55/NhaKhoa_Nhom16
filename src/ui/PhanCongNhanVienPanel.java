@@ -63,7 +63,7 @@ public class PhanCongNhanVienPanel extends JPanel {
         setBackground(MAU_NEN);
         setBorder(new EmptyBorder(18, 18, 18, 18));
 
-        add(taoTieuDe(), BorderLayout.NORTH);
+       // add(taoTieuDe(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
 
         // Tải dữ liệu từ CSDL lên bảng và sinh mã tự động khi mở panel
@@ -80,7 +80,7 @@ public class PhanCongNhanVienPanel extends JPanel {
         return con;
     }
 
-    private JPanel taoTieuDe() {
+ /*   private JPanel taoTieuDe() {
         JPanel pnl = new JPanel(new BorderLayout());
         pnl.setOpaque(false);
 
@@ -100,12 +100,12 @@ public class PhanCongNhanVienPanel extends JPanel {
         pnl.add(pnlText, BorderLayout.WEST);
         return pnl;
     }
-
+*/
     private JPanel taoNoiDung() {
         JPanel pnl = new JPanel(new BorderLayout(12, 14));
         pnl.setOpaque(false);
 
-        pnl.add(taoFormPhanCong(), BorderLayout.NORTH);
+        pnl.add(taoFormPhanCong(), BorderLayout.SOUTH);
         pnl.add(taoDanhSach(), BorderLayout.CENTER);
 
         return pnl;

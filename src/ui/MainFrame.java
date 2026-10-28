@@ -1,4 +1,3 @@
-
 package ui;
 
 import java.awt.BorderLayout;
@@ -23,10 +22,22 @@ public class MainFrame extends JFrame {
     private LeftMenuPanel pnlMenu;
 
     private JLabel lblTenNguoiDung;
-
     private JLabel lblVaiTro;
+    // Khai báo tham chiếu trực tiếp đến 2 Panel cần đồng bộ dữ liệu
+    private TiepNhanLichHenPanel pnlTiepNhanLichHen;
+    private CheckInPanel pnlCheckIn;
+
+    private String maNVHienTai;
+    private TaoHoaDonPanel pnlTaoHoaDon;
+
 
     public MainFrame() {
+        this(null);
+    }
+
+    public MainFrame(String maNV) {
+        this.maNVHienTai = maNV;
+
         khoiTaoCuaSo();
         taoMenu();
         taoNoiDung();
@@ -56,24 +67,21 @@ public class MainFrame extends JFrame {
         pnlNoiDung.add(new HomePanel(), "Trang chủ");
 
         pnlNoiDung.add(
-                new HoSoBenhNhanPanel(),
+                new HoSoBenhNhanPanel(maNVHienTai),
                 "Hồ sơ bệnh nhân"
         );
 
-        pnlNoiDung.add(
-                new TaoHoaDonPanel(),
-                "Tạo hóa đơn"
-        );
 
-        pnlNoiDung.add(
-                new TiepNhanLichHenPanel(),
-                "Tiếp nhận lịch hẹn"
-        );
+        pnlTaoHoaDon = new TaoHoaDonPanel();
+        pnlNoiDung.add(pnlTaoHoaDon, "Tạo hóa đơn");
 
-        pnlNoiDung.add(
-                new CheckInPanel(),
-                "Check In"
-        );
+        // Khởi tạo và gán biến cho Tiếp nhận lịch hẹn
+        pnlTiepNhanLichHen = new TiepNhanLichHenPanel();
+        pnlNoiDung.add(pnlTiepNhanLichHen, "Tiếp nhận lịch hẹn");
+
+        // Khởi tạo và gán biến cho Check In
+        pnlCheckIn = new CheckInPanel();
+        pnlNoiDung.add(pnlCheckIn, "Check In");
 
         pnlNoiDung.add(
                 new KeHoachDieuTriPanel(),
@@ -163,13 +171,14 @@ public class MainFrame extends JFrame {
 
         hienThiManHinh("Trang chủ");
     }
+
     public void capNhatThongTinNguoiDung(
             String tenNguoiDung,
             String vaiTro) {
-
-        lblTenNguoiDung.setText(tenNguoiDung);
-        lblVaiTro.setText(vaiTro);
+        if (lblTenNguoiDung != null) lblTenNguoiDung.setText(tenNguoiDung);
+        if (lblVaiTro != null) lblVaiTro.setText(vaiTro);
     }
+
     private JPanel taoManHinhTam(String tenManHinh) {
         JPanel pnlTam = new JPanel();
         pnlTam.setLayout(new BorderLayout());
@@ -192,6 +201,20 @@ public class MainFrame extends JFrame {
 
     public void hienThiManHinh(String tenManHinh) {
         clNoiDung.show(pnlNoiDung, tenManHinh);
+
+        if ("Tiếp nhận lịch hẹn".equals(tenManHinh)) {
+            if (pnlTiepNhanLichHen != null) {
+                pnlTiepNhanLichHen.refreshData();
+            }
+        } else if ("Check In".equals(tenManHinh)) {
+            if (pnlCheckIn != null) {
+                pnlCheckIn.refreshData();
+            }
+        } else if ("Tạo hóa đơn".equals(tenManHinh)) {
+            if(pnlTaoHoaDon != null) {
+                pnlTaoHoaDon.refreshData();
+            }
+        }
     }
 
     public void dangXuat() {
