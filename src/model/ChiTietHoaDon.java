@@ -50,10 +50,13 @@ public class ChiTietHoaDon {
 	}
 
 	public void setDonGia(double donGia) {
+		if (donGia < 0) {
+			throw new IllegalArgumentException("Đơn giá không được âm.");
+		}
 		this.donGia = donGia;
 	}
-	public double getThanhTien() {
-		return donGia * soLuong;
+	public double tinhThanhTien() {
+		return soLuong * donGia;
 	}
 
 	@Override
