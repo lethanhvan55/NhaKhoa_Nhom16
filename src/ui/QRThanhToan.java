@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import controllers.QRThanhToanController;
-import utils.JavaFXRuntime;
 
 public final class QRThanhToan {
 

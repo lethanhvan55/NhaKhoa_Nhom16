@@ -97,7 +97,7 @@ public class TimKiemDichVuPanel extends JPanel implements ActionListener, MouseL
 
         JPanel pnlKhungTimKiem = new JPanel(new GridLayout(2, 3, 14, 14));
         pnlKhungTimKiem.setBackground(Color.WHITE);
-        
+
         // Mã dịch vụ
         JPanel pnlMa = new JPanel(new BorderLayout(0, 6));
         pnlMa.setBackground(Color.WHITE);
@@ -325,12 +325,12 @@ public class TimKiemDichVuPanel extends JPanel implements ActionListener, MouseL
             int stt = 1;
             for (DichVu dv : danhSach) {
                 model.addRow(new Object[]{
-                    stt++,
-                    dv.getMaDV(),
-                    dv.getTenDV(),
-                    df.format(dv.getDonGia()) + " VNĐ",
-                    dv.getThoiGianDuKien(),
-                    dv.getTrangThai()
+                        stt++,
+                        dv.getMaDV(),
+                        dv.getTenDV(),
+                        df.format(dv.getDonGia()) + " VNĐ",
+                        dv.getThoiGianDuKien(),
+                        dv.getTrangThai()
                 });
             }
         } catch (Exception ex) {
@@ -387,12 +387,12 @@ public class TimKiemDichVuPanel extends JPanel implements ActionListener, MouseL
         int stt = 1;
         for (DichVu dv : ketQua) {
             model.addRow(new Object[]{
-                stt++,
-                dv.getMaDV(),
-                dv.getTenDV(),
-                df.format(dv.getDonGia()) + " VNĐ",
-                dv.getThoiGianDuKien(),
-                dv.getTrangThai()
+                    stt++,
+                    dv.getMaDV(),
+                    dv.getTenDV(),
+                    df.format(dv.getDonGia()) + " VNĐ",
+                    dv.getThoiGianDuKien(),
+                    dv.getTrangThai()
             });
         }
 
@@ -406,13 +406,13 @@ public class TimKiemDichVuPanel extends JPanel implements ActionListener, MouseL
         } else {
             JOptionPane.showMessageDialog(this, "Không tìm thấy dịch vụ nào khớp với tiêu chí tìm kiếm!");
             taiDanhSachDichVuTuCSDL();
-            
+
             txtMaDichVu.setText("");
             txtTenDichVu.setText("");
             txtGiaTu.setText("");
             txtGiaDen.setText("");
             cboTrangThai.setSelectedIndex(0);
-            
+
             txtMaDichVu.requestFocus();
         }
     }
@@ -440,14 +440,14 @@ public class TimKiemDichVuPanel extends JPanel implements ActionListener, MouseL
         String thoiGian = String.valueOf(model.getValueAt(row, 4));
         String trangThai = String.valueOf(model.getValueAt(row, 5));
 
-        JOptionPane.showMessageDialog(this, 
-            "Thông tin chi tiết dịch vụ:\n" +
-            "- Mã dịch vụ: " + maDV + "\n" +
-            "- Tên dịch vụ: " + tenDV + "\n" +
-            "- Đơn giá: " + donGia + "\n" +
-            "- Ngày/Thời gian dự kiến: " + thoiGian + "\n" +
-            "- Trạng thái: " + trangThai,
-            "Chi tiết dịch vụ", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this,
+                "Thông tin chi tiết dịch vụ:\n" +
+                        "- Mã dịch vụ: " + maDV + "\n" +
+                        "- Tên dịch vụ: " + tenDV + "\n" +
+                        "- Đơn giá: " + donGia + "\n" +
+                        "- Ngày/Thời gian dự kiến: " + thoiGian + "\n" +
+                        "- Trạng thái: " + trangThai,
+                "Chi tiết dịch vụ", JOptionPane.INFORMATION_MESSAGE);
     }
 
     @Override

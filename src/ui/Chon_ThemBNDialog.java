@@ -22,7 +22,7 @@ public class Chon_ThemBNDialog extends JDialog {
     private JTable tblBenhNhan;
     private DefaultTableModel modelBenhNhan;
     private JTextField txtTimKiem;
-    
+
     // Các trường form thêm mới
     private JTextField txtMaBNMoi;
     private JTextField txtHoTenMoi;
@@ -58,11 +58,11 @@ public class Chon_ThemBNDialog extends JDialog {
 
         JPanel pTop = new JPanel(new BorderLayout(10, 0));
         pTop.setOpaque(false);
-        
+
         JLabel lblTim = new JLabel("Tìm kiếm (Tên / SĐT):");
         lblTim.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblTim.setForeground(UIHelper.TEXT);
-        
+
         JPanel pNhap = new JPanel(new BorderLayout(8, 0));
         pNhap.setOpaque(false);
         txtTimKiem = new JTextField();
@@ -142,7 +142,7 @@ public class Chon_ThemBNDialog extends JDialog {
         return p;
     }
 
-  private JPanel createTabThemMoi() {
+    private JPanel createTabThemMoi() {
         JPanel p = new JPanel(new BorderLayout());
         p.setBorder(new EmptyBorder(25, 30, 25, 30));
         p.setBackground(Color.WHITE);
@@ -150,9 +150,9 @@ public class Chon_ThemBNDialog extends JDialog {
         JPanel formGrid = new JPanel(new GridBagLayout());
         formGrid.setBackground(Color.WHITE);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 12, 10, 12); 
+        gbc.insets = new Insets(10, 12, 10, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 0.2; 
+        gbc.weightx = 0.2;
         Dimension fieldSize = new Dimension(240, 38);
 
         txtMaBNMoi = new JTextField();
@@ -175,7 +175,7 @@ public class Chon_ThemBNDialog extends JDialog {
         dcNgaySinhMoi.setDate(new Date());
         JTextField dateEditor = ((JTextField) dcNgaySinhMoi.getDateEditor().getUiComponent());
         dateEditor.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        dateEditor.setEditable(true); 
+        dateEditor.setEditable(true);
 
         cboGioiTinh = new JComboBox<>(new String[]{"Nam", "Nữ"});
         UIHelper.styleComboBox(cboGioiTinh);
@@ -191,7 +191,7 @@ public class Chon_ThemBNDialog extends JDialog {
 
         txtDiaChiMoi = new JTextField();
         txtDiaChiMoi.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtDiaChiMoi.setPreferredSize(new Dimension(560, 38)); 
+        txtDiaChiMoi.setPreferredSize(new Dimension(560, 38));
 
         addFormField(formGrid, gbc, 0, 0, "Mã bệnh nhân", txtMaBNMoi);
         addFormField(formGrid, gbc, 2, 0, "Họ tên *", txtHoTenMoi);
@@ -251,7 +251,7 @@ public class Chon_ThemBNDialog extends JDialog {
         String maBN = txtMaBNMoi.getText().trim();
         String hoTen = txtHoTenMoi.getText().trim();
         String selectedGioiTinh = (String) cboGioiTinh.getSelectedItem();
-        int gioiTinhDB = "Nam".equals(selectedGioiTinh) ? 1 : 0; 
+        int gioiTinhDB = "Nam".equals(selectedGioiTinh) ? 1 : 0;
 
         String sdt = txtSDTMoi.getText().trim();
         String email = txtEmailMoi.getText().trim();

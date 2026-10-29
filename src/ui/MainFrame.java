@@ -23,7 +23,7 @@ public class MainFrame extends JFrame {
 
     private JLabel lblTenNguoiDung;
     private JLabel lblVaiTro;
-    
+
     // Khai báo tham chiếu trực tiếp đến các Panel cần đồng bộ dữ liệu
     private TiepNhanLichHenPanel pnlTiepNhanLichHen;
     private CheckInPanel pnlCheckIn;
