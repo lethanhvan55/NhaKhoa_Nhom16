@@ -1,5 +1,6 @@
-
 package ui;
+
+import connectDB.ConnectDB;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -8,6 +9,11 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -15,16 +21,14 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
-import javax.swing.JSpinner;
-import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
@@ -42,18 +46,15 @@ public class PhanCongNhanVienPanel extends JPanel {
     private JTextField txtGhiChu;
     private JTextField txtTimKiem;
 
-    private JComboBox<String> cboNhaSi;
-    private JComboBox<String> cboBenhNhan;
-    private JComboBox<String> cboPhong;
-    private JComboBox<String> cboLichHen;
+    private JComboBox<String> cboNhanVien;
+    private JComboBox<String> cboCaLamViec;
     private JComboBox<String> cboTrangThai;
 
     private JTable tblPhanCong;
     private DefaultTableModel mdlPhanCong;
     private TableRowSorter<DefaultTableModel> boLoc;
 
-    private final SimpleDateFormat dinhDangNgay =
-        new SimpleDateFormat("dd/MM/yyyy");
+    private final SimpleDateFormat dinhDangNgay = new SimpleDateFormat("dd/MM/yyyy");
 
     public PhanCongNhanVienPanel() {
         dinhDangNgay.setLenient(false);
@@ -64,6 +65,19 @@ public class PhanCongNhanVienPanel extends JPanel {
 
        // add(taoTieuDe(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
+
+        // Tải dữ liệu từ CSDL lên bảng và sinh mã tự động khi mở panel
+        taiDanhSachTuCSDL();
+        txtMaPhanCong.setText(taoMaPhanCongTuDong());
+    }
+
+    // Gọi kết nối từ class ConnectDB của bạn
+    private Connection getConnection() throws Exception {
+        Connection con = ConnectDB.getConnection();
+        if (con == null || con.isClosed()) {
+            throw new SQLException("Không thể thiết lập kết nối tới CSDL.");
+        }
+        return con;
     }
 
  /*   private JPanel taoTieuDe() {
@@ -74,9 +88,7 @@ public class PhanCongNhanVienPanel extends JPanel {
         lblTieuDe.setFont(new Font("Arial", Font.BOLD, 25));
         lblTieuDe.setForeground(MAU_CHU);
 
-        JLabel lblMoTa = new JLabel(
-            "Quản lý phân công nha sĩ, bệnh nhân, phòng điều trị và lịch hẹn"
-        );
+        JLabel lblMoTa = new JLabel("Quản lý lịch làm việc cho nhân viên (Sáng, Chiều, Tối)");
         lblMoTa.setFont(new Font("Arial", Font.PLAIN, 13));
         lblMoTa.setForeground(new Color(105, 120, 140));
 
@@ -86,7 +98,6 @@ public class PhanCongNhanVienPanel extends JPanel {
         pnlText.add(lblMoTa);
 
         pnl.add(pnlText, BorderLayout.WEST);
-
         return pnl;
     }
 */
@@ -104,47 +115,26 @@ public class PhanCongNhanVienPanel extends JPanel {
         JPanel pnlForm = taoKhung();
         pnlForm.setLayout(new BorderLayout(10, 12));
 
-        JLabel lblTieuDe = taoNhan("THÔNG TIN PHÂN CÔNG", 15);
+        JLabel lblTieuDe = taoNhan("THÔNG TIN PHÂN CÔNG CA LÀM VIỆC", 15);
         pnlForm.add(lblTieuDe, BorderLayout.NORTH);
 
-        txtMaPhanCong = new JTextField("PC0001");
+        txtMaPhanCong = new JTextField();
         txtMaPhanCong.setEditable(false);
         txtMaPhanCong.setBackground(new Color(240, 244, 248));
 
-        cboNhaSi = new JComboBox<>(new String[] {
-            "Chọn nha sĩ",
-            "NS0001 - Nguyễn Minh Tuấn",
-            "NS0002 - Trần Hoàng Nam",
-            "NS0003 - Lê Thị Mai"
+        cboNhanVien = new JComboBox<>();
+        cboNhanVien.addItem("Chọn nhân viên");
+        taiDuLieuNhanVienVaoCombo();
+
+        cboCaLamViec = new JComboBox<>(new String[] {
+                "Chọn ca làm việc",
+                "Ca sáng (07:30 - 11:30)",
+                "Ca chiều (13:30 - 17:30)",
+                "Ca tối (18:00 - 21:00)"
         });
 
-        cboBenhNhan = new JComboBox<>(new String[] {
-            "Chọn bệnh nhân",
-            "BN0001 - Nguyễn Văn An",
-            "BN0002 - Trần Thị Bích",
-            "BN0003 - Lê Minh Hoàng",
-            "BN0004 - Phạm Thu Hà"
-        });
-
-        cboPhong = new JComboBox<>(new String[] {
-            "Chọn phòng",
-            "P001 - Phòng điều trị 1",
-            "P002 - Phòng điều trị 2",
-            "P003 - Phòng X-quang"
-        });
-
-        cboLichHen = new JComboBox<>(new String[] {
-            "Chọn lịch hẹn",
-            "LH0001 - 08:00 20/10/2026",
-            "LH0002 - 09:00 20/10/2026",
-            "LH0003 - 14:00 20/10/2026"
-        });
-
-        txtNgayPhanCong = new JTextField(
-            dinhDangNgay.format(new Date())
-        );
+        txtNgayPhanCong = new JTextField(dinhDangNgay.format(new Date()));
         txtNgayPhanCong.setEditable(false);
-        txtNgayPhanCong.setHorizontalAlignment(SwingConstants.LEFT);
 
         JButton btnChonNgay = taoNutIcon("Chọn ngày");
         btnChonNgay.setPreferredSize(new Dimension(85, 32));
@@ -156,40 +146,34 @@ public class PhanCongNhanVienPanel extends JPanel {
         pnlNgay.add(btnChonNgay, BorderLayout.EAST);
 
         cboTrangThai = new JComboBox<>(new String[] {
-            "Chờ thực hiện",
-            "Đã phân công",
-            "Đang thực hiện",
-            "Hoàn thành",
-            "Đã hủy"
+                "Chưa làm",
+                "Đã phân công",
+                "Đang làm việc",
+                "Hoàn thành ca",
+                "Nghỉ phép"
         });
 
         txtGhiChu = new JTextField();
 
-        JPanel pnlTruong = new JPanel(new GridLayout(4, 2, 18, 10));
+        JPanel pnlTruong = new JPanel(new GridLayout(3, 2, 18, 10));
         pnlTruong.setOpaque(false);
 
         pnlTruong.add(taoTruong("Mã phân công", txtMaPhanCong));
-        pnlTruong.add(taoTruong("Nha sĩ phụ trách", cboNhaSi));
-        pnlTruong.add(taoTruong("Bệnh nhân", cboBenhNhan));
-        pnlTruong.add(taoTruong("Phòng điều trị", cboPhong));
-        pnlTruong.add(taoTruong("Lịch hẹn", cboLichHen));
         pnlTruong.add(taoTruong("Ngày phân công", pnlNgay));
+        pnlTruong.add(taoTruong("Nhân viên", cboNhanVien));
+        pnlTruong.add(taoTruong("Ca làm việc", cboCaLamViec));
         pnlTruong.add(taoTruong("Trạng thái", cboTrangThai));
         pnlTruong.add(taoTruong("Ghi chú", txtGhiChu));
 
         pnlForm.add(pnlTruong, BorderLayout.CENTER);
 
-        JPanel pnlNut = new JPanel(
-            new FlowLayout(FlowLayout.CENTER, 10, 0)
-        );
+        JPanel pnlNut = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         pnlNut.setOpaque(false);
 
         JButton btnThem = taoNut("Thêm phân công", new Color(15, 150, 137));
         JButton btnSua = taoNut("Cập nhật", MAU_XANH);
         JButton btnXoa = taoNut("Xóa", new Color(205, 72, 77));
-        JButton btnLamMoi = taoNut(
-            "Làm mới", new Color(100, 116, 139)
-        );
+        JButton btnLamMoi = taoNut("Làm mới", new Color(100, 116, 139));
 
         pnlNut.add(btnThem);
         pnlNut.add(btnSua);
@@ -210,16 +194,15 @@ public class PhanCongNhanVienPanel extends JPanel {
         JPanel pnl = taoKhung();
         pnl.setLayout(new BorderLayout(10, 12));
 
-        JLabel lblTieuDe = taoNhan("DANH SÁCH PHÂN CÔNG", 15);
+        JLabel lblTieuDe = taoNhan("DANH SÁCH PHÂN CÔNG THEO CA", 15);
 
         String[] cot = {
-            "Mã PC",
-            "Nha sĩ",
-            "Bệnh nhân",
-            "Phòng điều trị",
-            "Lịch hẹn",
-            "Ngày phân công",
-            "Trạng thái"
+                "Mã PC",
+                "Ngày phân công",
+                "Ca làm việc",
+                "Nhân viên",
+                "Trạng thái",
+                "Ghi chú"
         };
 
         mdlPhanCong = new DefaultTableModel(cot, 0) {
@@ -228,24 +211,6 @@ public class PhanCongNhanVienPanel extends JPanel {
                 return false;
             }
         };
-
-        mdlPhanCong.addRow(new Object[] {
-            "PC0001", "Nguyễn Minh Tuấn", "Nguyễn Văn An",
-            "Phòng điều trị 1", "LH0001 - 08:00",
-            "20/10/2026", "Đã phân công"
-        });
-
-        mdlPhanCong.addRow(new Object[] {
-            "PC0002", "Trần Hoàng Nam", "Trần Thị Bích",
-            "Phòng điều trị 2", "LH0002 - 09:00",
-            "20/10/2026", "Chờ thực hiện"
-        });
-
-        mdlPhanCong.addRow(new Object[] {
-            "PC0003", "Lê Thị Mai", "Lê Minh Hoàng",
-            "Phòng X-quang", "LH0003 - 14:00",
-            "20/10/2026", "Hoàn thành"
-        });
 
         tblPhanCong = new JTable(mdlPhanCong);
         tblPhanCong.setRowHeight(32);
@@ -258,21 +223,16 @@ public class PhanCongNhanVienPanel extends JPanel {
         tblPhanCong.setAutoCreateRowSorter(true);
         tblPhanCong.setFillsViewportHeight(true);
 
-        tblPhanCong.getTableHeader().setFont(
-            new Font("Arial", Font.BOLD, 12)
-        );
+        tblPhanCong.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         tblPhanCong.getTableHeader().setBackground(MAU_CHU);
         tblPhanCong.getTableHeader().setForeground(Color.WHITE);
-        tblPhanCong.getTableHeader().setPreferredSize(
-            new Dimension(0, 36)
-        );
+        tblPhanCong.getTableHeader().setPreferredSize(new Dimension(0, 36));
 
         boLoc = new TableRowSorter<>(mdlPhanCong);
         tblPhanCong.setRowSorter(boLoc);
 
         tblPhanCong.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()
-                    && tblPhanCong.getSelectedRow() >= 0) {
+            if (!e.getValueIsAdjusting() && tblPhanCong.getSelectedRow() >= 0) {
                 hienThiDongDuocChon();
             }
         });
@@ -286,9 +246,7 @@ public class PhanCongNhanVienPanel extends JPanel {
         JButton btnTimKiem = taoNut("Tìm kiếm", MAU_XANH);
         JButton btnBoLoc = taoNut("Bỏ lọc", new Color(100, 116, 139));
 
-        JPanel pnlTimKiem = new JPanel(
-            new FlowLayout(FlowLayout.LEFT, 8, 0)
-        );
+        JPanel pnlTimKiem = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         pnlTimKiem.setOpaque(false);
         pnlTimKiem.add(new JLabel("Tìm kiếm:"));
         pnlTimKiem.add(txtTimKiem);
@@ -314,12 +272,180 @@ public class PhanCongNhanVienPanel extends JPanel {
         return pnl;
     }
 
+    // ==================== CÁC HÀM THAO TÁC CSDL ====================
+
+    private void taiDuLieuNhanVienVaoCombo() {
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT MaNV, HoTen FROM NhanVien")) {
+
+            if (rs != null) {
+                while (rs.next()) {
+                    String maNV = rs.getString("MaNV").trim();
+                    String hoTen = rs.getString("HoTen").trim();
+                    cboNhanVien.addItem(maNV + " - " + hoTen);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void taiDanhSachTuCSDL() {
+        mdlPhanCong.setRowCount(0);
+        String sql = "SELECT llv.MaPhanCong, llv.NgayPhanCong, llv.CaLamViec, " +
+                "llv.MaNhanVien, nv.HoTen, llv.TrangThai, llv.GhiChu " +
+                "FROM LichLamViec llv JOIN NhanVien nv ON llv.MaNhanVien = nv.MaNV";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs != null) {
+                while (rs.next()) {
+                    String maPC = rs.getString("MaPhanCong");
+                    String ngay = dinhDangNgay.format(rs.getDate("NgayPhanCong"));
+                    String ca = rs.getString("CaLamViec");
+                    String hienThiNV = rs.getString("MaNhanVien").trim() + " - " + rs.getString("HoTen").trim();
+                    String trangThai = rs.getString("TrangThai");
+                    String ghiChu = rs.getString("GhiChu");
+
+                    mdlPhanCong.addRow(new Object[] { maPC, ngay, ca, hienThiNV, trangThai, ghiChu });
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String taoMaPhanCongTuDong() {
+        String maMoi = "PC0001";
+        String sql = "SELECT TOP 1 MaPhanCong FROM LichLamViec ORDER BY MaPhanCong DESC";
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs != null && rs.next()) {
+                String maCu = rs.getString("MaPhanCong");
+                int so = Integer.parseInt(maCu.substring(2)) + 1;
+                maMoi = String.format("PC%04d", so);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return maMoi;
+    }
+
+    private void themPhanCong() {
+        if (!kiemTraDuLieu()) return;
+
+        String maPC = txtMaPhanCong.getText().trim();
+        String selectedNV = (String) cboNhanVien.getSelectedItem();
+        String maNV = selectedNV.substring(0, selectedNV.indexOf(" - ")).trim();
+        String caLam = (String) cboCaLamViec.getSelectedItem();
+        String trangThai = (String) cboTrangThai.getSelectedItem();
+        String ghiChu = txtGhiChu.getText().trim();
+
+        String sql = "INSERT INTO LichLamViec (MaPhanCong, NgayPhanCong, CaLamViec, MaNhanVien, TrangThai, GhiChu) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, maPC);
+            pstmt.setDate(2, new java.sql.Date(dinhDangNgay.parse(txtNgayPhanCong.getText()).getTime()));
+            pstmt.setString(3, caLam);
+            pstmt.setString(4, maNV);
+            pstmt.setString(5, trangThai);
+            pstmt.setString(6, ghiChu.isEmpty() ? null : ghiChu);
+
+            pstmt.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Thêm phân công vào CSDL thành công!");
+            taiDanhSachTuCSDL();
+            lamMoiForm();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi khi thêm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void suaPhanCong() {
+        int dongView = tblPhanCong.getSelectedRow();
+        if (dongView < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn phân công cần cập nhật.");
+            return;
+        }
+
+        if (!kiemTraDuLieu()) return;
+
+        String maPC = txtMaPhanCong.getText().trim();
+        String selectedNV = (String) cboNhanVien.getSelectedItem();
+        String maNV = selectedNV.substring(0, selectedNV.indexOf(" - ")).trim();
+        String caLam = (String) cboCaLamViec.getSelectedItem();
+        String trangThai = (String) cboTrangThai.getSelectedItem();
+        String ghiChu = txtGhiChu.getText().trim();
+
+        String sql = "UPDATE LichLamViec SET NgayPhanCong = ?, CaLamViec = ?, MaNhanVien = ?, TrangThai = ?, GhiChu = ? WHERE MaPhanCong = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setDate(1, new java.sql.Date(dinhDangNgay.parse(txtNgayPhanCong.getText()).getTime()));
+            pstmt.setString(2, caLam);
+            pstmt.setString(3, maNV);
+            pstmt.setString(4, trangThai);
+            pstmt.setString(5, ghiChu.isEmpty() ? null : ghiChu);
+            pstmt.setString(6, maPC);
+
+            pstmt.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
+            taiDanhSachTuCSDL();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void xoaPhanCong() {
+        int dongView = tblPhanCong.getSelectedRow();
+        if (dongView < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn phân công cần xóa.");
+            return;
+        }
+
+        int luaChon = JOptionPane.showConfirmDialog(
+                this, "Bạn có chắc chắn muốn xóa phân công này không?",
+                "Xác nhận xóa", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
+        );
+
+        if (luaChon == JOptionPane.YES_OPTION) {
+            String maPC = txtMaPhanCong.getText().trim();
+            String sql = "DELETE FROM LichLamViec WHERE MaPhanCong = ?";
+
+            try (Connection conn = getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                pstmt.setString(1, maPC);
+                pstmt.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Đã xóa thành công!");
+                taiDanhSachTuCSDL();
+                lamMoiForm();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi khi xóa: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    // ==================== CÁC HÀM HỖ TRỢ GIAO DIỆN ====================
+
     private JPanel taoKhung() {
         JPanel pnl = new JPanel();
         pnl.setBackground(Color.WHITE);
         pnl.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(MAU_VIEN),
-            new EmptyBorder(14, 14, 14, 14)
+                new LineBorder(MAU_VIEN),
+                new EmptyBorder(14, 14, 14, 14)
         ));
         return pnl;
     }
@@ -336,7 +462,6 @@ public class PhanCongNhanVienPanel extends JPanel {
         pnl.setOpaque(false);
 
         JLabel lbl = taoNhan(ten, 12);
-
         input.setPreferredSize(new Dimension(200, 32));
         pnl.add(lbl, BorderLayout.NORTH);
         pnl.add(input, BorderLayout.CENTER);
@@ -369,19 +494,13 @@ public class PhanCongNhanVienPanel extends JPanel {
 
     private void chonNgay() {
         JSpinner spnNgay = new JSpinner(
-            new SpinnerDateModel(new Date(), null, null,
-                java.util.Calendar.DAY_OF_MONTH)
+                new SpinnerDateModel(new Date(), null, null, java.util.Calendar.DAY_OF_MONTH)
         );
-        spnNgay.setEditor(
-            new JSpinner.DateEditor(spnNgay, "dd/MM/yyyy")
-        );
+        spnNgay.setEditor(new JSpinner.DateEditor(spnNgay, "dd/MM/yyyy"));
 
         int luaChon = JOptionPane.showConfirmDialog(
-            this,
-            spnNgay,
-            "Chọn ngày phân công",
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE
+                this, spnNgay, "Chọn ngày phân công",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
         );
 
         if (luaChon == JOptionPane.OK_OPTION) {
@@ -391,223 +510,53 @@ public class PhanCongNhanVienPanel extends JPanel {
     }
 
     private boolean kiemTraDuLieu() {
-        if (cboNhaSi.getSelectedIndex() == 0
-                || cboBenhNhan.getSelectedIndex() == 0
-                || cboPhong.getSelectedIndex() == 0
-                || cboLichHen.getSelectedIndex() == 0) {
-
+        if (cboNhanVien.getSelectedIndex() == 0 || cboCaLamViec.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(
-                this,
-                "Vui lòng chọn nha sĩ, bệnh nhân, phòng điều trị và lịch hẹn.",
-                "Thiếu thông tin",
-                JOptionPane.WARNING_MESSAGE
+                    this,
+                    "Vui lòng chọn nhân viên và ca làm việc.",
+                    "Thiếu thông tin",
+                    JOptionPane.WARNING_MESSAGE
             );
             return false;
         }
-
         return true;
-    }
-
-    private void themPhanCong() {
-        if (!kiemTraDuLieu()) {
-            return;
-        }
-
-        String ma = txtMaPhanCong.getText().trim();
-
-        for (int i = 0; i < mdlPhanCong.getRowCount(); i++) {
-            if (ma.equals(mdlPhanCong.getValueAt(i, 0))) {
-                ma = taoMaPhanCongMoi();
-                break;
-            }
-        }
-
-        mdlPhanCong.addRow(new Object[] {
-            ma,
-            layTen(cboNhaSi),
-            layTen(cboBenhNhan),
-            layTen(cboPhong),
-            layTen(cboLichHen),
-            txtNgayPhanCong.getText(),
-            cboTrangThai.getSelectedItem()
-        });
-
-        JOptionPane.showMessageDialog(
-            this,
-            "Đã thêm phân công vào danh sách giao diện.\n"
-            + "Dữ liệu chưa được lưu vào SQL Server."
-        );
-
-        lamMoiForm();
-    }
-
-    private String taoMaPhanCongMoi() {
-        int lonNhat = 0;
-
-        for (int i = 0; i < mdlPhanCong.getRowCount(); i++) {
-            String ma = mdlPhanCong.getValueAt(i, 0).toString();
-
-            try {
-                int so = Integer.parseInt(ma.substring(2));
-                if (so > lonNhat) {
-                    lonNhat = so;
-                }
-            } catch (Exception ex) {
-                // Bỏ qua mã không đúng định dạng
-            }
-        }
-
-        return String.format("PC%04d", lonNhat + 1);
-    }
-
-    private String layTen(JComboBox<String> cbo) {
-        String giaTri = String.valueOf(cbo.getSelectedItem());
-        int viTri = giaTri.indexOf(" - ");
-
-        if (viTri >= 0) {
-            return giaTri.substring(viTri + 3);
-        }
-
-        return giaTri;
-    }
-
-    private void suaPhanCong() {
-        int dongView = tblPhanCong.getSelectedRow();
-
-        if (dongView < 0) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Vui lòng chọn phân công cần cập nhật."
-            );
-            return;
-        }
-
-        if (!kiemTraDuLieu()) {
-            return;
-        }
-
-        int dongModel = tblPhanCong.convertRowIndexToModel(dongView);
-
-        mdlPhanCong.setValueAt(
-            layTen(cboNhaSi), dongModel, 1
-        );
-        mdlPhanCong.setValueAt(
-            layTen(cboBenhNhan), dongModel, 2
-        );
-        mdlPhanCong.setValueAt(
-            layTen(cboPhong), dongModel, 3
-        );
-        mdlPhanCong.setValueAt(
-            layTen(cboLichHen), dongModel, 4
-        );
-        mdlPhanCong.setValueAt(
-            txtNgayPhanCong.getText(), dongModel, 5
-        );
-        mdlPhanCong.setValueAt(
-            cboTrangThai.getSelectedItem(), dongModel, 6
-        );
-
-        JOptionPane.showMessageDialog(
-            this,
-            "Đã cập nhật dữ liệu trên giao diện.\n"
-            + "Dữ liệu chưa được lưu vào SQL Server."
-        );
-    }
-
-    private void xoaPhanCong() {
-        int dongView = tblPhanCong.getSelectedRow();
-
-        if (dongView < 0) {
-            JOptionPane.showMessageDialog(
-                this,
-                "Vui lòng chọn phân công cần xóa."
-            );
-            return;
-        }
-
-        int luaChon = JOptionPane.showConfirmDialog(
-            this,
-            "Bạn có chắc chắn muốn xóa phân công này không?",
-            "Xác nhận xóa",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
-
-        if (luaChon == JOptionPane.YES_OPTION) {
-            int dongModel = tblPhanCong.convertRowIndexToModel(dongView);
-            mdlPhanCong.removeRow(dongModel);
-            lamMoiForm();
-        }
     }
 
     private void hienThiDongDuocChon() {
         int dongView = tblPhanCong.getSelectedRow();
-
-        if (dongView < 0) {
-            return;
-        }
+        if (dongView < 0) return;
 
         int dong = tblPhanCong.convertRowIndexToModel(dongView);
 
-        txtMaPhanCong.setText(
-            mdlPhanCong.getValueAt(dong, 0).toString()
-        );
+        txtMaPhanCong.setText(mdlPhanCong.getValueAt(dong, 0).toString());
+        txtNgayPhanCong.setText(mdlPhanCong.getValueAt(dong, 1).toString());
+        cboCaLamViec.setSelectedItem(mdlPhanCong.getValueAt(dong, 2).toString());
 
-        chonComboTheoTen(
-            cboNhaSi, mdlPhanCong.getValueAt(dong, 1).toString()
-        );
-        chonComboTheoTen(
-            cboBenhNhan, mdlPhanCong.getValueAt(dong, 2).toString()
-        );
-        chonComboTheoTen(
-            cboPhong, mdlPhanCong.getValueAt(dong, 3).toString()
-        );
-        chonComboTheoTen(
-            cboLichHen, mdlPhanCong.getValueAt(dong, 4).toString()
-        );
-
-        txtNgayPhanCong.setText(
-            mdlPhanCong.getValueAt(dong, 5).toString()
-        );
-
-        cboTrangThai.setSelectedItem(
-            mdlPhanCong.getValueAt(dong, 6).toString()
-        );
-    }
-
-    private void chonComboTheoTen(
-        JComboBox<String> cbo, String ten
-    ) {
-        for (int i = 1; i < cbo.getItemCount(); i++) {
-            String giaTri = cbo.getItemAt(i);
-
-            if (giaTri.contains(ten) || ten.contains(giaTri)) {
-                cbo.setSelectedIndex(i);
-                return;
+        String tenNVTable = mdlPhanCong.getValueAt(dong, 3).toString();
+        for (int i = 1; i < cboNhanVien.getItemCount(); i++) {
+            if (cboNhanVien.getItemAt(i).equals(tenNVTable)) {
+                cboNhanVien.setSelectedIndex(i);
+                break;
             }
         }
+
+        cboTrangThai.setSelectedItem(mdlPhanCong.getValueAt(dong, 4).toString());
+        txtGhiChu.setText(mdlPhanCong.getValueAt(dong, 5) != null ? mdlPhanCong.getValueAt(dong, 5).toString() : "");
     }
 
     private void timKiem() {
         String tuKhoa = txtTimKiem.getText().trim();
-
         if (tuKhoa.isEmpty()) {
             boLoc.setRowFilter(null);
         } else {
-            boLoc.setRowFilter(
-                javax.swing.RowFilter.regexFilter(
-                    "(?i)" + java.util.regex.Pattern.quote(tuKhoa)
-                )
-            );
+            boLoc.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(tuKhoa)));
         }
     }
 
     private void lamMoiForm() {
-        txtMaPhanCong.setText(taoMaPhanCongMoi());
-        cboNhaSi.setSelectedIndex(0);
-        cboBenhNhan.setSelectedIndex(0);
-        cboPhong.setSelectedIndex(0);
-        cboLichHen.setSelectedIndex(0);
+        txtMaPhanCong.setText(taoMaPhanCongTuDong());
+        cboNhanVien.setSelectedIndex(0);
+        cboCaLamViec.setSelectedIndex(0);
         txtNgayPhanCong.setText(dinhDangNgay.format(new Date()));
         cboTrangThai.setSelectedIndex(0);
         txtGhiChu.setText("");

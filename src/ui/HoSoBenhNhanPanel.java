@@ -69,6 +69,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
     private String maBenhNhanDangChon = "";
     private String maNhanVienDangChon = "";
     private String maKeHoachDangChon = "";
+    private String maBenhNhanTuCheckIn = "";
 
     public HoSoBenhNhanPanel(String maNVHienTai) {
         this.maNVHienTai = maNVHienTai;
@@ -241,7 +242,18 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
                 JOptionPane.INFORMATION_MESSAGE
         );
     }
-    private JPanel taoPanelChiTiet() {
+    public void nhanMaBenhNhanTuCheckIn(String maBN) {
+        if (maBN == null || maBN.trim().isEmpty()) {
+            return;
+        }
+
+        maBenhNhanTuCheckIn = maBN.trim();
+
+        xoaForm();
+        datTrangThaiBanDau();
+
+        txtMaBenhNhan.setText(maBenhNhanTuCheckIn);
+    }    private JPanel taoPanelChiTiet() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         panel.setBackground(WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -257,7 +269,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
 
         txtMaBenhNhan = new JTextField();
         txtMaKeHoach = new JTextField();
-        txtMaBenhNhan.setEditable(false);
+        //txtMaBenhNhan.setEditable(true);
         txtMaKeHoach.setEditable(false);
 
         txtMaBenhNhan.setToolTipText("Nhập mã bệnh nhân đã tồn tại");
@@ -283,7 +295,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         JPanel pnlTrai = new JPanel(new GridBagLayout());
         pnlTrai.setBackground(WHITE);
 
-        themTruong(pnlTrai, 0, "Mã bệnh nhân:", txtMaBenhNhan);
+        //themTruong(pnlTrai, 0, "Mã bệnh nhân:", txtMaBenhNhan);
         themTruong(pnlTrai, 1, "Ngày khám:", dcNgayKham);
         themTruong(pnlTrai, 2, "Tình trạng răng miệng:", taoScroll(txtTinhTrangRangMieng));
         themTruong(pnlTrai, 3, "Phương pháp điều trị:", taoScroll(txtPhuongPhapDieuTri));
@@ -539,23 +551,22 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
 
         try {
 
-            JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
+            String maBN = maBenhNhanTuCheckIn;
 
-            Chon_ThemBNDialog dialog = new Chon_ThemBNDialog(parent);
-            dialog.setVisible(true);
+            if (maBN == null || maBN.trim().isEmpty()) {
+                JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
 
-            String maBN = dialog.getMaBenhNhanChon();
+                Chon_ThemBNDialog dialog = new Chon_ThemBNDialog(parent);
+                dialog.setVisible(true);
+
+                maBN = dialog.getMaBenhNhanChon();
+            }
 
             if (maBN == null || maBN.trim().isEmpty()) {
                 return;
             }
 
             BenhNhan bn = benhNhanDAO.getBenhNhanTheoMa(maBN);
-
-            if (bn == null) {
-                hienThiCanhBao("Không tìm thấy thông tin bệnh nhân!");
-                return;
-            }
 
             java.util.Date ngayKhamDate = dcNgayKham.getDate();
 
@@ -625,6 +636,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
                 );
 
                 taiDanhSachHoSo();
+                maBenhNhanTuCheckIn = "";
                 xoaForm();
                 datTrangThaiBanDau();
 

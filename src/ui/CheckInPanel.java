@@ -59,12 +59,15 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
     private Color mauTrang = Color.WHITE;
     private Color mauTeal = new Color(0, 150, 136);
 
-    public CheckInPanel() {
+    private MainFrame mainFrame;
+
+    public CheckInPanel(MainFrame mainFrame) {
+        this.mainFrame = mainFrame;
+
         setLayout(new BorderLayout(0, 15));
         setBackground(mauNen);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        //taoTieuDe();
         taoNoiDung();
         loadDuLieuBang(null, null);
     }
@@ -270,8 +273,17 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
             return;
         }
 
-        String maLH = tblChoCheckIn.getValueAt(dong, 0).toString();
-        String trangThaiHienTai = tblChoCheckIn.getValueAt(dong, 7).toString();
+        int dongModel = tblChoCheckIn.convertRowIndexToModel(dong);
+
+        Object giaTriMaLH = model.getValueAt(dongModel, 0);
+        Object giaTriMaBN = model.getValueAt(dongModel, 1);
+        Object giaTriTrangThai = model.getValueAt(dongModel, 7);
+
+        String maLH = giaTriMaLH == null ? "" : giaTriMaLH.toString().trim();
+        String maBN = giaTriMaBN == null ? "" : giaTriMaBN.toString().trim();
+        String trangThaiHienTai = giaTriTrangThai == null
+                ? ""
+                : giaTriTrangThai.toString().trim();
 
         if (!"Đã đặt".equals(trangThaiHienTai)) {
             JOptionPane.showMessageDialog(
@@ -283,16 +295,41 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
             return;
         }
 
+        if (maBN.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Lịch hẹn chưa có mã bệnh nhân. Vui lòng kiểm tra lại thông tin lịch hẹn!",
+                    "Thiếu mã bệnh nhân",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
         try {
-            boolean kq = lichHenDAO.capNhatTrangThaiCheckIn(maLH, "Đang chờ khám");
+            boolean kq = lichHenDAO.capNhatTrangThaiCheckIn(
+                    maLH,
+                    "Đang chờ khám"
+            );
 
             if (kq) {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Check-in thành công! Trạng thái đã chuyển thành 'Đang chờ khám'."
+                        "Check-in thành công!"
+                                + "\nMã lịch hẹn: " + maLH
+                                + "\nMã bệnh nhân: " + maBN
+                                + "\nTrạng thái: Đang chờ khám",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE
                 );
+
+                // Chuyển mã bệnh nhân sang màn hình hồ sơ
+                if (mainFrame != null) {
+                    mainFrame.moHoSoBenhNhan(maBN);
+                }
+
                 loadDuLieuBang(null, null);
                 xoaForm();
+
             } else {
                 JOptionPane.showMessageDialog(
                         this,
@@ -301,8 +338,10 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
                         JOptionPane.ERROR_MESSAGE
                 );
             }
+
         } catch (SQLException ex) {
             ex.printStackTrace();
+
             JOptionPane.showMessageDialog(
                     this,
                     "Lỗi cơ sở dữ liệu: " + ex.getMessage(),
