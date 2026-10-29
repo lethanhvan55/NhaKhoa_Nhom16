@@ -408,6 +408,9 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
     @Override public void mouseEntered(MouseEvent e) {}
     @Override public void mouseExited(MouseEvent e) {}
 
+    public void lamMoiDanhSachKeHoach() {
+        loadDanhSachKeHoachTuCSDL();
+    }
     private void loadDanhSachKeHoachTuCSDL() {
         modelKeHoach.setRowCount(0);
         try {

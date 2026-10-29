@@ -167,7 +167,52 @@ public class KeHoachDieuTri_DAO {
             return false;
         }
     }
-    
+    public List<KeHoachDieuTri> getKeHoachTheoMaBenhNhan(String maBenhNhan) {
+        List<KeHoachDieuTri> ds = new ArrayList<>();
+
+        String sql = "SELECT kh.*, bn.HoTen "
+                + "FROM KeHoachDieuTri kh "
+                + "LEFT JOIN BenhNhan bn "
+                + "ON kh.MaBenhNhan = bn.MaBenhNhan "
+                + "WHERE kh.MaBenhNhan = ? "
+                + "ORDER BY kh.NgayBatDau DESC";
+
+        Connection con = ConnectDB.getInstance().getConnection();
+        if (con == null) {
+            System.out.println("Không kết nối được CSDL khi lấy kế hoạch điều trị!");
+            return ds;
+        }
+
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, maBenhNhan);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    BenhNhan benhNhan = new BenhNhan();
+                    benhNhan.setMaBenhNhan(rs.getString("MaBenhNhan"));
+                    benhNhan.setHoTen(rs.getString("HoTen"));
+
+                    KeHoachDieuTri kh = new KeHoachDieuTri(
+                            rs.getString("MaKeHoach"),
+                            benhNhan,
+                            rs.getString("ChanDoan"),
+                            rs.getDate("NgayBatDau") != null
+                                    ? rs.getDate("NgayBatDau").toLocalDate() : null,
+                            rs.getDate("NgayKetThuc") != null
+                                    ? rs.getDate("NgayKetThuc").toLocalDate() : null,
+                            rs.getDouble("ChiPhiDuKien"),
+                            rs.getString("TrangThai")
+                    );
+
+                    ds.add(kh);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
     public List<DichVu> getDichVuTheoMaBenhNhan(String maBenhNhan) {
         List<DichVu> danhSachDichVu = new ArrayList<>();
         Connection con = ConnectDB.getInstance().getConnection();
@@ -206,10 +251,13 @@ public class KeHoachDieuTri_DAO {
              ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
-                int so = rs.getInt("MaxMa") + 1;
+                int maxMa = rs.getInt("MaxMa");
 
+                int so;
                 if (rs.wasNull()) {
                     so = 1;
+                } else {
+                    so = maxMa + 1;
                 }
 
                 if (so > 9999) {

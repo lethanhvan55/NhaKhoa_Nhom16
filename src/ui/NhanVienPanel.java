@@ -249,6 +249,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         pnlLuoi.setBorder(new EmptyBorder(5, 10, 5, 10));
 
         txtMaNV = new JTextField();
+        txtMaNV.setEditable(false);
         txtHoTen = new JTextField();
         txtSoDT = new JTextField();
         txtEmail = new JTextField();
@@ -385,6 +386,12 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
 
         if (thanhPhan instanceof JTextField) {
             UIHelper.styleTextField((JTextField) thanhPhan);
+
+            if (thanhPhan == txtMaNV) {
+                txtMaNV.setEditable(false);
+                txtMaNV.setFocusable(false);
+                txtMaNV.setBackground(new Color(235, 235, 235));
+            }
         }
 
         pnlTruong.add(lblTieuDe, BorderLayout.NORTH);
@@ -400,7 +407,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
             tblNhanVien.clearSelection();
         }
 
-        txtMaNV.setText("");
+        txtMaNV.setText(nhanVienDAO.sinhMaNVMoi());
         txtHoTen.setText("");
         txtSoDT.setText("");
         txtEmail.setText("");
@@ -414,8 +421,8 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
 
         dangThem = true;
 
-        txtMaNV.setEditable(true);
-        txtMaNV.requestFocusInWindow();
+        txtMaNV.setEditable(false);
+        //  txtMaNV.requestFocusInWindow();
     }
 
     // ==================== HIỂN THỊ DỮ LIỆU LÊN FORM ====================
@@ -603,159 +610,100 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
     // ==================== KIỂM TRA DỮ LIỆU ====================
 
     private boolean kiemTraDuLieu() {
-        String maNV = txtMaNV.getText().trim();
         String hoTen = txtHoTen.getText().trim();
         String soDT = txtSoDT.getText().trim();
         String email = txtEmail.getText().trim();
         String diaChi = txtDiaChi.getText().trim();
 
-        String chucVu = cboChucVu.getSelectedIndex() == 0
-                ? ""
-                : cboChucVu.getSelectedItem().toString();
-
-        String trangThai = cboTrangThai.getSelectedIndex() == 0
-                ? ""
-                : cboTrangThai.getSelectedItem().toString();
-
-        // Kiểm tra mã nhân viên.
-        if (maNV.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Vui lòng nhập mã nhân viên!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            txtMaNV.requestFocusInWindow();
-            return false;
-        }
-
-        if (!maNV.matches("^NV\\d{4}$")) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Mã nhân viên phải có dạng NV0001!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            txtMaNV.requestFocusInWindow();
-            return false;
-        }
-
-        // Kiểm tra họ tên.
         if (hoTen.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Vui lòng nhập họ và tên!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập họ và tên!");
             txtHoTen.requestFocusInWindow();
             return false;
         }
 
         if (hoTen.length() > 40) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Họ tên không được vượt quá 40 ký tự!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "Họ tên không được vượt quá 40 ký tự!");
+            txtHoTen.requestFocusInWindow();
             return false;
         }
 
-        if (!hoTen.matches(
-                "^[\\p{L}]+(?:[ '\\u2019-][\\p{L}]+)*$")) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Họ tên chỉ được chứa chữ cái và khoảng trắng hợp lệ!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        if (!hoTen.matches("^[\\p{L}]+(?:[ '\\u2019-][\\p{L}]+)*$")) {
+            JOptionPane.showMessageDialog(this,
+                    "Họ tên chỉ được chứa chữ cái và khoảng trắng hợp lệ!");
+            txtHoTen.requestFocusInWindow();
             return false;
         }
 
-        // Kiểm tra số điện thoại.
-        if (!soDT.isEmpty()
-                && !soDT.matches("0[3-9]\\d{8}")) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Số điện thoại phải có 10 chữ số "
-                            + "và bắt đầu bằng số 03 đến 09!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        if (soDT.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại!");
+            txtSoDT.requestFocusInWindow();
             return false;
         }
 
-        // Kiểm tra độ dài email.
-        if (email.length() > 30) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Email không được vượt quá 30 ký tự!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        if (!soDT.matches("0[3-9]\\d{8}")) {
+            JOptionPane.showMessageDialog(this,
+                    "Số điện thoại phải có 10 chữ số và bắt đầu bằng 03 đến 09!");
+            txtSoDT.requestFocusInWindow();
             return false;
         }
 
-        // Kiểm tra định dạng email.
-        if (!email.isEmpty()
-                && !email.matches(
-                "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Email không đúng định dạng!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        if (txtNgayVaoLam.getDate() == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn ngày vào làm!");
+            txtNgayVaoLam.requestFocusInWindow();
             return false;
         }
 
-        // Kiểm tra địa chỉ.
-        if (diaChi.length() > 60) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Địa chỉ không được vượt quá 60 ký tự!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            return false;
-        }
-
-        // Kiểm tra ngày vào làm.
-        Date ngayChon = txtNgayVaoLam.getDate();
-
-        if (ngayChon == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Vui lòng chọn ngày vào làm!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            return false;
-        }
-
-        LocalDate ngayVaoLam = ngayChon.toInstant()
-                .atZone(java.time.ZoneId.systemDefault())
-                .toLocalDate();
+        LocalDate ngayVaoLam = txtNgayVaoLam.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
         if (ngayVaoLam.isAfter(LocalDate.now())) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Ngày vào làm không được lớn hơn ngày hiện tại!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this,
+                    "Ngày vào làm không được lớn hơn ngày hiện tại!");
+            txtNgayVaoLam.requestFocusInWindow();
             return false;
         }
 
-        // Kiểm tra chức vụ và trạng thái.
-        if (chucVu.isEmpty() || trangThai.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Vui lòng chọn chức vụ và trạng thái!",
-                    "Cảnh báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        if (cboGioiTinh.getSelectedIndex() == 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn giới tính!");
+            cboGioiTinh.requestFocusInWindow();
+            return false;
+        }
+
+        if (cboChucVu.getSelectedIndex() == 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn chức vụ!");
+            cboChucVu.requestFocusInWindow();
+            return false;
+        }
+
+        if (cboTrangThai.getSelectedIndex() == 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn trạng thái!");
+            cboTrangThai.requestFocusInWindow();
+            return false;
+        }
+
+        if (email.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập email!");
+            txtEmail.requestFocusInWindow();
+            return false;
+        }
+
+        if (email.length() > 30
+                || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            JOptionPane.showMessageDialog(this,
+                    "Email không hợp lệ hoặc vượt quá 30 ký tự!");
+            txtEmail.requestFocusInWindow();
+            return false;
+        }
+
+        if (diaChi.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập địa chỉ!");
+            txtDiaChi.requestFocusInWindow();
+            return false;
+        }
+
+        if (diaChi.length() > 60) {
+            JOptionPane.showMessageDialog(this,
+                    "Địa chỉ không được vượt quá 60 ký tự!");
+            txtDiaChi.requestFocusInWindow();
             return false;
         }
 
@@ -796,7 +744,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
             String trangThai = cboTrangThai.getSelectedItem().toString();
 
             NhanVien nv = new NhanVien(
-                    maNV,
+                    null,
                     hoTen,
                     soDT.isEmpty() ? null : soDT,
                     ngayVaoLam,
@@ -843,99 +791,52 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         }
     }
     private void xuLyLuuNhanVien() {
-        try {
-            if (!kiemTraDuLieu()) {
-                return;
-            }
-
-            String maNV = txtMaNV.getText().trim();
-            String hoTen = txtHoTen.getText().trim();
-            String soDT = txtSoDT.getText().trim();
-            String email = txtEmail.getText().trim();
-            String diaChi = txtDiaChi.getText().trim();
-
-            String gioiTinhText =
-                    cboGioiTinh.getSelectedIndex() == 0
-                            ? ""
-                            : cboGioiTinh.getSelectedItem().toString();
-
-            String chucVu =
-                    cboChucVu.getSelectedItem().toString();
-
-            String trangThai =
-                    cboTrangThai.getSelectedItem().toString();
-
-            Date ngayChon = txtNgayVaoLam.getDate();
-
-            LocalDate ngayVaoLam = ngayChon.toInstant()
-                    .atZone(java.time.ZoneId.systemDefault())
-                    .toLocalDate();
-
-            // Chuyển giới tính sang Boolean.
-            Boolean gioiTinh = null;
-
-            if ("Nam".equals(gioiTinhText)) {
-                gioiTinh = true;
-            } else if ("Nữ".equals(gioiTinhText)) {
-                gioiTinh = false;
-            }
-
-            // Tạo đối tượng nhân viên.
-            NhanVien nv = new NhanVien(
-                    maNV,
-                    hoTen,
-                    soDT.isEmpty() ? null : soDT,
-                    ngayVaoLam,
-                    gioiTinh,
-                    chucVu,
-                    trangThai,
-                    email.isEmpty() ? null : email,
-                    diaChi.isEmpty() ? null : diaChi
+        if (dangThem || tblNhanVien.getSelectedRow() < 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng chọn nhân viên trong bảng trước khi cập nhật!",
+                    "Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE
             );
+            return;
+        }
 
-            NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
+        if (!kiemTraDuLieu()) {
+            return;
+        }
 
-            boolean ketQua;
+        try {
+            NhanVien nv = layNhanVienTuForm();
 
-            if (dangThem) {
-                // Đang thêm nhân viên mới.
-                ketQua = nhanVienDAO.insert(nv);
-            } else {
-                // Đang cập nhật nhân viên đã chọn.
-                ketQua = nhanVienDAO.update(nv);
-            }
+            boolean ketQua = nhanVienDAO.update(nv);
 
             if (ketQua) {
                 JOptionPane.showMessageDialog(
                         this,
-                        dangThem
-                                ? "Thêm nhân viên thành công!"
-                                : "Cập nhật nhân viên thành công!",
+                        "Cập nhật nhân viên thành công!",
                         "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE
                 );
 
                 taiDanhSachNhanVien();
                 clearForm();
-
             } else {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Không thể lưu nhân viên. Vui lòng kiểm tra dữ liệu!",
+                        "Cập nhật nhân viên thất bại!",
                         "Lỗi",
                         JOptionPane.ERROR_MESSAGE
                 );
             }
-
         } catch (Exception ex) {
+            ex.printStackTrace();
+
             JOptionPane.showMessageDialog(
                     this,
-                    "Lỗi khi lưu nhân viên: " + ex.getMessage(),
+                    "Lỗi khi cập nhật nhân viên: " + ex.getMessage(),
                     "Lỗi",
                     JOptionPane.ERROR_MESSAGE
             );
-
-            ex.printStackTrace();
         }
     }
 
@@ -982,5 +883,24 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
                 "Đã xóa nhân viên khỏi bảng!",
                 "Thông báo",
                 JOptionPane.INFORMATION_MESSAGE);
+    }
+    private NhanVien layNhanVienTuForm() {
+        LocalDate ngayVaoLam = txtNgayVaoLam.getDate().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        Boolean gioiTinh = "Nam".equals(cboGioiTinh.getSelectedItem());
+
+        return new NhanVien(
+                txtMaNV.getText().trim(),
+                txtHoTen.getText().trim(),
+                txtSoDT.getText().trim(),
+                ngayVaoLam,
+                gioiTinh,
+                cboChucVu.getSelectedItem().toString(),
+                cboTrangThai.getSelectedItem().toString(),
+                txtEmail.getText().trim(),
+                txtDiaChi.getText().trim()
+        );
     }
 }

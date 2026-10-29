@@ -2,8 +2,10 @@
   <library name="core-3.5.3">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/core-3.5.3.jar!/" />
+      <root url="file://$PROJECT_DIR$/lib/JavaFX/lib" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/lib/JavaFX/lib" recursive="false" />
   </library>
 </component>

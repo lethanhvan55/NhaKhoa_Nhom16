@@ -6,7 +6,10 @@ import java.awt.*;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 
 public class ChiTietVatTuDichVuDialog extends JDialog {
 
@@ -57,7 +60,7 @@ public class ChiTietVatTuDichVuDialog extends JDialog {
         };
 
         table = new JTable(tableModel);
-        table.setRowHeight(28);
+        table.setRowHeight(32);
         table.setFont(new Font("Arial", Font.PLAIN, 13));
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
 
@@ -67,7 +70,11 @@ public class ChiTietVatTuDichVuDialog extends JDialog {
         table.getColumnModel().getColumn(2).setPreferredWidth(220);
         table.getColumnModel().getColumn(3).setPreferredWidth(70);
         table.getColumnModel().getColumn(4).setPreferredWidth(80);
-        table.getColumnModel().getColumn(5).setPreferredWidth(120);
+        table.getColumnModel().getColumn(5).setPreferredWidth(130);
+
+        // Đăng ký custom Editor và Renderer cho cột "Số lượng sử dụng" (Cột 5)
+        table.getColumnModel().getColumn(5).setCellEditor(new SpinnerEditor());
+        table.getColumnModel().getColumn(5).setCellRenderer(new SpinnerRenderer());
 
         JScrollPane scrollPane = new JScrollPane(table);
         pnlMain.add(scrollPane, BorderLayout.CENTER);
@@ -103,12 +110,20 @@ public class ChiTietVatTuDichVuDialog extends JDialog {
         tableModel.setRowCount(0);
         List<Object[]> list = dao.getDanhSachVatTuVaSuDung(maDV);
         for (Object[] row : list) {
+            // Nếu số lượng chưa có hoặc null, mặc định gán là 0
+            if (row[5] == null) {
+                row[5] = 0;
+            }
             tableModel.addRow(row);
         }
     }
 
     private void xuLyLuu() {
-        // Kiểm tra hợp lệ số lượng sử dụng
+        // Dừng cell đang chỉnh sửa để nhận giá trị mới nhất từ JSpinner
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
+
         List<Object[]> updatedList = new java.util.ArrayList<>();
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             boolean chon = (boolean) tableModel.getValueAt(i, 0);
@@ -116,7 +131,7 @@ public class ChiTietVatTuDichVuDialog extends JDialog {
                 try {
                     int soLuong = Integer.parseInt(tableModel.getValueAt(i, 5).toString());
                     if (soLuong <= 0) {
-                        JOptionPane.showMessageDialog(this, "Số lượng sử dụng của vật tư ở dòng " + (i + 1) + " phải lớn hơn 0!", "Lỗi nhập liệu", JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "Số lượng sử dụng của vật tư ở dòng " + (i + 1) + " phải lớn hơn 0 khi đã chọn!", "Lỗi nhập liệu", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
                     tableModel.setValueAt(soLuong, i, 5);
@@ -148,5 +163,64 @@ public class ChiTietVatTuDichVuDialog extends JDialog {
 
     public boolean isSaved() {
         return isSaved;
+    }
+
+    // ==================== CUSTOM SPINNER EDITOR & RENDERER (Bắt đầu từ 0) ====================
+
+    private static class SpinnerEditor extends AbstractCellEditor implements TableCellEditor {
+        private final JSpinner spinner;
+
+        public SpinnerEditor() {
+            // Thiết lập giá trị tối thiểu là 0
+            spinner = new JSpinner(new SpinnerNumberModel(0, 0, 10000, 1));
+            JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner.getEditor();
+            editor.getTextField().setHorizontalAlignment(JTextField.CENTER);
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            int val = 0;
+            if (value != null) {
+                try {
+                    val = Integer.parseInt(value.toString());
+                    if (val < 0) val = 0;
+                } catch (Exception ignored) {}
+            }
+            spinner.setValue(val);
+            return spinner;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return spinner.getValue();
+        }
+    }
+
+    private static class SpinnerRenderer extends DefaultTableCellRenderer implements TableCellRenderer {
+        private final JSpinner spinner;
+
+        public SpinnerRenderer() {
+            spinner = new JSpinner(new SpinnerNumberModel(0, 0, 10000, 1));
+            JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner.getEditor();
+            editor.getTextField().setHorizontalAlignment(JTextField.CENTER);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            int val = 0;
+            if (value != null) {
+                try {
+                    val = Integer.parseInt(value.toString());
+                } catch (Exception ignored) {}
+            }
+            spinner.setValue(val);
+            
+            if (isSelected) {
+                spinner.setBackground(table.getSelectionBackground());
+            } else {
+                spinner.setBackground(table.getBackground());
+            }
+            return spinner;
+        }
     }
 }

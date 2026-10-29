@@ -52,7 +52,11 @@ public class TiepNhanLichHenPanel extends JPanel
     private DateTimeFormatter dtfDate = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private DateTimeFormatter dtfTime = DateTimeFormatter.ofPattern("HH:mm");
 
-    public TiepNhanLichHenPanel() {
+    private MainFrame mainFrame; // Tham chiếu tới MainFrame để điều phối đồng bộ
+
+    public TiepNhanLichHenPanel(MainFrame mainFrame) {
+        this.mainFrame = mainFrame;
+
         setLayout(new BorderLayout());
         setBackground(UIHelper.BG);
         setBorder(new EmptyBorder(15, 15, 15, 15));
@@ -69,7 +73,7 @@ public class TiepNhanLichHenPanel extends JPanel
         refreshData();
     }
 
-    // ==================== HÀM CÔNG KHAI ĐỂ GỌI LÀM MỚI TỪ BÊN NGOÀI ====================
+    // ==================== HÀM LÀM MỚI DỮ LIỆU TỰ ĐỘNG ====================
     public void refreshData() {
         layDanhSachBacSiTuCSDL();
         layDanhSachDichVuTuCSDL();
@@ -234,7 +238,7 @@ public class TiepNhanLichHenPanel extends JPanel
         UIHelper.styleComboBox(dentistCombo);
         serviceCombo = new JComboBox<>();
         UIHelper.styleComboBox(serviceCombo);
-        statusCombo = new JComboBox<>(new String[]{"Chọn trạng thái", "Đã đặt", "Đang chờ khám", "Hoàn thành", "Hủy", "Không đến"});
+        statusCombo = new JComboBox<>(new String[]{"Chọn trạng thái", "Đã đặt"});
         UIHelper.styleComboBox(statusCombo);
 
         formGrid.add(createFieldWrapper("Mã lịch hẹn", codeField));
@@ -298,7 +302,7 @@ public class TiepNhanLichHenPanel extends JPanel
                     if (so > max) max = so;
                 } catch (Exception ignored) {}
             }
-            return String.format("LH%06d", max + 1);
+            return String.format("LH%04d", max + 1);
         } catch (Exception e) {
             return "LH000001";
         }
@@ -326,7 +330,7 @@ public class TiepNhanLichHenPanel extends JPanel
         codeField.setText(String.valueOf(model.getValueAt(r, 1)));
         maBenhNhanField.setText(String.valueOf(model.getValueAt(r, 2)));
         patientField.setText(String.valueOf(model.getValueAt(r, 3)));
-        
+
         setSelectedComboBoxByText(roomCombo, String.valueOf(model.getValueAt(r, 4)));
 
         try {
@@ -451,7 +455,7 @@ public class TiepNhanLichHenPanel extends JPanel
     private void xuLyLuuLichHen() {
         String maLH = codeField.getText().trim();
         String maBN = maBenhNhanField.getText().trim();
-        
+
         if (maBN.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn hoặc thêm bệnh nhân trước khi lưu lịch hẹn!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;

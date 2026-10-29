@@ -334,6 +334,37 @@ public class HoSoBenhNhan_DAO {
 
         return null;
     }
+    public List<HoSoBenhNhan> getHoSoTheoMaBenhNhan(String maBenhNhan) {
+        List<HoSoBenhNhan> list = new ArrayList<>();
+
+        String sql = "SELECT MaHoSo, MaBenhNhan, MaNV, MaKeHoach, NgayKham, "
+                + "TinhTrangRangMieng, ChanDoan, PhuongPhapDieuTri, "
+                + "TienSuBenh, DiUng, BenhLyNen, NguoiLienHe, SoDTNLH, GhiChu "
+                + "FROM HoSoBenhNhan "
+                + "WHERE MaBenhNhan = ? "
+                + "ORDER BY NgayKham DESC";
+
+        Connection con = ConnectDB.getInstance().getConnection();
+
+        if (con == null) {
+            System.out.println("Không kết nối được CSDL khi lấy hồ sơ bệnh án!");
+            return list;
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, maBenhNhan);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(docHoSoBenhNhan(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
     // ================= KIỂM TRA DỮ LIỆU =================
     private boolean kiemTraDuLieu(HoSoBenhNhan hs) {
 

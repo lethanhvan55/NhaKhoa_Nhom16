@@ -1,3 +1,4 @@
+
 package ui;
 
 import java.awt.BorderLayout;
@@ -6,22 +7,25 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.*;
+import java.sql.SQLException;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
+import dao.ChiTietHoaDon_DAO;
+import dao.HoaDonDao;
+import model.ChiTietHoaDon;
+import model.HoaDon;
 import utils.GiaoDienStyle;
 
-public class TraCuuHoaDonPanel extends JPanel {
+public class TraCuuHoaDonPanel extends JPanel implements ActionListener, MouseListener {
 
+    private HoaDonDao hoadonDAO;
     private Color mauChuDao = GiaoDienStyle.MAU_NAVY;
     private Color mauNen = GiaoDienStyle.MAU_NEN;
     private Color mauTrang = GiaoDienStyle.MAU_TRANG;
@@ -31,8 +35,33 @@ public class TraCuuHoaDonPanel extends JPanel {
     private JDateChooser dchTuNgay;
     private JDateChooser dchDenNgay;
 
+    private JTable tblHoaDon;
+    private JTable tblDichVu;
+    private DefaultTableModel modelHoaDon;
+    private DefaultTableModel modelDichVu;
+
+    private JLabel lblMaHoaDon;
+    private JLabel lblMaLichHen;
+    private JLabel lblTenBenhNhan;
+    private JLabel lblTenNhanVienChinh;
+    private JLabel lblNgayLap;
+    private JLabel lblChietKhau;
+    private JLabel lblTrangThai;
+    private JLabel lblSoDT;
+    private JLabel lblTongTien;
+
+    private JButton btnTimKiem;
+    private JButton btnLamMoi;
+    private JButton btnInHoaDon;
+    private ChiTietHoaDon_DAO chiTietHoaDonDao ;
+    private NumberFormat dinhDangTien = NumberFormat.getNumberInstance(Locale.of("vi", "VN"));
+
     public TraCuuHoaDonPanel() {
+        hoadonDAO = new HoaDonDao();
+        chiTietHoaDonDao = new ChiTietHoaDon_DAO();
         khoiTaoGiaoDien();
+        dangKySuKien();
+        taiDanhSachHoaDon();
     }
 
     private void khoiTaoGiaoDien() {
@@ -40,13 +69,9 @@ public class TraCuuHoaDonPanel extends JPanel {
         setBackground(mauNen);
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // BO LOC
-        JPanel pnlBoLoc = new JPanel(
-                new FlowLayout(FlowLayout.LEFT, 4, 4));
-
+        JPanel pnlBoLoc = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
         pnlBoLoc.setBackground(mauTrang);
-        pnlBoLoc.setBorder(
-                BorderFactory.createTitledBorder("Tìm kiếm và bộ lọc"));
+        pnlBoLoc.setBorder(BorderFactory.createTitledBorder("Tìm kiếm và bộ lọc"));
 
         txtTimKiem = new JTextField(9);
         pnlBoLoc.add(new JLabel("Mã HĐ / Mã BN / Tên BN:"));
@@ -76,143 +101,113 @@ public class TraCuuHoaDonPanel extends JPanel {
         pnlBoLoc.add(new JLabel("Đến ngày:"));
         pnlBoLoc.add(dchDenNgay);
 
-        JButton btnTimKiem = taoNut("Tìm kiếm");
+        btnTimKiem = taoNut("Tìm kiếm");
         btnTimKiem.setPreferredSize(new Dimension(95, 27));
         pnlBoLoc.add(btnTimKiem);
 
-        // DANH SACH HOA DON
-        String[] cotHoaDon = {
-                "Mã hóa đơn",
-                "Mã BN",
-                "Tên bệnh nhân",
-                "Ngày lập",
-                "Tổng tiền",
-                "Chiết khấu",
-                "Thanh toán",
-                "Trạng thái"
+        btnLamMoi = taoNut("Làm mới");
+        btnLamMoi.setPreferredSize(new Dimension(95, 27));
+        pnlBoLoc.add(btnLamMoi);
+
+        String[] cotHoaDon = {"Mã hóa đơn", "Mã Bệnh Nhân", "Mã lịch hẹn", "Ngày lập", "Tổng tiền", "Chiết khấu", "Thanh toán", "Trạng thái"};
+
+        Object[][] duLieuHoaDon = {};
+
+        modelHoaDon = new DefaultTableModel(duLieuHoaDon, cotHoaDon) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
 
-        Object[][] duLieuHoaDon = {
-                {"HD0001", "BN0001", "Nguyễn Văn An", "10/01/2025",
-                        "2.000.000", "0%", "2.000.000", "Đã thanh toán"},
-                {"HD0002", "BN0002", "Trần Thị Bích", "12/01/2025",
-                        "3.800.000", "5%", "3.610.000", "Chưa thanh toán"},
-                {"HD0003", "BN0003", "Lê Minh Hoàng", "15/01/2025",
-                        "1.500.000", "0%", "1.500.000", "Đã thanh toán"},
-                {"HD0004", "BN0004", "Phạm Thu Hà", "20/01/2025",
-                        "900.000", "0%", "900.000", "Đã thanh toán"},
-                {"HD0005", "BN0005", "Đỗ Minh Quân", "25/01/2025",
-                        "2.200.000", "10%", "1.980.000", "Chưa thanh toán"}
-        };
-
-        JTable tblHoaDon = taoBang(cotHoaDon, duLieuHoaDon);
+        tblHoaDon = new JTable(modelHoaDon);
+        GiaoDienStyle.dinhDangBang(tblHoaDon);
         tblHoaDon.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         tblHoaDon.setRowHeight(28);
 
-        JScrollPane scrHoaDon = new JScrollPane(tblHoaDon);
-
         JPanel pnlBang = new JPanel(new BorderLayout());
         pnlBang.setBackground(mauNen);
-        pnlBang.setBorder(
-                BorderFactory.createTitledBorder("Danh sách hóa đơn"));
-        pnlBang.add(scrHoaDon, BorderLayout.CENTER);
+        pnlBang.setBorder(BorderFactory.createTitledBorder("Danh sách hóa đơn"));
+        pnlBang.add(new JScrollPane(tblHoaDon), BorderLayout.CENTER);
 
-        // THONG TIN HOA DON
-        JPanel pnlThongTin = new JPanel(
-                new GridLayout(0, 2, 8, 8));
-
+        JPanel pnlThongTin = new JPanel(new GridLayout(0, 2, 8, 8));
         pnlThongTin.setBackground(mauTrang);
-        pnlThongTin.setBorder(
-                BorderFactory.createTitledBorder("Thông tin hóa đơn"));
+        pnlThongTin.setBorder(BorderFactory.createTitledBorder("Thông tin hóa đơn"));
 
-        themThongTin(pnlThongTin, "Mã hóa đơn:", "HD0003");
-        themThongTin(pnlThongTin, "Mã bệnh nhân:", "BN0003");
-        themThongTin(pnlThongTin, "Tên bệnh nhân:", "Lê Minh Hoàng");
-        themThongTin(pnlThongTin, "Mã nhân viên:", "NV0001");
-        themThongTin(pnlThongTin, "Ngày lập:", "15/01/2025");
-        themThongTin(pnlThongTin, "Chiết khấu:", "5%");
-        themThongTin(pnlThongTin, "Trạng thái:", "Chưa thanh toán");
-        themThongTin(pnlThongTin, "Ghi chú:", "Thanh toán tại quầy");
+        lblMaHoaDon = themThongTin(pnlThongTin, "Mã hóa đơn:");
+        // lblMaLichHen = themThongTin(pnlThongTin, "Mã lịch hẹn:");
+        lblTenBenhNhan = themThongTin(pnlThongTin, "Tên bệnh nhân:");
+        lblTenNhanVienChinh = themThongTin(pnlThongTin, "Tên nhân viên :");
+        lblNgayLap = themThongTin(pnlThongTin, "Ngày lập:");
+        lblChietKhau = themThongTin(pnlThongTin, "Chiết khấu:");
+        lblTrangThai = themThongTin(pnlThongTin, "Trạng thái:");
+        lblSoDT = themThongTin(pnlThongTin, "Số điện thoại:");
 
-        // DANH SACH DICH VU
-        String[] cotDichVu = {
-                "STT",
-                "Tên dịch vụ",
-                "Số lượng",
-                "Đơn giá",
-                "Thành tiền"
+        String[] cotDichVu = {"STT", "Tên dịch vụ", "Số lượng", "Đơn giá", "Thành tiền"};
+
+        modelDichVu = new DefaultTableModel(cotDichVu, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
 
-        Object[][] duLieuDichVu = {
-                {"1", "Chụp X-Quang", "1", "800.000", "800.000"},
-                {"2", "Cạo vôi răng", "1", "500.000", "500.000"},
-                {"3", "Trám răng", "2", "1.250.000", "2.500.000"}
-        };
-
-        JTable tblDichVu = taoBang(cotDichVu, duLieuDichVu);
+        tblDichVu = new JTable(modelDichVu);
+        GiaoDienStyle.dinhDangBang(tblDichVu);
         tblDichVu.setRowHeight(26);
 
         JPanel pnlDichVu = new JPanel(new BorderLayout(5, 5));
         pnlDichVu.setBackground(mauTrang);
-        pnlDichVu.setBorder(
-                BorderFactory.createTitledBorder("Danh sách dịch vụ"));
+        pnlDichVu.setBorder(BorderFactory.createTitledBorder("Danh sách dịch vụ"));
+        pnlDichVu.add(new JScrollPane(tblDichVu), BorderLayout.CENTER);
 
-        pnlDichVu.add(
-                new JScrollPane(tblDichVu),
-                BorderLayout.CENTER);
-
-        JLabel lblTongTien = new JLabel(
-                "Tổng tiền dịch vụ: 3.800.000 VNĐ");
-
+        lblTongTien = new JLabel("Tổng tiền dịch vụ: 0 VNĐ");
         lblTongTien.setFont(new Font("Arial", Font.BOLD, 14));
         lblTongTien.setForeground(mauChuDao);
 
-        JPanel pnlTongTien = new JPanel(
-                new FlowLayout(FlowLayout.LEFT));
-
+        JPanel pnlTongTien = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnlTongTien.setBackground(mauTrang);
         pnlTongTien.add(lblTongTien);
-
         pnlDichVu.add(pnlTongTien, BorderLayout.SOUTH);
 
-        // GHEP THONG TIN VA DICH VU
-        JPanel pnlChiTiet = new JPanel(
-                new GridLayout(1, 2, 10, 0));
-
+        JPanel pnlChiTiet = new JPanel(new GridLayout(1, 2, 10, 0));
         pnlChiTiet.setBackground(mauNen);
         pnlChiTiet.add(new JScrollPane(pnlThongTin));
         pnlChiTiet.add(pnlDichVu);
 
-        // CHIA KHONG GIAN: DANH SACH O TREN, CHI TIET O DUOI
-        JPanel pnlNoiDung = new JPanel(new BorderLayout(8, 8));
-        pnlNoiDung.setBackground(mauNen);
+        btnInHoaDon = taoNut("In hóa đơn");
+        btnInHoaDon.setPreferredSize(new Dimension(120, 32));
 
-        pnlNoiDung.add(pnlBoLoc, BorderLayout.NORTH);
-        pnlNoiDung.add(pnlBang, BorderLayout.CENTER);
+        JPanel pnlNut = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pnlNut.setBackground(mauNen);
+        pnlNut.add(btnInHoaDon);
 
-        JPanel pnlDuoi = new JPanel(new BorderLayout());
+        JPanel pnlDuoi = new JPanel(new BorderLayout(5, 5));
         pnlDuoi.setBackground(mauNen);
         pnlDuoi.setPreferredSize(new Dimension(0, 280));
         pnlDuoi.add(pnlChiTiet, BorderLayout.CENTER);
+        pnlDuoi.add(pnlNut, BorderLayout.SOUTH);
 
+        JPanel pnlNoiDung = new JPanel(new BorderLayout(8, 8));
+        pnlNoiDung.setBackground(mauNen);
+        pnlNoiDung.add(pnlBoLoc, BorderLayout.NORTH);
+        pnlNoiDung.add(pnlBang, BorderLayout.CENTER);
         pnlNoiDung.add(pnlDuoi, BorderLayout.SOUTH);
 
         add(pnlNoiDung, BorderLayout.CENTER);
     }
 
-    private void themThongTin(
-            JPanel pnl,
-            String ten,
-            String giaTri) {
-
+    private JLabel themThongTin(JPanel pnl, String ten) {
         JLabel lblTen = new JLabel(ten);
         lblTen.setFont(new Font("Arial", Font.BOLD, 12));
 
-        JLabel lblGiaTri = new JLabel(giaTri);
+        JLabel lblGiaTri = new JLabel("");
         lblGiaTri.setFont(new Font("Arial", Font.PLAIN, 12));
 
         pnl.add(lblTen);
         pnl.add(lblGiaTri);
+
+        return lblGiaTri;
     }
 
     private JTable taoBang(String[] cot, Object[][] duLieu) {
@@ -238,5 +233,184 @@ public class TraCuuHoaDonPanel extends JPanel {
         btn.setPreferredSize(new Dimension(95, 27));
 
         return btn;
+    }
+
+    private void dangKySuKien() {
+        btnTimKiem.addActionListener(this);
+        btnLamMoi.addActionListener(this);
+        btnInHoaDon.addActionListener(this);
+
+        tblHoaDon.addMouseListener(this);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object nguon = e.getSource();
+
+        if (nguon == btnTimKiem) {
+            xuLyTimKiem();
+        } else if (nguon == btnLamMoi) {
+            xuLyLamMoi();
+        } else if (nguon == btnInHoaDon) {
+            xuLyInHoaDon();
+        }
+    }
+    private void xuLyTimKiem() {
+        String tuKhoa = txtTimKiem.getText().trim();
+        List<HoaDon> ds = hoadonDAO.search(tuKhoa);
+        doDuLieuHoaDon(ds);
+    }
+    private void doDuLieuHoaDon(List<HoaDon> ds) {
+        modelHoaDon.setRowCount(0);
+        for (HoaDon hd : ds) {
+            String maBN = hd.getMaBenhNhan() == null ? "" : hd.getMaBenhNhan().getMaBenhNhan();
+            String maLH = hd.getMaLichHen() == null ? "" : hd.getMaLichHen().getMaLichHen();
+            String ngayLap = hd.getNgayLap() == null ? "" : hd.getNgayLap().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            double tongTien = 0;
+            try {
+                tongTien = chiTietHoaDonDao.tinhTongTien(hd.getMaHD());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            double canThanhToan = hd.tinhTienSauGiam(tongTien) * (1 + hd.getThueVAT());
+            modelHoaDon.addRow(new Object[] {
+                    hd.getMaHD(),
+                    maBN,
+                    maLH,
+                    ngayLap,
+                    dinhDangTien.format(tongTien),
+                    dinhDangTien.format(hd.tinhTienGiamGia(tongTien)),
+                    dinhDangTien.format(canThanhToan),
+                    hd.getTrangThai()
+            });
+        }
+    }
+
+
+    private void xuLyLamMoi() {
+        txtTimKiem.setText("");
+        cboTrangThai.setSelectedIndex(0);
+        dchTuNgay.setDate(null);
+        dchDenNgay.setDate(null);
+        xoaThongTinChiTiet();
+        taiDanhSachHoaDon();
+    }
+
+
+
+    private void xuLyInHoaDon() {
+
+    }
+
+    private void taiDanhSachHoaDon() {
+        List<HoaDon> ds = hoadonDAO.search("");
+        doDuLieuHoaDon(ds);
+    }
+    private void taiChiTietHoaDon(String maHD) {
+        try {
+            List<HoaDon> dsHoaDon = hoadonDAO.getAll();
+            HoaDon hd = null;
+
+            for (HoaDon hoaDon : dsHoaDon) {
+                if (hoaDon.getMaHD().equals(maHD)) {
+                    hd = hoaDon;
+                    break;
+                }
+            }
+
+            if (hd == null) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy hóa đơn.");
+                return;
+            }
+
+            lblMaHoaDon.setText(hd.getMaHD());
+            lblTenBenhNhan.setText(hd.getMaBenhNhan().getHoTen());
+            lblTenNhanVienChinh.setText(hd.getMaNV().getHoTen());
+            lblNgayLap.setText(
+                    hd.getNgayLap() == null
+                            ? ""
+                            : hd.getNgayLap().format(
+                            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+                    )
+            );
+            lblChietKhau.setText(dinhDangTien.format(hd.getChietKhau()) + "%");
+            lblTrangThai.setText(hd.getTrangThai());
+            lblSoDT.setText(hd.getMaBenhNhan().getSoDT());
+
+            List<ChiTietHoaDon> dsChiTiet =
+                    chiTietHoaDonDao.getChiTietHoaDon(maHD);
+
+            modelDichVu.setRowCount(0);
+
+            int stt = 1;
+            for (ChiTietHoaDon ct : dsChiTiet) {
+                double thanhTien = ct.getSoLuong() * ct.getDonGia();
+
+                modelDichVu.addRow(new Object[] {
+                        stt++,
+                        ct.getMaDV().getTenDV(),
+                        ct.getSoLuong(),
+                        dinhDangTien.format(ct.getDonGia()),
+                        dinhDangTien.format(thanhTien)
+                });
+            }
+
+            double tongTien = chiTietHoaDonDao.tinhTongTien(maHD);
+            double tienSauGiam = hd.tinhTienSauGiam(tongTien);
+            double tongThanhToan = tienSauGiam * (1 + hd.getThueVAT());
+
+            lblTongTien.setText(
+                    "Tổng tiền dịch vụ: " + dinhDangTien.format(tongTien) + " VNĐ"
+                            + " | Thanh toán: " + dinhDangTien.format(tongThanhToan) + " VNĐ"
+            );
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Lỗi tải chi tiết hóa đơn: " + e.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+
+
+    private void xoaThongTinChiTiet() {
+        lblMaHoaDon.setText("");
+        lblTenBenhNhan.setText("");
+        lblTenNhanVienChinh.setText("");
+        lblNgayLap.setText("");
+        lblChietKhau.setText("");
+        lblTrangThai.setText("");
+        lblSoDT.setText("");
+        modelDichVu.setRowCount(0);
+        lblTongTien.setText("Tổng tiền dịch vụ: 0 VNĐ");
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        int row = tblHoaDon.getSelectedRow();
+        if (row == -1) {
+            return;
+        }
+        String maHD = modelHoaDon.getValueAt(row, 0).toString();
+        taiChiTietHoaDon(maHD);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
     }
 }

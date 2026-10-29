@@ -48,7 +48,45 @@ public class BenhNhan_DAO {
 
         return ds;
     }
+    // Lấy thông tin bệnh nhân theo mã
+    public BenhNhan getBenhNhanTheoMa(String maBN) {
+        String sql = "SELECT * FROM BenhNhan WHERE MaBenhNhan = ?";
 
+        try (
+                Connection con = ConnectDB.getInstance().getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maBN);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    BenhNhan bn = new BenhNhan();
+
+                    bn.setMaBenhNhan(rs.getString("MaBenhNhan"));
+                    bn.setHoTen(rs.getString("HoTen"));
+
+                    bn.setNgaySinh(
+                            rs.getDate("NgaySinh") != null
+                                    ? rs.getDate("NgaySinh").toLocalDate()
+                                    : null
+                    );
+
+                    bn.setGioiTinh(rs.getBoolean("GioiTinh"));
+                    bn.setSoDT(rs.getString("SoDT"));
+                    bn.setEmail(rs.getString("Email"));
+                    bn.setDiaChi(rs.getString("DiaChi"));
+
+                    return bn;
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi lấy thông tin bệnh nhân: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
     // Thêm bệnh nhân mới
     public boolean insert(BenhNhan bn) {
         if (bn == null) {

@@ -284,7 +284,7 @@ public class KhuyenMai_DAO {
             e.printStackTrace();
         }
     }
-    public boolean giamSoLuongAtomic(String maKM) {
+  /*  public boolean giamSoLuongAtomic(String maKM) {
         String sql = "UPDATE KhuyenMai "
                 + "SET SoLuong = SoLuong - 1 "
                 + "WHERE MaKM = ? AND SoLuong > 0 "
@@ -319,5 +319,63 @@ public class KhuyenMai_DAO {
             e.printStackTrace();
             return false;
         }
+    } */
+  public boolean giamSoLuongAtomic(Connection con, String maKM) throws SQLException {
+      String sql = "UPDATE KhuyenMai "
+              + "SET SoLuong = SoLuong - 1 "
+              + "WHERE MaKM = ? "
+              + "AND SoLuong > 0 "
+              + "AND TrangThai = N'Đang áp dụng' "
+              + "AND NgayBatDau <= CAST(GETDATE() AS DATE) "
+              + "AND NgayKetThuc >= CAST(GETDATE() AS DATE)";
+
+      try (PreparedStatement ps = con.prepareStatement(sql)) {
+          ps.setString(1, maKM);
+          return ps.executeUpdate() == 1;
+      }
+  }
+    public KhuyenMai getByMaApDung(String maNhap) {
+        String sql = "SELECT MaKM, MaThayThe, TenKM, NgayBatDau, NgayKetThuc, "
+                + "GiaTriToiThieu, ChietKhau, SoLuong, TrangThai "
+                + "FROM KhuyenMai "
+                + "WHERE MaThayThe = ?";
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, maNhap.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    KhuyenMai km = new KhuyenMai();
+
+                    km.setMaKM(rs.getString("MaKM"));
+                    km.setMaThayThe(rs.getString("MaThayThe"));
+                    km.setTenKM(rs.getString("TenKM"));
+
+                    Date ngayBD = rs.getDate("NgayBatDau");
+                    Date ngayKT = rs.getDate("NgayKetThuc");
+
+                    if (ngayBD != null) {
+                        km.setNgayBatDau(ngayBD.toLocalDate());
+                    }
+
+                    if (ngayKT != null) {
+                        km.setNgayKetThuc(ngayKT.toLocalDate());
+                    }
+
+                    km.setGiaTriToiThieu(rs.getDouble("GiaTriToiThieu"));
+                    km.setChietKhau(rs.getDouble("ChietKhau"));
+                    km.setSoLuong(rs.getInt("SoLuong"));
+                    km.setTrangThai(rs.getString("TrangThai"));
+
+                    return km;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi truy vấn khuyến mãi: " + e.getMessage(), e);
+        }
+
+        return null;
     }
 }

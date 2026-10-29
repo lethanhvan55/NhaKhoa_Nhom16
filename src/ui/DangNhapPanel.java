@@ -33,6 +33,7 @@ import org.kordamp.ikonli.swing.FontIcon;
 import connectDB.ConnectDB;
 import dao.TaiKhoan_DAO;
 import model.TaiKhoan;
+import utils.PhienDangNhap;
 
 public class DangNhapPanel extends JFrame implements ActionListener {
 
@@ -384,6 +385,8 @@ public class DangNhapPanel extends JFrame implements ActionListener {
                         );
                         return;
                     }
+
+                    PhienDangNhap.setMaNV(maNV);
 
                     MainFrame view = new MainFrame(maNV);
                     view.setVisible(true);

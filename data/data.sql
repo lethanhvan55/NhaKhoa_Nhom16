@@ -53,10 +53,6 @@ VALUES
 (N'Đỗ Hoàng Yến', '0988111225', '2024-01-15', 0, N'Lễ tân', N'Đang làm', 'yen.do@nhakhoa.com', N'Quận 10, TP.HCM');
 GO
 
--- Kiểm tra mã nhân viên và tài khoản do trigger tạo
-SELECT * FROM NhanVien;
-SELECT * FROM TaiKhoan;
-GO
 
 -- =========================================================
 -- 3. DU LIEU PHONG DIEU TRI
@@ -88,19 +84,31 @@ GO
 
 
 -- =========================================================
--- 5. DU LIEU VAT TU
+-- 5. DỮ LIỆU VẬT TƯ (Mã định dạng VTxxxx)
 -- =========================================================
-INSERT INTO VatTu(MaVT, TenVatTu, DonViTinh, SoLuongTon,SoLuongToiThieu, HanSuDung, MoTa, HinhAnh)
+INSERT INTO VatTu
+    (MaVT, TenVatTu, DonViTinh, SoLuongTon, SoLuongToiThieu, HanSuDung, MoTa, HinhAnh)
 VALUES
-('VT0001', N'Thuốc tê dạng ống Lignocaine', N'Ống',150, 20, '2028-12-31',N'Thuốc tê sử dụng khi tiểu phẫu', N'images/thuoc_te.png'),
+('VT0001', N'Thuốc tê dạng ống Lignocaine', N'Ống', 150, 20, '2028-12-31', N'Thuốc tê sử dụng khi tiểu phẫu', N'images/thuoc_te.png'),
+('VT0002', N'Chất trám Composite', N'Tuýp', 30, 5, '2027-06-30', N'Vật liệu trám răng thẩm mỹ', N'images/composite.png'),
+('VT0003', N'Bông gòn y tế', N'Gói', 200, 30, NULL, N'Dụng cụ sát khuẩn và cầm máu', N'images/bong_gon.png'),
+('VT0004', N'Kim tiêm nha khoa', N'Cái', 500, 50, '2029-01-01', N'Kim tiêm dùng một lần', N'images/kim_tiem.png'),
+('VT0005', N'Khẩu trang y tế', N'Hộp', 50, 10, NULL, N'Vật tư bảo hộ y tế', N'images/khau_trang.png'),
 
-('VT0002', N'Chất trám Composite', N'Tuýp',30, 5, '2027-06-30',N'Vật liệu trám răng thẩm mỹ', N'images/composite.png'),
-
-('VT0003', N'Bông gòn y tế', N'Gói',200, 30, NULL,N'Dụng cụ sát khuẩn và cầm máu', N'images/bong_gon.png'),
-
-('VT0004', N'Kim tiêm nha khoa', N'Cái',500, 50, '2029-01-01',N'Kim tiêm dùng một lần', N'images/kim_tiem.png'),
-
-('VT0005', N'Khẩu trang y tế', N'Hộp',50, 10, NULL,N'Vật tư bảo hộ y tế', N'images/khau_trang.png');
+('VT0006', N'Bông gòn y tế', N'Gói', 40, 10, NULL, N'Dụng cụ sát khuẩn và cầm máu', N'img/Bonggon.jpg'),
+('VT0007', N'Chỉ nha khoa', N'Cuộn', 120, 25, '2030-05-20', N'Vật liệu vệ sinh kẽ răng', N'img/Chinhakhoa.jpg'),
+('VT0008', N'Dung dịch sát trùng', N'Lọ', 60, 15, '2028-08-10', N'Dung dịch sát khuẩn dụng cụ và bề mặt', N'img/Dungdichsatkhuan.jpg');
+GO
+GO
+UPDATE VatTu SET HinhAnh = 'img/thuocte.jpg' WHERE MaVT = 'VT0001';
+UPDATE VatTu SET HinhAnh = 'img/composite.jpg' WHERE MaVT = 'VT0002';
+UPDATE VatTu SET HinhAnh = 'img/bonggon.jpg' WHERE MaVT = 'VT0003';
+UPDATE VatTu SET HinhAnh = 'img/kimtiem.jpg' WHERE MaVT = 'VT0004';
+UPDATE VatTu SET HinhAnh = 'img/khautrang.jpg' WHERE MaVT = 'VT0005';
+GO
+UPDATE VatTu SET HinhAnh = 'img/gangtay.jpg' WHERE MaVT = 'VT0003';
+GO
+UPDATE VatTu SET TenVatTu = N'Găng Tay Y Tế ' WHERE MaVT = 'VT0003';
 GO
 
 
@@ -138,11 +146,10 @@ GO
 -- =========================================================
 -- 9. DU LIEU LICH LAM VIEC
 -- =========================================================
-INSERT INTO LichLamViec
-    (MaLich, MaPhong, MaNhanVien, NgayLam, CaLam, GioBatDau, GioKetThuc, TrangThai)
+INSERT INTO LichLamViec (MaPhanCong, NgayPhanCong, CaLamViec, MaNhanVien, TrangThai, GhiChu)
 VALUES
-('LLV20260401', 'P00003', 'NV0002', '2026-04-01', 'Sáng', '2026-04-01 08:00:00', '2026-04-01 12:00:00', N'Đã phân công'),
-('LLV20260402', 'P00002', 'NV0003', '2026-04-05', 'Chiều', '2026-04-05 13:30:00', '2026-04-05 17:30:00', N'Đã phân công');
+('PC0001', '2026-04-01', N'Ca sáng (07:30 - 11:30)', 'NV0002', N'Đã phân công', N'Trực phòng P00003'),
+('PC0002', '2026-04-05', N'Ca chiều (13:30 - 17:30)', 'NV0003', N'Đã phân công', N'Trực phòng P00002');
 GO
 
 -- =========================================================
@@ -151,8 +158,8 @@ GO
 INSERT INTO LichHen
     (MaLichHen, MaBenhNhan, MaDichVu, MaPhong, MaNV, NgayHen, GioHen, TrangThai, GhiChu)
 VALUES
-('LH000001', 'BN0001', 'DV0002', 'P00003', 'NV0002', '2026-04-01', '2026-04-01 09:00:00', N'Hoàn thành', N'Khách đến đúng giờ'),
-('LH000002', 'BN0002', 'DV0005', 'P00002', 'NV0003', '2026-04-05', '2026-04-05 14:00:00', N'Hoàn thành', N'Tiểu phẫu thành công');
+('LH0001', 'BN0001', 'DV0002', 'P00003', 'NV0002', '2026-04-01', '2026-04-01 09:00:00', N'Hoàn thành', N'Khách đến đúng giờ'),
+('LH0002', 'BN0002', 'DV0005', 'P00002', 'NV0003', '2026-04-05', '2026-04-05 14:00:00', N'Hoàn thành', N'Tiểu phẫu thành công');
 GO
 
 -- =========================================================
@@ -179,13 +186,12 @@ GO
 
 -- =========================================================
 -- 13. DU LIEU HOA DON
--- Gán mã rõ ràng vì bảng không được xác nhận có trigger tự sinh mã
 -- =========================================================
 INSERT INTO HoaDon
-    (MaHD, MaBenhNhan, MaNV, NgayLap, ChietKhau, MaKM, TrangThai)
+    (MaHD, MaBenhNhan, MaNV, MaLichHen, NgayLap, ChietKhau, VAT, MaKM, TrangThai)
 VALUES
-('HD0001', 'BN0001', 'NV0004', '2026-04-01', 0.00, NULL, N'Đã thanh toán'),
-('HD0002', 'BN0002', 'NV0004', '2026-04-05', 10.00, 'KM0002', N'Đã thanh toán');
+('HD0001', 'BN0001', 'NV0004', 'LH0001', '2026-04-01 09:00:00', 0.00, 10.00, NULL, N'Đã thanh toán'),
+('HD0002', 'BN0002', 'NV0004', 'LH0002', '2026-04-05 14:00:00', 10.00, 10.00, 'KM0002', N'Đã thanh toán');
 GO
 
 -- =========================================================
