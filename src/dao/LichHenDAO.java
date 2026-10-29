@@ -68,7 +68,7 @@ public class LichHenDAO {
             LEFT JOIN PhongDieuTri p ON lh.MaPhong = p.MaPhong
             LEFT JOIN NhanVien nv ON lh.MaNV = nv.MaNV
             LEFT JOIN DichVu dv ON lh.MaDichVu = dv.MaDV
-            WHERE lh.TrangThai IN (N'Đã đặt', N'Đang chờ khám')
+            WHERE lh.TrangThai IN (N'Đã đặt', N'Đang chờ khám', N'Hủy', N'Không đến')
             ORDER BY lh.NgayHen ASC, lh.GioHen ASC
             """;
 

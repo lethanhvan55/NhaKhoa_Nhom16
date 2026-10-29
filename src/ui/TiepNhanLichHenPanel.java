@@ -238,7 +238,7 @@ public class TiepNhanLichHenPanel extends JPanel
         UIHelper.styleComboBox(dentistCombo);
         serviceCombo = new JComboBox<>();
         UIHelper.styleComboBox(serviceCombo);
-        statusCombo = new JComboBox<>(new String[]{"Chọn trạng thái", "Đã đặt"});
+        statusCombo = new JComboBox<>(new String[]{"Chọn trạng thái", "Đã đặt", "Hủy", "Không đến"});
         UIHelper.styleComboBox(statusCombo);
 
         formGrid.add(createFieldWrapper("Mã lịch hẹn", codeField));
