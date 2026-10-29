@@ -1,75 +1,331 @@
+
 package dao;
+
+import connectDB.ConnectDB;
+import model.*;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import connectDB.ConnectDB;
+
 public class HoaDonDao {
-    public List<Map<String, Object>> getDanhSachLichHenDaCheckIn() {
-        List<Map<String, Object>> danhSach = new ArrayList<>();
-        String sql = "SELECT lh.MaLichHen, lh.MaBenhNhan, bn.HoTen, bn.SoDT, lh.MaDichVu, dv.TenDV, dv.DonGia, lh.MaPhong, lh.MaNV, lh.NgayHen, lh.GioHen, lh.TrangThai " +
-                "FROM LichHen lh " +
-                "JOIN BenhNhan bn ON lh.MaBenhNhan = bn.MaBenhNhan " +
-                "JOIN DichVu dv ON lh.MaDichVu = dv.MaDV " +
-                "WHERE lh.TrangThai = N'Đang chờ khám' " +
-                "AND NOT EXISTS (SELECT 1 FROM HoaDon hd WHERE hd.MaLichHen = lh.MaLichHen) " +
-                "ORDER BY lh.NgayHen, lh.GioHen";
+    public List<HoaDon> getAll() {
+        List<HoaDon> list = new ArrayList<>();
+
+        String sql = "SELECT hd.MaHD, hd.MaBenhNhan, bn.HoTen AS TenBenhNhan, bn.SoDT, " +
+                "hd.MaNV, nv.HoTen AS TenNhanVien, hd.MaLichHen, hd.NgayLap, " +
+                "hd.ChietKhau, hd.VAT, hd.MaKM, hd.TrangThai " +
+                "FROM HoaDon hd " +
+                "JOIN BenhNhan bn ON hd.MaBenhNhan = bn.MaBenhNhan " +
+                "JOIN NhanVien nv ON hd.MaNV = nv.MaNV " +
+                "ORDER BY hd.MaHD DESC";
+
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("MaLichHen", rs.getString("MaLichHen").trim());
-                row.put("MaBenhNhan", rs.getString("MaBenhNhan").trim());
-                row.put("HoTen", rs.getString("HoTen"));
-                row.put("SoDT", rs.getString("SoDT"));
-                row.put("MaDichVu", rs.getString("MaDichVu").trim());
-                row.put("TenDV", rs.getString("TenDV"));
-                row.put("DonGia", rs.getBigDecimal("DonGia"));
-                row.put("MaPhong", rs.getString("MaPhong").trim());
-                row.put("MaNV", rs.getString("MaNV").trim());
-                row.put("NgayHen", rs.getDate("NgayHen"));
-                row.put("GioHen", rs.getTimestamp("GioHen"));
-                row.put("TrangThai", rs.getString("TrangThai"));
-                danhSach.add(row);
+                BenhNhan bn = new BenhNhan();
+                bn.setMaBenhNhan(rs.getString("MaBenhNhan").trim());
+                bn.setHoTen(rs.getString("TenBenhNhan"));
+                bn.setSoDT(rs.getString("SoDT"));
+
+                NhanVien nv = new NhanVien();
+                nv.setMaNV(rs.getString("MaNV").trim());
+                nv.setHoTen(rs.getString("TenNhanVien"));
+
+                LichHen lh = new LichHen();
+                lh.setMaLichHen(rs.getString("MaLichHen").trim());
+
+                HoaDon hd = new HoaDon();
+                hd.setMaHD(rs.getString("MaHD").trim());
+                hd.setMaBenhNhan(bn);
+                hd.setMaNV(nv);
+                hd.setMaLichHen(lh);
+
+                Timestamp ngayLap = rs.getTimestamp("NgayLap");
+                hd.setNgayLap(ngayLap == null ? null : ngayLap.toLocalDateTime());
+
+                hd.setChietKhau(rs.getDouble("ChietKhau"));
+                hd.setThueVAT(rs.getDouble("VAT") / 100.0);
+                hd.setTrangThai(rs.getString("TrangThai"));
+
+                String maKM = rs.getString("MaKM");
+                if (maKM != null) {
+                    KhuyenMai km = new KhuyenMai();
+                    km.setMaKM(maKM.trim());
+                    hd.setMaKM(km);
+                }
+
+                list.add(hd);
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return danhSach;
-    }
-    public List<Map<String, Object>> getDanhSachDichVuTheoLichHen(String maLichHen) {
-        List<Map<String, Object>> danhSach = new ArrayList<>();
 
-        String sql = "SELECT dv.MaDV, dv.TenDV, dv.DonGia, dv.TrangThai " +
-                "FROM LichHen lh " +
-                "JOIN DichVu dv ON lh.MaDichVu = dv.MaDV " +
-                "WHERE lh.MaLichHen = ?";
+        return list;
+    }
+    public List<HoaDon> search(String keyword) {
+        List<HoaDon> list = new ArrayList<>();
+        String sql = "SELECT hd.MaHD, hd.MaBenhNhan, bn.HoTen AS TenBenhNhan, bn.SoDT, " +
+                "hd.MaNV, nv.HoTen AS TenNhanVien, hd.MaLichHen, hd.NgayLap, " +
+                "hd.ChietKhau, hd.VAT, hd.MaKM, hd.TrangThai " +
+                "FROM HoaDon hd " +
+                "JOIN BenhNhan bn ON hd.MaBenhNhan = bn.MaBenhNhan " +
+                "JOIN NhanVien nv ON hd.MaNV = nv.MaNV " +
+                "WHERE hd.MaHD LIKE ? OR hd.MaBenhNhan LIKE ? OR bn.HoTen LIKE ? " +
+                "ORDER BY hd.MaHD DESC";
 
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, maLichHen);
+
+            String tuKhoa = "%" + (keyword == null ? "" : keyword.trim()) + "%";
+            ps.setString(1, tuKhoa);
+            ps.setString(2, tuKhoa);
+            ps.setString(3, tuKhoa);
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Map<String, Object> row = new LinkedHashMap<>();
+                    BenhNhan bn = new BenhNhan();
+                    bn.setMaBenhNhan(rs.getString("MaBenhNhan").trim());
+                    bn.setHoTen(rs.getString("TenBenhNhan"));
+                    bn.setSoDT(rs.getString("SoDT"));
 
-                    row.put("MaDV", rs.getString("MaDV"));
-                    row.put("TenDV", rs.getString("TenDV"));
-                    row.put("DonGia", rs.getDouble("DonGia"));
-                    row.put("TrangThai", rs.getString("TrangThai"));
+                    NhanVien nv = new NhanVien();
+                    nv.setMaNV(rs.getString("MaNV").trim());
+                    nv.setHoTen(rs.getString("TenNhanVien"));
 
-                    danhSach.add(row);
+                    LichHen lh = new LichHen();
+                    lh.setMaLichHen(rs.getString("MaLichHen").trim());
+
+                    HoaDon hd = new HoaDon();
+                    hd.setMaHD(rs.getString("MaHD").trim());
+                    hd.setMaBenhNhan(bn);
+                    hd.setMaNV(nv);
+                    hd.setMaLichHen(lh);
+
+                    Timestamp ngayLap = rs.getTimestamp("NgayLap");
+                    hd.setNgayLap(ngayLap == null ? null : ngayLap.toLocalDateTime());
+                    hd.setChietKhau(rs.getDouble("ChietKhau"));
+                    hd.setThueVAT(rs.getDouble("VAT") / 100.0);
+                    hd.setTrangThai(rs.getString("TrangThai"));
+
+                    String maKM = rs.getString("MaKM");
+                    if (maKM != null) {
+                        KhuyenMai km = new KhuyenMai();
+                        km.setMaKM(maKM.trim());
+                        hd.setMaKM(km);
+                    }
+
+                    list.add(hd);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new RuntimeException("Lỗi lấy dịch vụ theo lịch hẹn: " + e.getMessage(), e);
+        }
+
+        return list;
+    }
+
+    public String sinhMaHDMoi(Connection con) throws SQLException {
+        String sql = "SELECT MAX(TRY_CONVERT(INT, SUBSTRING(MaHD, 3, LEN(MaHD)))) AS SoLonNhat FROM HoaDon";
+
+        try (PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                int soMoi = rs.getInt("SoLonNhat") + 1;
+                return String.format("HD%04d", soMoi);
+            }
+        }
+
+        return "HD0001";
+    }
+
+    public List<LichHen> getDanhSachLichHenDaCheckIn() {
+        List<LichHen> danhSach = new ArrayList<>();
+
+        String sql = "SELECT lh.MaLichHen, lh.MaBenhNhan, bn.HoTen, bn.SoDT, "
+                + "lh.MaDichVu, dv.TenDV, dv.DonGia, dv.ThoiGianDuKien, dv.TrangThai AS TrangThaiDV, "
+                + "lh.NgayHen, lh.GioHen, lh.GhiChu, lh.TrangThai AS TrangThaiLH "
+                + "FROM LichHen lh "
+                + "JOIN BenhNhan bn ON lh.MaBenhNhan = bn.MaBenhNhan "
+                + "JOIN DichVu dv ON lh.MaDichVu = dv.MaDV "
+                + "WHERE lh.TrangThai = N'Đang chờ khám' "
+                + "AND NOT EXISTS (SELECT 1 FROM HoaDon hd WHERE hd.MaLichHen = lh.MaLichHen) "
+                + "ORDER BY lh.NgayHen, lh.GioHen";
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                LichHen lh = new LichHen();
+
+                lh.setMaLichHen(rs.getString("MaLichHen").trim());
+
+                BenhNhan bn = new BenhNhan();
+                bn.setMaBenhNhan(rs.getString("MaBenhNhan").trim());
+                bn.setHoTen(rs.getString("HoTen"));
+                bn.setSoDT(rs.getString("SoDT"));
+                lh.setMaBenhNhan(bn);
+
+                DichVu dv = new DichVu();
+                dv.setMaDV(rs.getString("MaDichVu").trim());
+                dv.setTenDV(rs.getString("TenDV"));
+                dv.setDonGia(rs.getDouble("DonGia"));
+
+                String thoiGian = rs.getString("ThoiGianDuKien");
+                dv.setThoiGianDuKien(
+                        thoiGian == null || thoiGian.trim().isEmpty()
+                                ? "Chưa xác định"
+                                : thoiGian
+                );
+                dv.setTrangThai(rs.getString("TrangThaiDV"));
+                lh.setMaDichVu(dv);
+
+                java.sql.Date ngayHen = rs.getDate("NgayHen");
+                if (ngayHen != null) {
+                    lh.setNgayHen(ngayHen.toLocalDate());
+                }
+
+                Timestamp gioHen = rs.getTimestamp("GioHen");
+                if (gioHen != null) {
+                    lh.setGioHen(gioHen.toLocalDateTime());
+                }
+
+                lh.setGhiChu(rs.getString("GhiChu"));
+                lh.setTrangThai(rs.getString("TrangThaiLH"));
+
+                danhSach.add(lh);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Lỗi lấy danh sách lịch hẹn đã check-in: " + e.getMessage(), e
+            );
         }
 
         return danhSach;
+    }
+    public String luuHoaDonVaHoanThanhLichHen(String maLichHen, String maNV, String maKM, double chietKhau, double vat,
+                                              Map<String, Integer> dsDichVu) {
+
+        Connection con = null;
+
+        try {
+            con = ConnectDB.getInstance().getConnection();
+            con.setAutoCommit(false);
+
+            String maHD = sinhMaHDMoi(con);
+            String maBenhNhan;
+
+            String sqlKiemTra = "SELECT MaBenhNhan FROM LichHen "
+                    + "WHERE MaLichHen = ? AND TrangThai = N'Đang chờ khám'";
+
+            try (PreparedStatement ps = con.prepareStatement(sqlKiemTra)) {
+                ps.setString(1, maLichHen.trim());
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new SQLException("Lịch hẹn không hợp lệ hoặc không còn ở trạng thái chờ khám.");
+                    }
+                    maBenhNhan = rs.getString("MaBenhNhan").trim();
+                }
+            }
+
+            String sqlHD = "INSERT INTO HoaDon "
+                    + "(MaHD, MaBenhNhan, MaNV, MaLichHen, NgayLap, ChietKhau, VAT, MaKM, TrangThai) "
+                    + "VALUES (?, ?, ?, ?, SYSDATETIME(), ?, ?, ?, N'Đã thanh toán')";
+
+            try (PreparedStatement ps = con.prepareStatement(sqlHD)) {
+                ps.setString(1, maHD);
+                ps.setString(2, maBenhNhan);
+                ps.setString(3, maNV.trim());
+                ps.setString(4, maLichHen.trim());
+                ps.setDouble(5, chietKhau);
+                ps.setDouble(6, vat);
+
+                if (maKM == null || maKM.trim().isEmpty()) {
+                    ps.setNull(7, java.sql.Types.CHAR);
+                } else {
+                    ps.setString(7, maKM.trim());
+                }
+
+                ps.executeUpdate();
+            }
+
+            if (dsDichVu == null || dsDichVu.isEmpty()) {
+                throw new SQLException("Hóa đơn phải có ít nhất một dịch vụ.");
+            }
+
+            String sqlCT = "INSERT INTO ChiTietHoaDon (MaHD, MaDV, SoLuong, DonGia) "
+                    + "SELECT ?, MaDV, ?, DonGia FROM DichVu "
+                    + "WHERE MaDV = ? AND TrangThai = N'Đang cung cấp'";
+
+            try (PreparedStatement ps = con.prepareStatement(sqlCT)) {
+                for (Map.Entry<String, Integer> entry : dsDichVu.entrySet()) {
+                    String maDV = entry.getKey();
+                    Integer soLuong = entry.getValue();
+
+                    if (maDV == null || maDV.trim().isEmpty() || soLuong == null || soLuong <= 0) {throw new SQLException("Mã dịch vụ hoặc số lượng không hợp lệ.");}
+
+                    ps.setString(1, maHD);
+                    ps.setInt(2, soLuong);
+                    ps.setString(3, maDV.trim());
+
+                    if (ps.executeUpdate() != 1) {
+                        throw new SQLException("Dịch vụ " + maDV + " không tồn tại hoặc đã ngừng cung cấp.");
+                    }
+                }
+            }
+
+            if (maKM != null && !maKM.trim().isEmpty()) {
+                KhuyenMai_DAO khuyenMaiDAO = new KhuyenMai_DAO();
+                if (!khuyenMaiDAO.giamSoLuongAtomic(con, maKM.trim())) {
+                    throw new SQLException("Khuyến mãi đã hết lượt, hết hạn hoặc không còn áp dụng.");
+                }
+            }
+
+            String sqlLichHen = "UPDATE LichHen SET TrangThai = N'Hoàn thành' "
+                    + "WHERE MaLichHen = ? AND TrangThai = N'Đang chờ khám'";
+
+            try (PreparedStatement ps = con.prepareStatement(sqlLichHen)) {
+                ps.setString(1, maLichHen.trim());
+
+                if (ps.executeUpdate() != 1) {
+                    throw new SQLException("Không thể cập nhật trạng thái lịch hẹn.");
+                }
+            }
+
+            con.commit();
+            return maHD;
+
+        } catch (Exception e) {
+            if (con != null) {
+                try {
+                    con.rollback();
+                } catch (SQLException ex) {
+                    e.addSuppressed(ex);
+                }
+            }
+
+            throw new RuntimeException("Lưu hóa đơn thất bại: " + e.getMessage(), e);
+
+        } finally {
+            if (con != null) {
+                try {
+                    con.setAutoCommit(true);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }
