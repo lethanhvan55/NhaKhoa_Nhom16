@@ -53,10 +53,6 @@ VALUES
 (N'Đỗ Hoàng Yến', '0988111225', '2024-01-15', 0, N'Lễ tân', N'Đang làm', 'yen.do@nhakhoa.com', N'Quận 10, TP.HCM');
 GO
 
--- Kiểm tra mã nhân viên và tài khoản do trigger tạo
-SELECT * FROM NhanVien;
-SELECT * FROM TaiKhoan;
-GO
 
 -- =========================================================
 -- 3. DU LIEU PHONG DIEU TRI
@@ -162,8 +158,8 @@ GO
 INSERT INTO LichHen
     (MaLichHen, MaBenhNhan, MaDichVu, MaPhong, MaNV, NgayHen, GioHen, TrangThai, GhiChu)
 VALUES
-('LH000001', 'BN0001', 'DV0002', 'P00003', 'NV0002', '2026-04-01', '2026-04-01 09:00:00', N'Hoàn thành', N'Khách đến đúng giờ'),
-('LH000002', 'BN0002', 'DV0005', 'P00002', 'NV0003', '2026-04-05', '2026-04-05 14:00:00', N'Hoàn thành', N'Tiểu phẫu thành công');
+('LH0001', 'BN0001', 'DV0002', 'P00003', 'NV0002', '2026-04-01', '2026-04-01 09:00:00', N'Hoàn thành', N'Khách đến đúng giờ'),
+('LH0002', 'BN0002', 'DV0005', 'P00002', 'NV0003', '2026-04-05', '2026-04-05 14:00:00', N'Hoàn thành', N'Tiểu phẫu thành công');
 GO
 
 -- =========================================================

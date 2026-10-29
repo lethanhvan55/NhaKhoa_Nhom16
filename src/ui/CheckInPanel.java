@@ -322,11 +322,11 @@ public class CheckInPanel extends JPanel implements ActionListener, ListSelectio
                         JOptionPane.INFORMATION_MESSAGE
                 );
 
-                // Chuyển mã bệnh nhân sang màn hình hồ sơ
+           /*     // Chuyển mã bệnh nhân sang màn hình hồ sơ
                 if (mainFrame != null) {
                     mainFrame.moHoSoBenhNhan(maBN);
                 }
-
+*/
                 loadDuLieuBang(null, null);
                 xoaForm();
 
