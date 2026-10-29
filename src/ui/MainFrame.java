@@ -103,69 +103,33 @@ public class MainFrame extends JFrame {
                 "Vật tư"
         );
 
-        pnlNoiDung.add(
-                new NhanVienPanel(),
-                "Nhân viên"
-        );
+        pnlNoiDung.add(new NhanVienPanel(), "Nhân viên");
 
-        pnlNoiDung.add(
-                new TaiKhoanPanel(),
-                "Tài khoản"
-        );
+        pnlNoiDung.add(new TaiKhoanPanel(), "Tài khoản");
 
-        pnlNoiDung.add(
-                new PhanCongNhanVienPanel(),
-                "Phân công nhân viên"
-        );
+        pnlNoiDung.add(new PhanCongNhanVienPanel(), "Phân công nhân viên");
 
-        pnlNoiDung.add(
-                new TraCuuHoaDonPanel(),
-                "Tra cứu hóa đơn"
-        );
+        pnlNoiDung.add(new TraCuuHoaDonPanel(), "Tra cứu hóa đơn");
 
-        pnlNoiDung.add(
-                new KhuyenMaiPanel(),
-                "Khuyến mãi"
-        );
+        pnlNoiDung.add(new KhuyenMaiPanel(), "Khuyến mãi");
 
-        pnlNoiDung.add(
-                new HoTroPanel(),
-                "Hỗ trợ"
-        );
+        pnlNoiDung.add(new HoTroPanel(), "Hỗ trợ");
 
-        pnlNoiDung.add(
-                new ThongKeDoanhThuPanel(),
-                "Thống kê doanh thu"
-        );
+        pnlNoiDung.add(new ThongKeDoanhThuPanel(), "Thống kê doanh thu");
 
-        pnlNoiDung.add(
-                new ThongKeDichVuPanel(),
-                "Thống kê dịch vụ"
-        );
+        pnlNoiDung.add(new ThongKeDichVuPanel(), "Thống kê dịch vụ");
 
-        pnlNoiDung.add(new ThongKeKhachHangPanel(),
-                "Thống kê khách hàng"
-        );
+        pnlNoiDung.add(new ThongKeKhachHangPanel(), "Thống kê khách hàng");
 
-        pnlNoiDung.add(new TimKiemBenhNhanPanel(),
-                "Tìm kiếm bệnh nhân"
-        );
+        pnlNoiDung.add(new TimKiemBenhNhanPanel(), "Tìm kiếm bệnh nhân");
 
-        pnlNoiDung.add(new TimKiemNhanVienPanel(),
-                "Tìm kiếm nhân viên"
-        );
+        pnlNoiDung.add(new TimKiemNhanVienPanel(), "Tìm kiếm nhân viên");
 
-        pnlNoiDung.add(new TimKiemPhongDieuTriPanel(),
-                "Tìm kiếm phòng điều trị"
-        );
+        pnlNoiDung.add(new TimKiemPhongDieuTriPanel(), "Tìm kiếm phòng điều trị");
 
-        pnlNoiDung.add(new TimKiemDichVuPanel(),
-                "Tìm kiếm dịch vụ"
-        );
+        pnlNoiDung.add(new TimKiemDichVuPanel(), "Tìm kiếm dịch vụ");
 
-        pnlNoiDung.add(new TimKiemVatTuPanel(),
-                "Tìm kiếm vật tư"
-        );
+        pnlNoiDung.add(new TimKiemVatTuPanel(), "Tìm kiếm vật tư");
 
         add(pnlNoiDung, BorderLayout.CENTER);
 
