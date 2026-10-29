@@ -320,10 +320,10 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
         pnlThongTin.setOpaque(false);
         pnlThongTin.add(taoDongThongTin("Ngày bắt đầu", ngayBD));
         pnlThongTin.add(taoDongThongTin("Ngày kết thúc", ngayKT));
-        pnlThongTin.add(taoDongThongTin("Mã thay thế", km.getMaThayThe()));
-        pnlThongTin.add(taoDongThongTin("Số lượng", String.valueOf(km.getSoLuong())));
-        pnlThongTin.add(taoDongThongTin("Giá trị tối thiểu", String.format("%,.0f đ", km.getGiaTriToiThieu())));
-        pnlThongTin.add(taoDongThongTin("Chiết khấu", String.format("%s%%", km.getChietKhau())));
+      //  pnlThongTin.add(taoDongThongTin("Mã thay thế", km.getMaThayThe()));
+       // pnlThongTin.add(taoDongThongTin("Số lượng", String.valueOf(km.getSoLuong())));
+     //   pnlThongTin.add(taoDongThongTin("Giá trị tối thiểu", String.format("%,.0f đ", km.getGiaTriToiThieu())));
+     //   pnlThongTin.add(taoDongThongTin("Chiết khấu", String.format("%s%%", km.getChietKhau())));
 
         the.add(pnlDau, BorderLayout.NORTH);
         the.add(pnlThongTin, BorderLayout.CENTER);
