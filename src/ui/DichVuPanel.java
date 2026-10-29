@@ -11,6 +11,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -30,6 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -55,7 +57,8 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
     private JButton btnThem;      
     private JButton btnLuu;      
     private JButton btnXoa;      
-    private JButton btnHuyBo;    
+    private JButton btnHuyBo;
+    private JButton btnQuanLyVatTu; // Nút mới thêm để mở Dialog vật tư
 
     private boolean dangThem = false;
     private DichVu_DAO dv_dao = new DichVu_DAO();
@@ -191,15 +194,18 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         JScrollPane scrForm = new JScrollPane(pnlForm);
         scrForm.setBorder(BorderFactory.createEmptyBorder());
 
-        JPanel pnlNut = new JPanel(new GridLayout(1, 3, 8, 0));
+        // Sắp xếp lại 4 nút thành 2 hàng, 2 cột (GridLayout 2 hàng, 2 cột, khoảng cách 8px)
+        JPanel pnlNut = new JPanel(new GridLayout(2, 2, 8, 8));
         pnlNut.setBackground(MAU_TRANG);
         pnlNut.setBorder(new EmptyBorder(10, 0, 0, 0));
 
         btnLuu = taoNut("Lưu", MAU_TEAL, 0);
+        btnQuanLyVatTu = taoNut("Quản lý vật tư", new Color(34, 115, 170), 0); // Màu xanh dương đậm
         btnXoa = taoNut("Xóa", MAU_DO, 0);
         btnHuyBo = taoNut("Hủy bỏ", new Color(110, 120, 135), 0);
 
         pnlNut.add(btnLuu);
+        pnlNut.add(btnQuanLyVatTu);
         pnlNut.add(btnXoa);
         pnlNut.add(btnHuyBo);
 
@@ -231,6 +237,7 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         btnLuu.addActionListener(this);
         btnXoa.addActionListener(this);
         btnHuyBo.addActionListener(this);
+        btnQuanLyVatTu.addActionListener(this); // Đăng ký sự kiện nút Quản lý vật tư
     }
 
     @Override
@@ -262,7 +269,35 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
             clearForm();
             setEditableForm(false);
             tblDichVu.clearSelection();
+        } else if (source.equals(btnQuanLyVatTu)) {
+            xuLyMoDialogVatTu(); // Mở Dialog quản lý vật tư tiêu hao
         }
+    }
+
+    private void xuLyMoDialogVatTu() {
+        String maDV = txtMaDichVu.getText().trim();
+        String tenDV = txtTenDichVu.getText().trim();
+
+        if (maDV.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn hoặc nhập dịch vụ trước khi quản lý vật tư!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Nếu đang ở trạng thái thêm mới mà chưa lưu vào DB, nhắc người dùng lưu trước
+        if (dangThem) {
+            int confirm = JOptionPane.showConfirmDialog(this, "Bạn cần lưu dịch vụ mới này trước khi cấu hình vật tư. Bạn có muốn lưu ngay bây giờ?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                xuLyLuuDichVu();
+                // Nếu sau khi lưu mà vẫn đang ở chế độ thêm mới (do lỗi), thì dừng lại
+                if (dangThem) return;
+            } else {
+                return;
+            }
+        }
+
+        Window parentWindow = SwingUtilities.getWindowAncestor(this);
+        ChiTietVatTuDichVuDialog dialog = new ChiTietVatTuDichVuDialog(parentWindow, maDV, tenDV);
+        dialog.setVisible(true);
     }
 
     @Override
@@ -327,6 +362,7 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
                 boolean kq = dv_dao.create(dv);
                 if (kq) {
                     JOptionPane.showMessageDialog(this, "Thêm dịch vụ mới thành công!");
+                    dangThem = false; // Đã thêm thành công, chuyển trạng thái về bình thường
                 } else {
                     JOptionPane.showMessageDialog(this, "Thêm thất bại (Trùng mã dịch vụ hoặc lỗi CSDL)!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                     return;
@@ -343,7 +379,6 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
 
             taiDanhSachDichVuTuCSDL();
             setEditableForm(false);
-            clearForm();
 
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Cảnh báo", JOptionPane.WARNING_MESSAGE);
@@ -371,6 +406,7 @@ public class DichVuPanel extends JPanel implements ActionListener, MouseListener
         txtThoiGian.setEditable(editable);
         cboTrangThai.setEnabled(editable);
         btnLuu.setEnabled(editable);
+        btnQuanLyVatTu.setEnabled(editable); // Kích hoạt nút quản lý vật tư khi form mở chỉnh sửa
         btnXoa.setEnabled(!dangThem && editable);
     }
 

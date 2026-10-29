@@ -52,7 +52,11 @@ public class TiepNhanLichHenPanel extends JPanel
     private DateTimeFormatter dtfDate = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private DateTimeFormatter dtfTime = DateTimeFormatter.ofPattern("HH:mm");
 
-    public TiepNhanLichHenPanel() {
+    private MainFrame mainFrame; // Tham chiếu tới MainFrame để điều phối đồng bộ
+
+    public TiepNhanLichHenPanel(MainFrame mainFrame) {
+        this.mainFrame = mainFrame;
+
         setLayout(new BorderLayout());
         setBackground(UIHelper.BG);
         setBorder(new EmptyBorder(15, 15, 15, 15));
@@ -69,7 +73,7 @@ public class TiepNhanLichHenPanel extends JPanel
         refreshData();
     }
 
-    // ==================== HÀM CÔNG KHAI ĐỂ GỌI LÀM MỚI TỪ BÊN NGOÀI ====================
+    // ==================== HÀM LÀM MỚI DỮ LIỆU TỰ ĐỘNG ====================
     public void refreshData() {
         layDanhSachBacSiTuCSDL();
         layDanhSachDichVuTuCSDL();
@@ -234,7 +238,7 @@ public class TiepNhanLichHenPanel extends JPanel
         UIHelper.styleComboBox(dentistCombo);
         serviceCombo = new JComboBox<>();
         UIHelper.styleComboBox(serviceCombo);
-        statusCombo = new JComboBox<>(new String[]{"Chọn trạng thái", "Đã đặt", "Đang chờ khám", "Hoàn thành", "Hủy", "Không đến"});
+        statusCombo = new JComboBox<>(new String[]{"Chọn trạng thái", "Đã đặt", "Hủy", "Không đến"});
         UIHelper.styleComboBox(statusCombo);
 
         formGrid.add(createFieldWrapper("Mã lịch hẹn", codeField));
@@ -290,7 +294,7 @@ public class TiepNhanLichHenPanel extends JPanel
     private String sinhMaTuDong() {
         try {
             List<model.LichHen> ds = lichHenDAO.getDanhSachLichHenModel();
-            if (ds == null || ds.isEmpty()) return "LH0001";
+            if (ds == null || ds.isEmpty()) return "LH000001";
             int max = 0;
             for (model.LichHen lh : ds) {
                 try {
@@ -300,7 +304,7 @@ public class TiepNhanLichHenPanel extends JPanel
             }
             return String.format("LH%04d", max + 1);
         } catch (Exception e) {
-            return "LH0001";
+            return "LH000001";
         }
     }
 

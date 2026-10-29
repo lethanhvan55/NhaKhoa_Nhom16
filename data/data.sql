@@ -190,8 +190,8 @@ GO
 INSERT INTO HoaDon
     (MaHD, MaBenhNhan, MaNV, MaLichHen, NgayLap, ChietKhau, VAT, MaKM, TrangThai)
 VALUES
-('HD0001', 'BN0001', 'NV0004', 'LH000001', '2026-04-01 09:00:00', 0.00, 10.00, NULL, N'Đã thanh toán'),
-('HD0002', 'BN0002', 'NV0004', 'LH000002', '2026-04-05 14:00:00', 10.00, 10.00, 'KM0002', N'Đã thanh toán');
+('HD0001', 'BN0001', 'NV0004', 'LH0001', '2026-04-01 09:00:00', 0.00, 10.00, NULL, N'Đã thanh toán'),
+('HD0002', 'BN0002', 'NV0004', 'LH0002', '2026-04-05 14:00:00', 10.00, 10.00, 'KM0002', N'Đã thanh toán');
 GO
 
 -- =========================================================
