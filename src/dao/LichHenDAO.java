@@ -1,6 +1,8 @@
 package dao;
 
 import connectDB.ConnectDB;
+import model.BenhNhan;
+import model.DichVu;
 import model.LichHen;
 
 import java.sql.*;
@@ -466,6 +468,97 @@ public class LichHenDAO {
             return ps.executeUpdate() > 0;
         }
     }
+    public List<DichVu> getDanhSachDichVuTheoLichHen(String maLichHen) {
+        List<DichVu> danhSach = new ArrayList<>();
+
+        String sql = "SELECT dv.MaDV, dv.TenDV, dv.DonGia, "
+                + "dv.ThoiGianDuKien, dv.TrangThai "
+                + "FROM LichHen lh "
+                + "JOIN DichVu dv ON lh.MaDichVu = dv.MaDV "
+                + "WHERE lh.MaLichHen = ?";
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, maLichHen.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DichVu dv = new DichVu();
+
+                    dv.setMaDV(rs.getString("MaDV").trim());
+                    dv.setTenDV(rs.getString("TenDV"));
+                    dv.setDonGia(rs.getDouble("DonGia"));
+
+                    String thoiGian = rs.getString("ThoiGianDuKien");
+                    dv.setThoiGianDuKien(
+                            thoiGian == null || thoiGian.trim().isEmpty()
+                                    ? "Chưa xác định"
+                                    : thoiGian
+                    );
+
+                    dv.setTrangThai(rs.getString("TrangThai"));
+                    danhSach.add(dv);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Lỗi lấy dịch vụ theo lịch hẹn: " + e.getMessage(), e
+            );
+        }
+
+        return danhSach;
+    }
+
+    public LichHen getThongTinLichHen(String maLichHen) {
+        String sql = "SELECT lh.MaLichHen, lh.MaBenhNhan, bn.HoTen, bn.SoDT, "
+                + "lh.NgayHen, lh.GioHen, lh.GhiChu, lh.TrangThai "
+                + "FROM LichHen lh "
+                + "JOIN BenhNhan bn ON lh.MaBenhNhan = bn.MaBenhNhan "
+                + "WHERE lh.MaLichHen = ?";
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, maLichHen.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    LichHen lh = new LichHen();
+
+                    lh.setMaLichHen(rs.getString("MaLichHen").trim());
+
+                    BenhNhan bn = new BenhNhan();
+                    bn.setMaBenhNhan(rs.getString("MaBenhNhan").trim());
+                    bn.setHoTen(rs.getString("HoTen"));
+                    bn.setSoDT(rs.getString("SoDT"));
+                    lh.setMaBenhNhan(bn);
+
+                    java.sql.Date ngayHen = rs.getDate("NgayHen");
+                    if (ngayHen != null) {
+                        lh.setNgayHen(ngayHen.toLocalDate());
+                    }
+
+                    Timestamp gioHen = rs.getTimestamp("GioHen");
+                    if (gioHen != null) {
+                        lh.setGioHen(gioHen.toLocalDateTime());
+                    }
+
+                    lh.setGhiChu(rs.getString("GhiChu"));
+                    lh.setTrangThai(rs.getString("TrangThai"));
+
+                    return lh;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Lỗi lấy thông tin lịch hẹn: " + e.getMessage(), e
+            );
+        }
+
+        return null;
+    }
+
 
 
 }
