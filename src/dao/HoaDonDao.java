@@ -75,6 +75,21 @@ public class HoaDonDao {
 
         return list;
     }
+    public HoaDon getByMaHD(String maHD) {
+        if (maHD == null || maHD.trim().isEmpty()) {
+            return null;
+        }
+
+        List<HoaDon> danhSach = getAll();
+
+        for (HoaDon hd : danhSach) {
+            if (hd.getMaHD() != null && hd.getMaHD().trim().equalsIgnoreCase(maHD.trim())) {
+                return hd;
+            }
+        }
+
+        return null;
+    }
     public List<HoaDon> search(String keyword) {
         List<HoaDon> list = new ArrayList<>();
         String sql = "SELECT hd.MaHD, hd.MaBenhNhan, bn.HoTen AS TenBenhNhan, bn.SoDT, " +

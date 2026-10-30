@@ -132,6 +132,16 @@ public class HoaDon {
         double tienGiamGia = tinhTienGiamGia(tongTien);
         return Math.max(0, tongTien - tienGiamGia);
     }
+    public double tinhTienVAT(double tongTien) {
+        double tienSauGiam = tinhTienSauGiam(tongTien);
+        return tienSauGiam * thueVAT;
+    }
+
+    public double tinhTongThanhToan(double tongTien) {
+        double tienSauGiam = tinhTienSauGiam(tongTien);
+        double tienVAT = tinhTienVAT(tongTien);
+        return tienSauGiam + tienVAT;
+    }
 
     @Override
     public String toString() {
