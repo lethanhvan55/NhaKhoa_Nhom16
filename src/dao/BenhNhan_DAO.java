@@ -81,7 +81,6 @@ public class BenhNhan_DAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("Lỗi lấy thông tin bệnh nhân: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -90,35 +89,29 @@ public class BenhNhan_DAO {
     // Thêm bệnh nhân mới
     public boolean insert(BenhNhan bn) {
         if (bn == null) {
-            System.err.println("Bệnh nhân không hợp lệ!");
             return false;
         }
 
         if (bn.getMaBenhNhan() == null
                 || bn.getMaBenhNhan().trim().isEmpty()) {
-            System.err.println("Mã bệnh nhân không được để trống!");
             return false;
         }
 
         if (bn.getHoTen() == null
                 || bn.getHoTen().trim().isEmpty()) {
-            System.err.println("Họ tên không được để trống!");
             return false;
         }
 
         if (bn.getNgaySinh() == null) {
-            System.err.println("Ngày sinh không được để trống!");
             return false;
         }
 
         if (bn.getNgaySinh().isAfter(java.time.LocalDate.now())) {
-            System.err.println("Ngày sinh không được ở tương lai!");
             return false;
         }
 
         if (bn.getSoDT() == null
                 || !bn.getSoDT().matches("^0[3-9]\\d{8}$")) {
-            System.err.println("Số điện thoại không hợp lệ!");
             return false;
         }
 
@@ -154,7 +147,6 @@ public class BenhNhan_DAO {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.err.println("Lỗi thêm bệnh nhân: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -174,17 +166,15 @@ public class BenhNhan_DAO {
                 int so = rs.getInt(1);
 
                 if (so > 9999) {
-                    System.err.println("Đã vượt quá số lượng mã bệnh nhân!");
                     return null;
                 }
 
                 return String.format("BN%04d", so);
             }
 
-        } catch (SQLException e) {
-            System.err.println("Lỗi sinh mã bệnh nhân: "
-                    + e.getMessage());
-            e.printStackTrace();
+        }
+        catch (SQLException e) {
+            return null;
         }
 
         return null;

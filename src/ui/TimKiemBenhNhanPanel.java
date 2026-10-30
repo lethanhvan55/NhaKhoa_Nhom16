@@ -489,12 +489,6 @@ public class TimKiemBenhNhanPanel extends JPanel implements ActionListener, Mous
             );
         }
 
-        // In kết quả để kiểm tra dữ liệu
-        System.out.println("Mã bệnh nhân: " + maBenhNhan);
-        System.out.println("Số hồ sơ: "
-                + (dsHoSo == null ? 0 : dsHoSo.size()));
-        System.out.println("Số kế hoạch: "
-                + (dsKeHoach == null ? 0 : dsKeHoach.size()));
     }
     private void dangKySuKien() {
         btnTimKiem.addActionListener(this);

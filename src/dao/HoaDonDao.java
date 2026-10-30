@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+//tvan sửa
+import java.util.LinkedHashMap;
 
 public class HoaDonDao {
     public List<HoaDon> getAll() {
@@ -327,5 +329,125 @@ public class HoaDonDao {
                 }
             }
         }
+    }
+// tvan sửa
+    // Thống kê doanh thu theo tháng
+    public Map<Integer, Double> getDoanhThuTheoThang(int nam) {
+        Map<Integer, Double> ketQua = new java.util.LinkedHashMap<>();
+
+        String sql = "SELECT MONTH(hd.NgayLap) AS Thang, " +
+                "SUM(ct.SoLuong * ct.DonGia) AS DoanhThu " +
+                "FROM HoaDon hd " +
+                "JOIN ChiTietHoaDon ct ON hd.MaHD = ct.MaHD " +
+                "WHERE hd.TrangThai = N'Đã thanh toán' " +
+                "AND hd.NgayLap >= ? AND hd.NgayLap < ? " +
+                "GROUP BY MONTH(hd.NgayLap) " +
+                "ORDER BY Thang";
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setDate(1, java.sql.Date.valueOf(
+                    LocalDate.of(nam, 1, 1)));
+
+            ps.setDate(2, java.sql.Date.valueOf(
+                    LocalDate.of(nam + 1, 1, 1)));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ketQua.put(
+                            rs.getInt("Thang"),
+                            rs.getDouble("DoanhThu"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Lỗi thống kê doanh thu theo tháng: " + e.getMessage(), e);
+        }
+
+        return ketQua;
+    }
+
+
+    // Thống kê doanh thu theo năm
+    public Map<Integer, Double> getDoanhThuTheoNam(
+            int tuNam, int denNam) {
+
+        Map<Integer, Double> ketQua = new java.util.LinkedHashMap<>();
+
+        String sql = "SELECT YEAR(hd.NgayLap) AS Nam, " +
+                "SUM(ct.SoLuong * ct.DonGia) AS DoanhThu " +
+                "FROM HoaDon hd " +
+                "JOIN ChiTietHoaDon ct ON hd.MaHD = ct.MaHD " +
+                "WHERE hd.TrangThai = N'Đã thanh toán' " +
+                "AND hd.NgayLap >= ? AND hd.NgayLap < ? " +
+                "GROUP BY YEAR(hd.NgayLap) " +
+                "ORDER BY Nam";
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setDate(1, java.sql.Date.valueOf(
+                    LocalDate.of(tuNam, 1, 1)));
+
+            ps.setDate(2, java.sql.Date.valueOf(
+                    LocalDate.of(denNam + 1, 1, 1)));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ketQua.put(
+                            rs.getInt("Nam"),
+                            rs.getDouble("DoanhThu"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Lỗi thống kê doanh thu theo năm: " + e.getMessage(), e);
+        }
+
+        return ketQua;
+    }
+
+
+    // Thống kê doanh thu từng dịch vụ trong khoảng thời gian
+    public List<Object[]> getChiTietDoanhThu(
+            LocalDate tuNgay, LocalDate denNgay) {
+
+        List<Object[]> danhSach = new ArrayList<>();
+
+        String sql = "SELECT dv.MaDV, dv.TenDV, " +
+                "SUM(ct.SoLuong) AS SoLuot, " +
+                "SUM(ct.SoLuong * ct.DonGia) AS DoanhThu " +
+                "FROM HoaDon hd " +
+                "JOIN ChiTietHoaDon ct ON hd.MaHD = ct.MaHD " +
+                "JOIN DichVu dv ON ct.MaDV = dv.MaDV " +
+                "WHERE hd.TrangThai = N'Đã thanh toán' " +
+                "AND hd.NgayLap >= ? " +
+                "AND hd.NgayLap < DATEADD(DAY, 1, ?) " +
+                "GROUP BY dv.MaDV, dv.TenDV " +
+                "ORDER BY DoanhThu DESC";
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setDate(1, java.sql.Date.valueOf(tuNgay));
+            ps.setDate(2, java.sql.Date.valueOf(denNgay));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    danhSach.add(new Object[]{
+                            rs.getString("MaDV"),
+                            rs.getString("TenDV"),
+                            rs.getInt("SoLuot"),
+                            rs.getDouble("DoanhThu")
+                    });
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Lỗi lấy chi tiết doanh thu: " + e.getMessage(), e);
+        }
+
+        return danhSach;
     }
 }

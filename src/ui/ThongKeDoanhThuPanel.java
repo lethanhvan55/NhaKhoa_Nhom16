@@ -26,6 +26,10 @@ import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
+// tvan sửa
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
 
@@ -39,12 +43,17 @@ public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
     private JComboBox<String> cboKieuThongKe;
     private JButton btnThongKe;
     private JButton btnXuatBaoCao;
+// tvan sửa
+    private JComboBox<Integer> cboThang;
+    private JComboBox<Integer> cboNam;
 
     private JTable tblDoanhThu;
     private DefaultTableModel modelDoanhThu;
 
     private BieuDoCotPanel pnlBieuDoCot;
     private BieuDoDuongPanel pnlBieuDoDuong;
+// tvan sửa
+    private dao.HoaDonDao hoaDonDao = new dao.HoaDonDao();
 
     public ThongKeDoanhThuPanel() {
         setLayout(new BorderLayout(15, 15));
@@ -77,21 +86,42 @@ public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
         JLabel lblKieuTK = new JLabel("Thống kê theo:");
         lblKieuTK.setFont(new Font("Arial", Font.BOLD, 12));
         cboKieuThongKe = new JComboBox<>(new String[]{"Theo ngày", "Theo tháng", "Theo năm"});
+        // tvan sửa
+        cboThang = new JComboBox<>();
+        for (int i = 1; i <= 12; i++) {
+            cboThang.addItem(i);
+        }
+
+        cboNam = new JComboBox<>();
+        int namHienTai = LocalDate.now().getYear();
+
+        for (int nam = namHienTai - 4; nam <= namHienTai; nam++) {
+            cboNam.addItem(nam);
+        }
+
+        cboThang.setSelectedItem(LocalDate.now().getMonthValue());
+        cboNam.setSelectedItem(namHienTai);
         cboKieuThongKe.setPreferredSize(new Dimension(130, 34));
 
         btnThongKe = taoNut("Thống kê", MAU_XANH);
         btnXuatBaoCao = taoNut("Xuất báo cáo", MAU_XANH_DUONG);
-        
+
+        cboKieuThongKe.addActionListener(this);
         btnThongKe.addActionListener(this);
         btnXuatBaoCao.addActionListener(this);
 
         pnlBoLoc.add(lblKieuTK);
         pnlBoLoc.add(Box.createHorizontalStrut(4));
         pnlBoLoc.add(cboKieuThongKe);
+        //tvan sửa
+        pnlBoLoc.add(cboThang);
+        pnlBoLoc.add(cboNam);
         pnlBoLoc.add(Box.createHorizontalStrut(8));
         pnlBoLoc.add(btnThongKe);
         pnlBoLoc.add(btnXuatBaoCao);
 
+        cboThang.setVisible(false);
+        cboNam.setVisible(true);
         return pnlBoLoc;
     }
 
@@ -122,9 +152,8 @@ public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
 
         return pnlNoiDung;
     }
-
     private JPanel taoBangDoanhThu() {
-        JPanel pnlBang = taoKhung("CHI TIẾT THỐNG KÊ DOANH THU DỊCH VỤ");
+        JPanel pnlBang = taoKhung("CHI TIẾT THỐNG KÊ");
 
         String[] cot = {
                 "STT", "Mã dịch vụ", "Tên dịch vụ",
@@ -200,13 +229,25 @@ public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
+
         if (source.equals(btnThongKe)) {
             xuLyThongKe();
         } else if (source.equals(btnXuatBaoCao)) {
             xuLyXuatBaoCao();
+        } else if (source.equals(cboKieuThongKe)) {
+            hienThiBoChonThoiGian();
         }
     }
+    // tvan sửa
+    private void hienThiBoChonThoiGian() {
+        String kieuTK = cboKieuThongKe.getSelectedItem().toString();
 
+        cboThang.setVisible(kieuTK.equals("Theo tháng"));
+        cboNam.setVisible(!kieuTK.equals("Theo ngày"));
+
+        revalidate();
+        repaint();
+    }
     private void xuLyThongKe() {
         String kieuTK = cboKieuThongKe.getSelectedItem().toString();
         capNhatDuLieuThongKe();
@@ -216,13 +257,83 @@ public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
                 "Thông tin thống kê",
                 JOptionPane.INFORMATION_MESSAGE);
     }
-
+// tvan sửa
     private void xuLyXuatBaoCao() {
+
+        if (modelDoanhThu.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Không có dữ liệu để hiển thị báo cáo!",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        JPanel pnlBaoCao = new JPanel(new BorderLayout(10, 10));
+        pnlBaoCao.setBorder(
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        );
+
+        JLabel lblTieuDe = new JLabel(
+                "BÁO CÁO DOANH THU - "
+                        + cboKieuThongKe.getSelectedItem().toString()
+        );
+
+        lblTieuDe.setFont(new Font("Arial", Font.BOLD, 18));
+        lblTieuDe.setHorizontalAlignment(JLabel.CENTER);
+
+        // Tạo bảng báo cáo riêng
+        DefaultTableModel modelBaoCao = new DefaultTableModel(
+                new Object[]{
+                        "STT", "Mã dịch vụ", "Tên dịch vụ",
+                        "Số lượt sử dụng", "Tổng doanh thu", "Tỷ trọng"
+                }, 0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        // Sao chép dữ liệu từ bảng thống kê
+        for (int i = 0; i < modelDoanhThu.getRowCount(); i++) {
+            Object[] dong = new Object[modelDoanhThu.getColumnCount()];
+
+            for (int j = 0; j < modelDoanhThu.getColumnCount(); j++) {
+                dong[j] = modelDoanhThu.getValueAt(i, j);
+            }
+
+            modelBaoCao.addRow(dong);
+        }
+
+        JTable tblBaoCao = new JTable(modelBaoCao);
+        tblBaoCao.setRowHeight(30);
+        tblBaoCao.setFont(new Font("Arial", Font.PLAIN, 13));
+        tblBaoCao.getTableHeader().setFont(
+                new Font("Arial", Font.BOLD, 12)
+        );
+
+        JScrollPane scrBaoCao = new JScrollPane(tblBaoCao);
+        scrBaoCao.setPreferredSize(new Dimension(850, 250));
+
+        JLabel lblNgay = new JLabel(
+                "Ngày lập báo cáo: "
+                        + LocalDate.now().format(
+                        java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                )
+        );
+
+        pnlBaoCao.add(lblTieuDe, BorderLayout.NORTH);
+        pnlBaoCao.add(scrBaoCao, BorderLayout.CENTER);
+        pnlBaoCao.add(lblNgay, BorderLayout.SOUTH);
+
         JOptionPane.showMessageDialog(
                 this,
-                "Chức năng xuất báo cáo đang được phát triển.",
-                "Thông báo",
-                JOptionPane.INFORMATION_MESSAGE);
+                pnlBaoCao,
+                "Báo cáo doanh thu",
+                JOptionPane.PLAIN_MESSAGE
+        );
     }
 
     private void capNhatDuLieuThongKe() {
@@ -230,7 +341,38 @@ public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
 
         try {
             // Khung xử lý lấy dữ liệu từ CSDL thông qua DAO dựa theo kieuTK ("Theo ngày", "Theo tháng", "Theo năm")
+            // tvan sửa
+            int namHienTai = LocalDate.now().getYear();
 
+            Map<Integer, Double> doanhThuThang =
+                    hoaDonDao.getDoanhThuTheoThang(namHienTai);
+
+            double[] duLieuThang = new double[12];
+
+            for (int i = 1; i <= 12; i++) {
+                duLieuThang[i - 1] =
+                        doanhThuThang.getOrDefault(i, 0.0) / 1_000_000.0;
+            }
+
+            pnlBieuDoCot.capNhatDuLieu(duLieuThang);
+
+            int namBatDau = namHienTai - 4;
+
+            Map<Integer, Double> doanhThuNam =
+                    hoaDonDao.getDoanhThuTheoNam(namBatDau, namHienTai);
+
+            double[] duLieuNam = new double[5];
+            String[] dsNam = new String[5];
+
+            for (int i = 0; i < 5; i++) {
+                int nam = namBatDau + i;
+
+                dsNam[i] = String.valueOf(nam);
+                duLieuNam[i] =
+                        doanhThuNam.getOrDefault(nam, 0.0) / 1_000_000.0;
+            }
+
+            pnlBieuDoDuong.capNhatDuLieu(duLieuNam, dsNam);
             taiDuLieuBangDoanhThu();
 
             if (pnlBieuDoCot != null) {
@@ -250,11 +392,71 @@ public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
                     JOptionPane.ERROR_MESSAGE);
         }
     }
-
+// tvan sửa
     private void taiDuLieuBangDoanhThu() {
         modelDoanhThu.setRowCount(0);
-        // Khung nạp dữ liệu thực tế từ cơ sở dữ liệu vào JTable tại đây
+
+        int nam = (int) cboNam.getSelectedItem();
+        int thang = (int) cboThang.getSelectedItem();
+
+        LocalDate tuNgay;
+        LocalDate denNgay;
+
+        String kieuTK = cboKieuThongKe.getSelectedItem().toString();
+
+        if (kieuTK.equals("Theo ngày")) {
+            LocalDate homNay = LocalDate.now();
+
+            tuNgay = homNay;
+            denNgay = homNay;
+
+        } else if (kieuTK.equals("Theo tháng")) {
+            tuNgay = LocalDate.of(nam, thang, 1);
+            denNgay = tuNgay.withDayOfMonth(tuNgay.lengthOfMonth());
+
+        } else {
+            tuNgay = LocalDate.of(nam, 1, 1);
+            denNgay = LocalDate.of(nam, 12, 31);
+        }
+
+        List<Object[]> danhSach =
+                hoaDonDao.getChiTietDoanhThu(tuNgay, denNgay);
+
+        danhSach.sort((a, b) ->
+                Double.compare(
+                        ((Number) b[3]).doubleValue(),
+                        ((Number) a[3]).doubleValue()
+                )
+        );
+
+        double tongDoanhThu = 0;
+
+        for (Object[] dong : danhSach) {
+            tongDoanhThu += ((Number) dong[3]).doubleValue();
+        }
+
+        int soLuong = Math.min(5, danhSach.size());
+
+        for (int i = 0; i < soLuong; i++) {
+            Object[] dong = danhSach.get(i);
+
+            double doanhThu = ((Number) dong[3]).doubleValue();
+
+            double tyTrong = tongDoanhThu > 0
+                    ? doanhThu / tongDoanhThu * 100
+                    : 0;
+
+            modelDoanhThu.addRow(new Object[]{
+                    i + 1,
+                    dong[0],
+                    dong[1],
+                    dong[2],
+                    String.format("%,.0f VNĐ", doanhThu),
+                    String.format("%.2f%%", tyTrong)
+            });
+        }
     }
+
 
     private class BieuDoCotPanel extends JPanel {
 
@@ -264,12 +466,15 @@ public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
                 "T1", "T2", "T3", "T4", "T5", "T6",
                 "T7", "T8", "T9", "T10", "T11", "T12"
         };
-
         public BieuDoCotPanel() {
             setBackground(Color.WHITE);
             setPreferredSize(new Dimension(400, 260));
         }
-
+        // tvan sửa
+        public void capNhatDuLieu(double[] duLieu) {
+            giaTri = duLieu.clone();
+            repaint();
+        }
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -337,6 +542,12 @@ public class ThongKeDoanhThuPanel extends JPanel implements ActionListener {
         public BieuDoDuongPanel() {
             setBackground(Color.WHITE);
             setPreferredSize(new Dimension(400, 260));
+        }
+        // tvan sửa
+        public void capNhatDuLieu(double[] duLieu, String[] dsNam) {
+            giaTri = duLieu.clone();
+            nam = dsNam.clone();
+            repaint();
         }
 
         @Override

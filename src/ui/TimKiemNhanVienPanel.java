@@ -41,9 +41,7 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
     private final Color BG = new Color(243, 246, 251);
     private final Color TEXT = new Color(45, 55, 68);
 
-    private JTextField txtMaNV;
-    private JTextField txtHoTen;
-    private JTextField txtSoDienThoai;
+    private JTextField txtTimKiem;
 
     private JComboBox<String> cboChucVu;
 
@@ -104,41 +102,26 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
 
         // Các trường tìm kiếm
         JPanel pnlKhungTimKiem = new JPanel(
-                new GridLayout(2, 3, 14, 14)
+                new GridLayout(2, 2, 14, 14)
         );
         pnlKhungTimKiem.setBackground(Color.WHITE);
 
-        // Mã nhân viên
-        JPanel pnlMa = new JPanel(new BorderLayout(0, 6));
-        pnlMa.setBackground(Color.WHITE);
+        // Ô tìm kiếm nhân viên
+        JPanel pnlTimKiemNhanVien = new JPanel(new BorderLayout(0, 6));
+        pnlTimKiemNhanVien.setBackground(Color.WHITE);
 
-        JLabel lblMa = new JLabel("Mã nhân viên");
-        lblMa.setFont(new Font("Arial", Font.BOLD, 12));
-        lblMa.setForeground(TEXT);
+        JLabel lblTimKiem = new JLabel("Mã nhân viên / Họ và tên / Số điện thoại");
+        lblTimKiem.setFont(new Font("Arial", Font.BOLD, 12));
+        lblTimKiem.setForeground(TEXT);
 
-        txtMaNV = new JTextField();
+        txtTimKiem = new JTextField();
+        txtTimKiem.setToolTipText("Nhập mã nhân viên, họ tên hoặc số điện thoại");
+        dinhDangTextField(txtTimKiem);
 
-        // Họ và tên
-        JPanel pnlHoTen = new JPanel(new BorderLayout(0, 6));
-        pnlHoTen.setBackground(Color.WHITE);
+        pnlTimKiemNhanVien.add(lblTimKiem, BorderLayout.NORTH);
+        pnlTimKiemNhanVien.add(txtTimKiem, BorderLayout.CENTER);
 
-        JLabel lblHoTen = new JLabel("Họ và tên");
-        lblHoTen.setFont(new Font("Arial", Font.BOLD, 12));
-        lblHoTen.setForeground(TEXT);
 
-        txtHoTen = new JTextField();
-
-        // Số điện thoại
-        JPanel pnlSDT = new JPanel(new BorderLayout(0, 6));
-        pnlSDT.setBackground(Color.WHITE);
-
-        JLabel lblSDT = new JLabel("Số điện thoại");
-        lblSDT.setFont(new Font("Arial", Font.BOLD, 12));
-        lblSDT.setForeground(TEXT);
-
-        txtSoDienThoai = new JTextField();
-
-        // Email
 
 
         // Chức vụ
@@ -158,30 +141,15 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
                 }
         );
 
-        dinhDangTextField(txtMaNV);
-        dinhDangTextField(txtHoTen);
-        dinhDangTextField(txtSoDienThoai);
+
 
         dinhDangComboBox(cboChucVu);
-
-        pnlMa.add(lblMa, BorderLayout.NORTH);
-        pnlMa.add(txtMaNV, BorderLayout.CENTER);
-
-        pnlHoTen.add(lblHoTen, BorderLayout.NORTH);
-        pnlHoTen.add(txtHoTen, BorderLayout.CENTER);
-
-        pnlSDT.add(lblSDT, BorderLayout.NORTH);
-        pnlSDT.add(txtSoDienThoai, BorderLayout.CENTER);
-
-
 
         pnlChucVu.add(lblChucVu, BorderLayout.NORTH);
         pnlChucVu.add(cboChucVu, BorderLayout.CENTER);
 
 
-        pnlKhungTimKiem.add(pnlMa);
-        pnlKhungTimKiem.add(pnlHoTen);
-        pnlKhungTimKiem.add(pnlSDT);
+        pnlKhungTimKiem.add(pnlTimKiemNhanVien);
         pnlKhungTimKiem.add(pnlChucVu);
 
         JPanel pnlNut = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -325,9 +293,7 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
         btnLamMoi.addActionListener(this);
         btnXemChiTiet.addActionListener(this);
 
-        txtMaNV.addActionListener(this);
-        txtHoTen.addActionListener(this);
-        txtSoDienThoai.addActionListener(this);
+        txtTimKiem.addActionListener(this);
 
         cboChucVu.addActionListener(this);
 
@@ -365,7 +331,7 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
             lamMoiTimKiem();
         }
 
-        if (e.getSource() == txtMaNV || e.getSource() == txtHoTen || e.getSource() == txtSoDienThoai) {
+        if (e.getSource() == txtTimKiem) {
             timKiemNhanVien();
         }
 
@@ -413,16 +379,13 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
     }
 
     // Tìm kiếm theo họ tên hoặc số điện thoại
+    // Tìm kiếm theo mã nhân viên, họ tên, số điện thoại và chức vụ
     private void timKiemNhanVien() {
 
-        String maNV = txtMaNV.getText().trim().toLowerCase();
-        String hoTen = txtHoTen.getText().trim().toLowerCase();
-        String soDienThoai = txtSoDienThoai.getText().trim();
-
+        String tuKhoa = txtTimKiem.getText().trim().toLowerCase(Locale.ROOT);
         String chucVu = cboChucVu.getSelectedItem().toString();
 
-        if (maNV.isEmpty() && hoTen.isEmpty() && soDienThoai.isEmpty() && chucVu.equals("Tất cả chức vụ")) {
-
+        if (tuKhoa.isEmpty() && chucVu.equals("Tất cả chức vụ")) {
             taiDanhSachNhanVien();
             return;
         }
@@ -436,36 +399,37 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
 
             for (NhanVien nv : danhSach) {
 
-                String ma = nv.getMaNV() == null ? "" : nv.getMaNV().trim().toLowerCase();
+                String ma = nv.getMaNV() == null
+                        ? "" : nv.getMaNV().trim().toLowerCase(Locale.ROOT);
 
-                String ten = nv.getHoTen() == null ? "" : nv.getHoTen().toLowerCase();
+                String ten = nv.getHoTen() == null
+                        ? "" : nv.getHoTen().trim().toLowerCase(Locale.ROOT);
 
-                String sdt = nv.getSoDT() == null ? "" : nv.getSoDT().trim();
+                String sdt = nv.getSoDT() == null
+                        ? "" : nv.getSoDT().trim();
 
-                String cv = nv.getChucVu() == null ? "" : nv.getChucVu().trim();
+                String cv = nv.getChucVu() == null
+                        ? "" : nv.getChucVu().trim();
 
-                // Kiểm tra mã nhân viên
-                boolean dungMa = maNV.isEmpty() || ma.contains(maNV);
-
-                // Kiểm tra họ tên
-                boolean dungTen = hoTen.isEmpty() || ten.contains(hoTen);
-
-                // Kiểm tra số điện thoại
-                boolean dungSDT = soDienThoai.isEmpty() || sdt.contains(soDienThoai);
+                // Tìm từ khóa trong mã, họ tên hoặc số điện thoại
+                boolean dungTuKhoa = tuKhoa.isEmpty()
+                        || ma.contains(tuKhoa)
+                        || ten.contains(tuKhoa)
+                        || sdt.contains(tuKhoa);
 
                 // Kiểm tra chức vụ
-                boolean dungChucVu = chucVu.equals("Tất cả chức vụ") || cv.equalsIgnoreCase(chucVu);
+                boolean dungChucVu = chucVu.equals("Tất cả chức vụ")
+                        || cv.equalsIgnoreCase(chucVu);
 
-                // Nếu thỏa mãn tất cả điều kiện thì thêm vào bảng
-                if (dungMa && dungTen && dungSDT && dungChucVu) {
-
+                if (dungTuKhoa && dungChucVu) {
                     model.addRow(new Object[]{
                             stt++,
                             nv.getMaNV(),
                             nv.getHoTen(),
                             nv.getSoDT(),
                             nv.getNgayVaoLam(),
-                            nv.getGioiTinh()== null ? "" : (nv.getGioiTinh() ? "Nam" : "Nữ"),
+                            nv.getGioiTinh() == null
+                                    ? "" : (nv.getGioiTinh() ? "Nam" : "Nữ"),
                             nv.getChucVu(),
                             nv.getTrangThai(),
                             nv.getEmail(),
@@ -474,7 +438,6 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
                 }
             }
 
-            // Thông báo khi không tìm thấy kết quả
             if (model.getRowCount() == 0) {
                 JOptionPane.showMessageDialog(
                         this,
@@ -496,12 +459,8 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
 
     // Làm mới điều kiện tìm kiếm
     private void lamMoiTimKiem() {
-        txtMaNV.setText("");
-        txtHoTen.setText("");
-        txtSoDienThoai.setText("");
-
+        txtTimKiem.setText("");
         cboChucVu.setSelectedIndex(0);
-
         taiDanhSachNhanVien();
     }
 
@@ -563,19 +522,9 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
     public void mouseExited(MouseEvent e) {
     }
 
-    public JTextField getTxtMaNV() {
-        return txtMaNV;
+    public JTextField getTxtTimKiem() {
+        return txtTimKiem;
     }
-
-    public JTextField getTxtHoTen() {
-        return txtHoTen;
-    }
-
-    public JTextField getTxtSoDienThoai() {
-        return txtSoDienThoai;
-    }
-
-
 
     public JComboBox<String> getCboChucVu() {
         return cboChucVu;

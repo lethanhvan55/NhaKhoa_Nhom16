@@ -30,7 +30,6 @@ public class HoSoBenhNhan_DAO {
         Connection con = ConnectDB.getConnection();
 
         if (con == null) {
-            System.err.println("[HoSoBenhNhan_DAO] Chưa kết nối database!");
             return list;
         }
 
@@ -42,7 +41,6 @@ public class HoSoBenhNhan_DAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("[HoSoBenhNhan_DAO] getAll lỗi: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -75,7 +73,6 @@ public class HoSoBenhNhan_DAO {
         Connection con = ConnectDB.getConnection();
 
         if (con == null) {
-            System.err.println("[HoSoBenhNhan_DAO] Chưa kết nối database!");
             return list;
         }
 
@@ -93,7 +90,6 @@ public class HoSoBenhNhan_DAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("[HoSoBenhNhan_DAO] Tìm kiếm lỗi: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -103,31 +99,26 @@ public class HoSoBenhNhan_DAO {
     // ================= THÊM HỒ SƠ BỆNH NHÂN =================
     public boolean insert(HoSoBenhNhan hs) {
         if (hs == null) {
-            System.err.println("Hồ sơ bệnh nhân không hợp lệ!");
             return false;
         }
 
         if (hs.getMaBenhNhan() == null
                 || hs.getMaBenhNhan().getMaBenhNhan() == null
                 || hs.getMaBenhNhan().getMaBenhNhan().trim().isEmpty()) {
-            System.err.println("Mã bệnh nhân không được để trống!");
             return false;
         }
 
         if (hs.getMaNV() == null
                 || hs.getMaNV().getMaNV() == null
                 || hs.getMaNV().getMaNV().trim().isEmpty()) {
-            System.err.println("Mã nhân viên không được để trống!");
             return false;
         }
 
         if (hs.getNgayKham() == null) {
-            System.err.println("Ngày khám không được để trống!");
             return false;
         }
 
         if (hs.getNgayKham().isAfter(java.time.LocalDate.now())) {
-            System.err.println("Ngày khám không được ở tương lai!");
             return false;
         }
 
@@ -137,14 +128,12 @@ public class HoSoBenhNhan_DAO {
                 || hs.getChanDoan().trim().isEmpty()
                 || hs.getPhuongPhapDieuTri() == null
                 || hs.getPhuongPhapDieuTri().trim().isEmpty()) {
-            System.err.println("Vui lòng nhập đầy đủ thông tin khám!");
             return false;
         }
 
         String maMoi = sinhMaHoSoMoi();
 
         if (maMoi == null || maMoi.trim().isEmpty()) {
-            System.err.println("Không thể sinh mã hồ sơ!");
             return false;
         }
 
@@ -188,14 +177,12 @@ public class HoSoBenhNhan_DAO {
 
             if (rows > 0) {
                 hs.setMaHoSo(maMoi);
-                System.out.println("Thêm hồ sơ thành công: " + maMoi);
                 return true;
             }
 
             return false;
 
         } catch (SQLException e) {
-            System.err.println("Lỗi thêm hồ sơ: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -206,23 +193,18 @@ public class HoSoBenhNhan_DAO {
 
         if (hs == null || hs.getMaHoSo() == null
                 || hs.getMaHoSo().trim().isEmpty()) {
-            System.err.println("[HoSoBenhNhan_DAO] Mã hồ sơ không hợp lệ!");
             return false;
         }
 
         if (hs.getMaBenhNhan() == null
                 || hs.getMaBenhNhan().getMaBenhNhan() == null
                 || hs.getMaBenhNhan().getMaBenhNhan().trim().isEmpty()) {
-
-            System.err.println("[HoSoBenhNhan_DAO] Mã bệnh nhân không được để trống!");
             return false;
         }
 
         if (hs.getMaNV() == null
                 || hs.getMaNV().getMaNV() == null
                 || hs.getMaNV().getMaNV().trim().isEmpty()) {
-
-            System.err.println("[HoSoBenhNhan_DAO] Mã nhân viên không được để trống!");
             return false;
         }
 
@@ -236,7 +218,6 @@ public class HoSoBenhNhan_DAO {
         Connection con = ConnectDB.getConnection();
 
         if (con == null) {
-            System.err.println("[HoSoBenhNhan_DAO] Chưa kết nối database!");
             return false;
         }
 
@@ -269,7 +250,6 @@ public class HoSoBenhNhan_DAO {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.err.println("[HoSoBenhNhan_DAO] Update lỗi: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -279,7 +259,6 @@ public class HoSoBenhNhan_DAO {
     public boolean delete(String maHoSo) {
 
         if (maHoSo == null || maHoSo.trim().isEmpty()) {
-            System.err.println("[HoSoBenhNhan_DAO] Mã hồ sơ cần xóa không hợp lệ!");
             return false;
         }
 
@@ -288,7 +267,6 @@ public class HoSoBenhNhan_DAO {
         Connection con = ConnectDB.getConnection();
 
         if (con == null) {
-            System.err.println("[HoSoBenhNhan_DAO] Chưa kết nối database!");
             return false;
         }
 
@@ -299,7 +277,6 @@ public class HoSoBenhNhan_DAO {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.err.println("[HoSoBenhNhan_DAO] Delete lỗi: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -328,7 +305,6 @@ public class HoSoBenhNhan_DAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("Lỗi sinh mã hồ sơ: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -347,7 +323,6 @@ public class HoSoBenhNhan_DAO {
         Connection con = ConnectDB.getInstance().getConnection();
 
         if (con == null) {
-            System.out.println("Không kết nối được CSDL khi lấy hồ sơ bệnh án!");
             return list;
         }
 
@@ -371,8 +346,6 @@ public class HoSoBenhNhan_DAO {
         if (hs.getMaBenhNhan() == null
                 || hs.getMaBenhNhan().getMaBenhNhan() == null
                 || hs.getMaBenhNhan().getMaBenhNhan().trim().isEmpty()) {
-
-            System.err.println("[HoSoBenhNhan_DAO] Mã bệnh nhân không được để trống!");
             return false;
         }
 
@@ -380,35 +353,28 @@ public class HoSoBenhNhan_DAO {
         if (hs.getMaNV() == null
                 || hs.getMaNV().getMaNV() == null
                 || hs.getMaNV().getMaNV().trim().isEmpty()) {
-
-            System.err.println("[HoSoBenhNhan_DAO] Mã nhân viên không được để trống!");
             return false;
         }
 
         if (hs.getNgayKham() == null) {
-            System.err.println("[HoSoBenhNhan_DAO] Ngày khám không được để trống!");
             return false;
         }
 
         if (hs.getNgayKham().isAfter(LocalDate.now())) {
-            System.err.println("[HoSoBenhNhan_DAO] Ngày khám không được lớn hơn ngày hiện tại!");
             return false;
         }
 
         if (hs.getTinhTrangRangMieng() == null
                 || hs.getTinhTrangRangMieng().trim().isEmpty()) {
-            System.err.println("[HoSoBenhNhan_DAO] Tình trạng răng miệng không được để trống!");
             return false;
         }
 
         if (hs.getChanDoan() == null || hs.getChanDoan().trim().isEmpty()) {
-            System.err.println("[HoSoBenhNhan_DAO] Chẩn đoán không được để trống!");
             return false;
         }
 
         if (hs.getPhuongPhapDieuTri() == null
                 || hs.getPhuongPhapDieuTri().trim().isEmpty()) {
-            System.err.println("[HoSoBenhNhan_DAO] Phương pháp điều trị không được để trống!");
             return false;
         }
 
