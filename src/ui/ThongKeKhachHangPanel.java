@@ -8,12 +8,17 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridLayout;
 import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
-import java.text.SimpleDateFormat;
+import java.awt.BasicStroke;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -27,8 +32,11 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
+import dao.ThongKeKhachHang_Dao;
 
 public class ThongKeKhachHangPanel extends JPanel {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Color MAU_CHU = new Color(35, 65, 95);
     private static final Color MAU_XANH = new Color(15, 150, 137);
@@ -42,21 +50,31 @@ public class ThongKeKhachHangPanel extends JPanel {
     private JButton btnXuatBaoCao;
 
     private JTable tblKhachHang;
+    private DefaultTableModel modelKhachHang;
+
+    private BieuDoDuongPanel pnlBieuDoDuong;
+    private BieuDoCotPanel pnlBieuDoCot;
+
+    private final ThongKeKhachHang_Dao thongKeDao =
+            new ThongKeKhachHang_Dao();
 
     public ThongKeKhachHangPanel() {
+
         setLayout(new BorderLayout(15, 15));
         setBackground(MAU_NEN);
         setBorder(new EmptyBorder(20, 20, 20, 20));
 
         add(taoTieuDe(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
+
+        // Tải dữ liệu sau khi giao diện đã được khởi tạo
+        capNhatDuLieu();
     }
 
-    // =====================================================
-    // 1. TIÊU ĐỀ
-    // =====================================================
+    // ================= TIÊU ĐỀ =================
 
     private JPanel taoTieuDe() {
+
         JPanel pnlTieuDe = new JPanel(new BorderLayout());
         pnlTieuDe.setOpaque(false);
 
@@ -70,11 +88,10 @@ public class ThongKeKhachHangPanel extends JPanel {
         return pnlTieuDe;
     }
 
-    // =====================================================
-    // 2. BỘ LỌC NGÀY
-    // =====================================================
+    // ================= BỘ LỌC =================
 
     private JPanel taoBoLoc() {
+
         JPanel pnlBoLoc = new JPanel(
                 new FlowLayout(FlowLayout.RIGHT, 8, 5));
 
@@ -97,7 +114,7 @@ public class ThongKeKhachHangPanel extends JPanel {
 
         btnXuatBaoCao.addActionListener(e ->
                 JOptionPane.showMessageDialog(
-                        ThongKeKhachHangPanel.this,
+                        this,
                         "Chức năng xuất báo cáo chưa được xử lý.",
                         "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE));
@@ -115,6 +132,7 @@ public class ThongKeKhachHangPanel extends JPanel {
     }
 
     private Date layNgayDauThang() {
+
         Calendar lich = Calendar.getInstance();
 
         lich.set(Calendar.DAY_OF_MONTH, 1);
@@ -126,65 +144,289 @@ public class ThongKeKhachHangPanel extends JPanel {
         return lich.getTime();
     }
 
-    // =====================================================
-    // 3. XỬ LÝ NÚT THỐNG KÊ
-    // =====================================================
+    private LocalDate chuyenSangLocalDate(Date ngay) {
+
+        if (ngay == null) {
+            return null;
+        }
+
+        return ngay.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+    // ================= XỬ LÝ THỐNG KÊ =================
 
     private void xuLyThongKe() {
+
         Date tuNgay = dcTuNgay.getDate();
         Date denNgay = dcDenNgay.getDate();
 
         if (tuNgay == null || denNgay == null) {
+
             JOptionPane.showMessageDialog(
                     this,
                     "Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc!",
                     "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
+
             return;
         }
 
-        if (tuNgay.after(denNgay)) {
+        LocalDate ngayBatDau = chuyenSangLocalDate(tuNgay);
+        LocalDate ngayKetThuc = chuyenSangLocalDate(denNgay);
+
+        if (ngayBatDau.isAfter(ngayKetThuc)) {
+
             JOptionPane.showMessageDialog(
                     this,
                     "Từ ngày không được lớn hơn đến ngày!",
                     "Thông báo",
                     JOptionPane.WARNING_MESSAGE);
+
             return;
         }
 
-        SimpleDateFormat dinhDang =
-                new SimpleDateFormat("dd/MM/yyyy");
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Khoảng thời gian thống kê khách hàng:\n"
-                        + "Từ ngày: " + dinhDang.format(tuNgay)
-                        + "\nĐến ngày: " + dinhDang.format(denNgay),
-                "Thông tin thống kê",
-                JOptionPane.INFORMATION_MESSAGE);
+        capNhatDuLieu();
     }
 
-    // =====================================================
-    // 4. NỘI DUNG CHÍNH
-    // =====================================================
+    // ================= CẬP NHẬT TOÀN BỘ DỮ LIỆU =================
+
+    private void capNhatDuLieu() {
+
+        loadDuLieuBang();
+        loadDuLieuBieuDoCot();
+        loadDuLieuBieuDoDuong();
+    }
+
+    // ================= LẤY SỐ LƯỢNG KHÁCH HÀNG =================
+
+    /*
+     * Sử dụng hàm DAO hiện có để đếm số khách hàng
+     * trong khoảng thời gian được chọn.
+     */
+    private int demSoLuongKhachHang(
+            LocalDate tuNgay,
+            LocalDate denNgay) throws Exception {
+
+        List<Map<String, Object>> danhSach =
+                thongKeDao.getThongKeKhachHang(tuNgay, denNgay);
+
+        return danhSach == null ? 0 : danhSach.size();
+    }
+
+    // ================= DỮ LIỆU BẢNG =================
+
+    public void loadDuLieuBang() {
+
+        if (modelKhachHang == null) {
+            return;
+        }
+
+        modelKhachHang.setRowCount(0);
+
+        LocalDate tuNgay =
+                chuyenSangLocalDate(dcTuNgay.getDate());
+
+        LocalDate denNgay =
+                chuyenSangLocalDate(dcDenNgay.getDate());
+
+        if (tuNgay == null || denNgay == null) {
+            return;
+        }
+
+        try {
+
+            List<Map<String, Object>> danhSach =
+                    thongKeDao.getThongKeKhachHang(tuNgay, denNgay);
+
+            if (danhSach == null) {
+                return;
+            }
+
+            DecimalFormat df = new DecimalFormat("#,##0");
+            int stt = 1;
+
+            for (Map<String, Object> row : danhSach) {
+
+                String maKH = String.valueOf(
+                        row.get("MaKhachHang"));
+
+                String tenKH = String.valueOf(
+                        row.get("TenKhachHang"));
+
+                Object soLanObj = row.get("SoLanKham");
+                Object tongChiTieuObj = row.get("TongChiTieu");
+
+                int soLanKham = soLanObj instanceof Number
+                        ? ((Number) soLanObj).intValue() : 0;
+
+                double tongChiTieu = tongChiTieuObj instanceof Number
+                        ? ((Number) tongChiTieuObj).doubleValue() : 0;
+
+                modelKhachHang.addRow(new Object[] {
+                        stt++,
+                        maKH,
+                        tenKH,
+                        soLanKham,
+                        df.format(tongChiTieu) + " VNĐ"
+                });
+            }
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Lỗi tải dữ liệu thống kê khách hàng:\n"
+                            + e.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // ================= BIỂU ĐỒ CỘT THEO THÁNG =================
+
+    private void loadDuLieuBieuDoCot() {
+
+        if (pnlBieuDoCot == null) {
+            return;
+        }
+
+        Map<String, Integer> duLieu = new LinkedHashMap<>();
+
+        LocalDate tuNgay = chuyenSangLocalDate(dcTuNgay.getDate());
+        LocalDate denNgay = chuyenSangLocalDate(dcDenNgay.getDate());
+
+        if (tuNgay == null || denNgay == null
+                || tuNgay.isAfter(denNgay)) {
+
+            pnlBieuDoCot.setDuLieu(duLieu);
+            return;
+        }
+
+        try {
+
+            YearMonth thangBatDau = YearMonth.from(tuNgay);
+            YearMonth thangKetThuc = YearMonth.from(denNgay);
+
+            YearMonth thangHienTai = thangBatDau;
+
+            while (!thangHienTai.isAfter(thangKetThuc)) {
+
+                LocalDate ngayDau = thangHienTai.atDay(1);
+                LocalDate ngayCuoi = thangHienTai.atEndOfMonth();
+
+                if (ngayDau.isBefore(tuNgay)) {
+                    ngayDau = tuNgay;
+                }
+
+                if (ngayCuoi.isAfter(denNgay)) {
+                    ngayCuoi = denNgay;
+                }
+
+                int soLuong = demSoLuongKhachHang(
+                        ngayDau, ngayCuoi);
+
+                String nhan = thangHienTai.getMonthValue() + "/"
+                        + thangHienTai.getYear();
+
+                duLieu.put(nhan, soLuong);
+
+                thangHienTai = thangHienTai.plusMonths(1);
+            }
+
+            pnlBieuDoCot.setDuLieu(duLieu);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            pnlBieuDoCot.setDuLieu(duLieu);
+        }
+    }
+
+    // ================= BIỂU ĐỒ ĐƯỜNG THEO NĂM =================
+
+    private void loadDuLieuBieuDoDuong() {
+
+        if (pnlBieuDoDuong == null) {
+            return;
+        }
+
+        Map<String, Integer> duLieuNam = new LinkedHashMap<>();
+
+        LocalDate tuNgay = chuyenSangLocalDate(dcTuNgay.getDate());
+        LocalDate denNgay = chuyenSangLocalDate(dcDenNgay.getDate());
+
+        if (tuNgay == null || denNgay == null
+                || tuNgay.isAfter(denNgay)) {
+
+            pnlBieuDoDuong.setDuLieu(duLieuNam);
+            return;
+        }
+
+        try {
+
+            int namBatDau = tuNgay.getYear();
+            int namKetThuc = denNgay.getYear();
+
+            for (int nam = namBatDau; nam <= namKetThuc; nam++) {
+
+                LocalDate ngayDau = LocalDate.of(nam, 1, 1);
+                LocalDate ngayCuoi = LocalDate.of(nam, 12, 31);
+
+                if (ngayDau.isBefore(tuNgay)) {
+                    ngayDau = tuNgay;
+                }
+
+                if (ngayCuoi.isAfter(denNgay)) {
+                    ngayCuoi = denNgay;
+                }
+
+                int soLuong = demSoLuongKhachHang(
+                        ngayDau, ngayCuoi);
+
+                duLieuNam.put(String.valueOf(nam), soLuong);
+            }
+
+            pnlBieuDoDuong.setDuLieu(duLieuNam);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            pnlBieuDoDuong.setDuLieu(duLieuNam);
+        }
+    }
+
+    // ================= NỘI DUNG GIAO DIỆN =================
 
     private JPanel taoNoiDung() {
+
         JPanel pnlNoiDung = new JPanel(
                 new BorderLayout(15, 15));
 
         pnlNoiDung.setOpaque(false);
 
-        // Hai biểu đồ phía trên
         JPanel pnlBieuDo = new JPanel(
-                new GridLayout(1, 2, 15, 0));
+                new java.awt.GridLayout(1, 2, 15, 0));
 
         pnlBieuDo.setOpaque(false);
         pnlBieuDo.setPreferredSize(new Dimension(0, 360));
 
-        pnlBieuDo.add(taoBieuDoKhachHang());
-        pnlBieuDo.add(taoBieuDoDuongTheoNam());
+        pnlBieuDoCot = new BieuDoCotPanel();
+        pnlBieuDoDuong = new BieuDoDuongPanel();
 
-        // Bảng chi tiết phía dưới
+        pnlBieuDo.add(taoKhung(
+                "SỐ LƯỢNG KHÁCH HÀNG THEO THÁNG",
+                pnlBieuDoCot));
+
+        pnlBieuDo.add(taoKhung(
+                "XU HƯỚNG KHÁCH HÀNG THEO NĂM",
+                pnlBieuDoDuong));
+
         JPanel pnlDuoi = taoBangKhachHang();
 
         pnlNoiDung.add(pnlBieuDo, BorderLayout.NORTH);
@@ -193,44 +435,12 @@ public class ThongKeKhachHangPanel extends JPanel {
         return pnlNoiDung;
     }
 
-    // =====================================================
-    // 5. BIỂU ĐỒ CỘT THEO THÁNG
-    // =====================================================
-
-    private JPanel taoBieuDoKhachHang() {
-        JPanel pnlBieuDo =
-                taoKhung("SỐ LƯỢNG KHÁCH HÀNG THEO THÁNG");
-
-        pnlBieuDo.add(
-                new BieuDoCotPanel(),
-                BorderLayout.CENTER);
-
-        return pnlBieuDo;
-    }
-
-    // =====================================================
-    // 6. BIỂU ĐỒ ĐƯỜNG THỐNG KÊ THEO NĂM
-    // =====================================================
-
-    private JPanel taoBieuDoDuongTheoNam() {
-        JPanel pnlBieuDo =
-                taoKhung("XU HƯỚNG KHÁCH HÀNG THEO NĂM");
-
-        pnlBieuDo.add(
-                new BieuDoDuongPanel(),
-                BorderLayout.CENTER);
-
-        return pnlBieuDo;
-    }
-
-    // =====================================================
-    // 7. BẢNG CHI TIẾT KHÁCH HÀNG
-    // ĐÃ BỎ CỘT PHÂN LOẠI
-    // =====================================================
+    // ================= BẢNG KHÁCH HÀNG =================
 
     private JPanel taoBangKhachHang() {
-        JPanel pnlBang =
-                taoKhung("CHI TIẾT THỐNG KÊ KHÁCH HÀNG");
+
+        JPanel pnlBang = taoKhung(
+                "CHI TIẾT THỐNG KÊ KHÁCH HÀNG", null);
 
         String[] cot = {
                 "STT",
@@ -240,25 +450,20 @@ public class ThongKeKhachHangPanel extends JPanel {
                 "Tổng chi tiêu"
         };
 
-       Object[][] duLieu = {};
+        modelKhachHang = new DefaultTableModel(null, cot) {
 
-        DefaultTableModel model =
-                new DefaultTableModel(duLieu, cot) {
-                    private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public boolean isCellEditable(
-                            int row, int column) {
-                        return false;
-                    }
-                };
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
-        tblKhachHang = new JTable(model);
+        tblKhachHang = new JTable(modelKhachHang);
 
         tblKhachHang.setRowHeight(32);
-        tblKhachHang.setFont(
-                new Font("Arial", Font.PLAIN, 13));
-
+        tblKhachHang.setFont(new Font("Arial", Font.PLAIN, 13));
         tblKhachHang.setForeground(Color.BLACK);
         tblKhachHang.setBackground(Color.WHITE);
 
@@ -282,12 +487,9 @@ public class ThongKeKhachHangPanel extends JPanel {
 
         tblKhachHang.getTableHeader().setReorderingAllowed(false);
 
-        JScrollPane scrKhachHang =
-                new JScrollPane(tblKhachHang);
+        JScrollPane scrKhachHang = new JScrollPane(tblKhachHang);
 
-        scrKhachHang.setBorder(
-                BorderFactory.createEmptyBorder());
-
+        scrKhachHang.setBorder(BorderFactory.createEmptyBorder());
         scrKhachHang.getViewport().setBackground(Color.WHITE);
 
         pnlBang.add(scrKhachHang, BorderLayout.CENTER);
@@ -295,11 +497,12 @@ public class ThongKeKhachHangPanel extends JPanel {
         return pnlBang;
     }
 
-    // =====================================================
-    // 8. TẠO KHUNG GIAO DIỆN
-    // =====================================================
+    // ================= KHUNG GIAO DIỆN =================
 
-    private JPanel taoKhung(String tieuDe) {
+    private JPanel taoKhung(
+            String tieuDe,
+            JPanel contentPanel) {
+
         JPanel pnlKhung = new JPanel(
                 new BorderLayout(10, 12));
 
@@ -307,8 +510,7 @@ public class ThongKeKhachHangPanel extends JPanel {
 
         pnlKhung.setBorder(
                 BorderFactory.createCompoundBorder(
-                        new LineBorder(
-                                new Color(224, 232, 241)),
+                        new LineBorder(new Color(224, 232, 241)),
                         new EmptyBorder(15, 15, 15, 15)));
 
         JLabel lblTieuDe = new JLabel(tieuDe);
@@ -320,19 +522,23 @@ public class ThongKeKhachHangPanel extends JPanel {
 
         pnlKhung.add(lblTieuDe, BorderLayout.NORTH);
 
+        if (contentPanel != null) {
+            pnlKhung.add(contentPanel, BorderLayout.CENTER);
+        }
+
         return pnlKhung;
     }
 
-    // =====================================================
-    // 9. TẠO NÚT
-    // =====================================================
+    // ================= NÚT BẤM =================
 
     private JButton taoNut(String ten, Color mau) {
+
         JButton btn = new JButton(ten);
 
         btn.setFont(new Font("Arial", Font.BOLD, 12));
         btn.setForeground(Color.WHITE);
         btn.setBackground(mau);
+
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setOpaque(true);
@@ -345,22 +551,30 @@ public class ThongKeKhachHangPanel extends JPanel {
         return btn;
     }
 
-    // =====================================================
-    // 10. BIỂU ĐỒ CỘT SỐ LƯỢNG KHÁCH HÀNG THEO THÁNG
-    // =====================================================
-
+    // ================= BIỂU ĐỒ CỘT =================
 
     private class BieuDoCotPanel extends JPanel {
 
         private static final long serialVersionUID = 1L;
 
+        private Map<String, Integer> mapDuLieu =
+                new LinkedHashMap<>();
+
         public BieuDoCotPanel() {
+
             setBackground(Color.WHITE);
             setPreferredSize(new Dimension(400, 260));
         }
 
+        public void setDuLieu(Map<String, Integer> duLieuMoi) {
+
+            mapDuLieu = new LinkedHashMap<>(duLieuMoi);
+            repaint();
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
+
             super.paintComponent(g);
 
             Graphics2D g2 = (Graphics2D) g.create();
@@ -370,8 +584,8 @@ public class ThongKeKhachHangPanel extends JPanel {
                     RenderingHints.VALUE_ANTIALIAS_ON);
 
             int trai = 42;
-            int tren = 25;
-            int duoi = 35;
+            int tren = 35;
+            int duoi = 45;
 
             int rong = getWidth() - trai - 15;
             int cao = getHeight() - tren - duoi;
@@ -381,68 +595,127 @@ public class ThongKeKhachHangPanel extends JPanel {
                 return;
             }
 
+            if (mapDuLieu.isEmpty()) {
+
+                g2.setColor(Color.GRAY);
+                g2.setFont(new Font("Arial", Font.PLAIN, 12));
+                g2.drawString(
+                        "Không có dữ liệu",
+                        trai + rong / 2 - 45,
+                        tren + cao / 2);
+
+                g2.dispose();
+                return;
+            }
+
+            int giaTriMax = 1;
+
+            for (int value : mapDuLieu.values()) {
+                giaTriMax = Math.max(giaTriMax, value);
+            }
+
+            giaTriMax = ((giaTriMax / 10) + 1) * 10;
+
             g2.setFont(new Font("Arial", Font.PLAIN, 10));
 
-            // Vẽ đường lưới và nhãn trục Y, không vẽ cột dữ liệu
             for (int i = 0; i <= 5; i++) {
+
                 int y = tren + cao * i / 5;
+                int nhan = giaTriMax - i * giaTriMax / 5;
 
                 g2.setColor(new Color(232, 237, 243));
                 g2.drawLine(trai, y, trai + rong, y);
 
                 g2.setColor(new Color(110, 125, 140));
-                g2.drawString(
-                        String.valueOf(150 - i * 30),
-                        5, y + 4);
+                g2.drawString(String.valueOf(nhan), 5, y + 4);
             }
 
-            // Hiển thị nhãn các tháng
-            String[] thang = {
-                    "T1", "T2", "T3", "T4",
-                    "T5", "T6", "T7", "T8",
-                    "T9", "T10", "T11", "T12"
-            };
+            int soCot = mapDuLieu.size();
+            int buoc = rong / Math.max(soCot, 1);
+            int rongCot = Math.max(8, Math.min(35, buoc / 2));
 
-            int buoc = rong / 12;
+            int index = 0;
 
-            g2.setColor(new Color(90, 110, 130));
+            for (Map.Entry<String, Integer> entry :
+                    mapDuLieu.entrySet()) {
 
-            for (int i = 0; i < thang.length; i++) {
-                int x = trai + i * buoc + buoc / 2;
+                int value = entry.getValue();
 
-                int rongNhan = g2.getFontMetrics()
-                        .stringWidth(thang[i]);
+                int x = trai + index * buoc
+                        + (buoc - rongCot) / 2;
+
+                int chieuCao = (int) (
+                        (double) value / giaTriMax * cao);
+
+                int y = tren + cao - chieuCao;
+
+                g2.setColor(MAU_XANH);
+                g2.fillRoundRect(
+                        x, y, rongCot,
+                        Math.max(chieuCao, 2),
+                        8, 8);
+
+                g2.setColor(new Color(90, 110, 130));
+
+                String nhan = entry.getKey();
+
+                int rongNhan =
+                        g2.getFontMetrics().stringWidth(nhan);
 
                 g2.drawString(
-                        thang[i],
-                        x - rongNhan / 2,
-                        tren + cao + 18);
+                        nhan,
+                        x + rongCot / 2 - rongNhan / 2,
+                        tren + cao + 17);
+
+                if (soCot <= 12) {
+
+                    String giaTri = String.valueOf(value);
+
+                    int rongGiaTri =
+                            g2.getFontMetrics().stringWidth(giaTri);
+
+                    g2.setColor(MAU_CHU);
+
+                    g2.drawString(
+                            giaTri,
+                            x + rongCot / 2 - rongGiaTri / 2,
+                            y - 5);
+                }
+
+                index++;
             }
 
-            // Tiêu đề trục
+            g2.setColor(MAU_CHU);
             g2.drawString("Số lượng khách hàng", trai, 15);
 
             g2.dispose();
         }
     }
 
-
-    // =====================================================
-    // 11. BIỂU ĐỒ ĐƯỜNG THỐNG KÊ THEO NĂM
-    // =====================================================
-
+    // ================= BIỂU ĐỒ ĐƯỜNG =================
 
     private class BieuDoDuongPanel extends JPanel {
 
         private static final long serialVersionUID = 1L;
 
+        private Map<String, Integer> mapDuLieu =
+                new LinkedHashMap<>();
+
         public BieuDoDuongPanel() {
+
             setBackground(Color.WHITE);
             setPreferredSize(new Dimension(400, 260));
         }
 
+        public void setDuLieu(Map<String, Integer> duLieuMoi) {
+
+            mapDuLieu = new LinkedHashMap<>(duLieuMoi);
+            repaint();
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
+
             super.paintComponent(g);
 
             Graphics2D g2 = (Graphics2D) g.create();
@@ -464,56 +737,142 @@ public class ThongKeKhachHangPanel extends JPanel {
                 return;
             }
 
-            int giaTriMax = 1000;
+            if (mapDuLieu.isEmpty()) {
+
+                g2.setColor(Color.GRAY);
+                g2.setFont(new Font("Arial", Font.PLAIN, 12));
+
+                g2.drawString(
+                        "Không có dữ liệu",
+                        trai + rong / 2 - 45,
+                        tren + cao / 2);
+
+                g2.dispose();
+                return;
+            }
+
+            int giaTriMax = 1;
+
+            for (int value : mapDuLieu.values()) {
+                giaTriMax = Math.max(giaTriMax, value);
+            }
+
+            giaTriMax = ((giaTriMax / 100) + 1) * 100;
+
             int soMoc = 5;
 
             g2.setFont(new Font("Arial", Font.PLAIN, 10));
 
-            // Vẽ đường lưới và nhãn trục Y
+            // Vẽ lưới ngang và trục tung
             for (int i = 0; i <= soMoc; i++) {
+
                 int y = tren + cao * i / soMoc;
 
                 int nhan = giaTriMax
                         - i * giaTriMax / soMoc;
 
                 g2.setColor(new Color(232, 237, 243));
+
                 g2.drawLine(
                         trai, y,
                         trai + rong, y);
 
                 g2.setColor(new Color(110, 125, 140));
+
                 g2.drawString(
                         String.valueOf(nhan),
                         3, y + 4);
             }
 
-            // Tiêu đề trục
             g2.setColor(new Color(110, 125, 140));
-            g2.drawString("Số lượng khách hàng", trai, 15);
 
-            // Hiển thị nhãn năm, không vẽ đường dữ liệu
-            String[] nam = {
-                    "2020", "2021", "2022", "2023",
-                    "2024", "2025", "2026"
-            };
+            g2.drawString(
+                    "Số lượng khách hàng",
+                    trai, 15);
 
-            int buoc = rong / (nam.length - 1);
+            int n = mapDuLieu.size();
 
-            for (int i = 0; i < nam.length; i++) {
-                int x = trai + i * buoc;
+            int[] xPoints = new int[n];
+            int[] yPoints = new int[n];
 
-                int rongNhan = g2.getFontMetrics()
-                        .stringWidth(nam[i]);
+            int index = 0;
+
+            // Tính tọa độ các điểm
+            for (Map.Entry<String, Integer> entry :
+                    mapDuLieu.entrySet()) {
+
+                int x = n > 1
+                        ? trai + index * rong / (n - 1)
+                        : trai + rong / 2;
+
+                int value = entry.getValue();
+
+                int y = tren + cao
+                        - (int) ((double) value / giaTriMax * cao);
+
+                xPoints[index] = x;
+                yPoints[index] = y;
+
+                String nam = entry.getKey();
+
+                int rongNhan =
+                        g2.getFontMetrics().stringWidth(nam);
 
                 g2.setColor(new Color(90, 110, 130));
+
                 g2.drawString(
-                        nam[i],
+                        nam,
                         x - rongNhan / 2,
                         tren + cao + 20);
+
+                index++;
+            }
+
+            // Vẽ đường nối
+            g2.setColor(MAU_XANH_DUONG);
+            g2.setStroke(new BasicStroke(2.5f));
+
+            for (int i = 0; i < n - 1; i++) {
+
+                g2.drawLine(
+                        xPoints[i],
+                        yPoints[i],
+                        xPoints[i + 1],
+                        yPoints[i + 1]);
+            }
+
+            // Vẽ điểm và số liệu
+            for (int i = 0; i < n; i++) {
+
+                g2.setColor(Color.WHITE);
+
+                g2.fillOval(
+                        xPoints[i] - 4,
+                        yPoints[i] - 4,
+                        8, 8);
+
+                g2.setColor(MAU_XANH_DUONG);
+
+                g2.drawOval(
+                        xPoints[i] - 4,
+                        yPoints[i] - 4,
+                        8, 8);
+
+                int value = (int) mapDuLieu.values()
+                        .toArray()[i];
+
+                String valStr = String.valueOf(value);
+
+                int valWidth =
+                        g2.getFontMetrics().stringWidth(valStr);
+
+                g2.drawString(
+                        valStr,
+                        xPoints[i] - valWidth / 2,
+                        yPoints[i] - 8);
             }
 
             g2.dispose();
         }
     }
-
 }

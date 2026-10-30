@@ -40,8 +40,8 @@ public class TimKiemVatTuPanel extends JPanel implements ActionListener {
     private final Color BG = new Color(243, 246, 251);
     private final Color TEXT = new Color(45, 55, 68);
 
-    private JTextField txtMaVT;
-    private JTextField txtTenVatTu;
+    // Gộp mã và tên vật tư thành một ô từ khóa chung
+    private JTextField txtTuKhoa;
     private JTextField txtGiaTu;
     private JTextField txtGiaDen;
 
@@ -96,27 +96,27 @@ public class TimKiemVatTuPanel extends JPanel implements ActionListener {
         JPanel pnlKhungTimKiem = new JPanel(new GridLayout(2, 3, 14, 14));
         pnlKhungTimKiem.setBackground(Color.WHITE);
 
-        // Các ô nhập liệu
-        txtMaVT = new JTextField();
-        txtTenVatTu = new JTextField();
+        // Khởi tạo các ô nhập liệu (Đã gộp Mã và Tên vật tư thành txtTuKhoa)
+        txtTuKhoa = new JTextField();
         cboDanhMuc = new JComboBox<>(new String[]{"Tất cả danh mục", "Hộp", "Cái", "Bộ", "Lọ", "Ống", "Thỏi", "Tuýp", "Gói"});
         cboTrangThai = new JComboBox<>(new String[]{"Tất cả", "Còn hàng", "Tồn thấp", "Hết hàng"});
         txtGiaTu = new JTextField();
         txtGiaDen = new JTextField();
 
-        dinhDangO(txtMaVT);
-        dinhDangO(txtTenVatTu);
+        dinhDangO(txtTuKhoa);
         dinhDangO(txtGiaTu);
         dinhDangO(txtGiaDen);
         dinhDangCombobox(cboDanhMuc);
         dinhDangCombobox(cboTrangThai);
 
-        pnlKhungTimKiem.add(taoPanelTruong("Mã vật tư", txtMaVT));
-        pnlKhungTimKiem.add(taoPanelTruong("Tên vật tư", txtTenVatTu));
+        pnlKhungTimKiem.add(taoPanelTruong("Mã / Tên vật tư", txtTuKhoa));
         pnlKhungTimKiem.add(taoPanelTruong("Danh mục vật tư", cboDanhMuc));
         pnlKhungTimKiem.add(taoPanelTruong("Trạng thái kho", cboTrangThai));
         pnlKhungTimKiem.add(taoPanelTruong("Giá từ (VNĐ)", txtGiaTu));
         pnlKhungTimKiem.add(taoPanelTruong("Giá đến (VNĐ)", txtGiaDen));
+
+        // Ô trống còn lại trong lưới 2x3 để cân đối giao diện
+        pnlKhungTimKiem.add(new JLabel(""));
 
         // Các nút chức năng
         JPanel pnlNut = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -289,13 +289,15 @@ public class TimKiemVatTuPanel extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Object o = e.getSource();
         if (o.equals(btnTimKiem)) {
-            String ma = txtMaVT.getText().trim();
-            String ten = txtTenVatTu.getText().trim();
+            // Lấy chuỗi từ ô tìm kiếm chung
+            String tuKhoa = txtTuKhoa.getText().trim();
             String danhMuc = cboDanhMuc.getSelectedItem().toString();
             String trangThai = cboTrangThai.getSelectedItem().toString();
 
             try {
-                List<VatTu> ketQua = vtDAO.timKiem(ma, ten, danhMuc, trangThai);
+                // Truyền chuỗi từ khóa vào cả 2 tham số mã và tên trong DAO
+                // (hoặc nếu DAO của bạn hỗ trợ truyền chung một từ khóa, bạn có thể chỉnh lại hàm timKiem cho phù hợp)
+                List<VatTu> ketQua = vtDAO.timKiem(tuKhoa, tuKhoa, danhMuc, trangThai);
                 taiDuLieuLenBang(ketQua);
                 if (ketQua.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Không tìm thấy vật tư nào phù hợp!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -304,8 +306,7 @@ public class TimKiemVatTuPanel extends JPanel implements ActionListener {
                 ex.printStackTrace();
             }
         } else if (o.equals(btnLamMoi)) {
-            txtMaVT.setText("");
-            txtTenVatTu.setText("");
+            txtTuKhoa.setText("");
             txtGiaTu.setText("");
             txtGiaDen.setText("");
             cboDanhMuc.setSelectedIndex(0);
@@ -323,7 +324,7 @@ public class TimKiemVatTuPanel extends JPanel implements ActionListener {
             String tt = model.getValueAt(row, 7).toString();
 
             JOptionPane.showMessageDialog(this,
-                    "Chi tiết vật tư:\n- Mã: " + maVT + "\n- Tên: " + tenVT + "\n- Tồn kho: " + ton + "\n- Trạng thái: " + tt,
+                    "Chi tiết vật tư:\nMã: " + maVT + "\nTên: " + tenVT + "\nTồn kho: " + ton + "\nTrạng thái: " + tt,
                     "Thông tin chi tiết",
                     JOptionPane.INFORMATION_MESSAGE);
         }
