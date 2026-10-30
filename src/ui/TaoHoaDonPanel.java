@@ -618,9 +618,8 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
             tienGiamGia = 0;
         }
 
-        double tienSauGiam = hoaDonTam.tinhTienSauGiam(tongTien);
-        double thue = tienSauGiam * hoaDonTam.getThueVAT();
-        double canThanhToan = tienSauGiam + thue;
+        double thue = hoaDonTam.tinhTienVAT(tongTien);
+        double canThanhToan = hoaDonTam.tinhTongThanhToan(tongTien);
 
         txtTongTien.setText(String.format("%,.0f VNĐ", tongTien));
         txtChietKhau.setText(String.format("%,.0f VNĐ", tienGiamGia));
@@ -817,7 +816,15 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
             }
             String maHD = hoaDonDao.luuHoaDonVaHoanThanhLichHen(maLichHenDangChon, maNV, maKM, chietKhauPhanTram, new HoaDon().getThueVAT(), dsDichVuLuu);
 
+            HoaDon hoaDonVuaLuu = hoaDonDao.getByMaHD(maHD);
+
             JOptionPane.showMessageDialog(this, "Lập hóa đơn thành công!\nMã hóa đơn: " + maHD, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+
+            if (hoaDonVuaLuu != null) {
+                HoaDonInPanel.previewHoaDon(hoaDonVuaLuu);
+            } else {
+                JOptionPane.showMessageDialog(this, "Đã lưu hóa đơn nhưng không lấy được thông tin để xem trước!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            }
 
             lamMoiForm();
 
@@ -843,8 +850,7 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
         hoaDonTam.setChietKhau(khuyenMaiDangApDung == null ? 0 : khuyenMaiDangApDung.getChietKhau());
 
         double chietKhau = hoaDonTam.tinhTienGiamGia(tongTien);
-        double tienSauGiam = hoaDonTam.tinhTienSauGiam(tongTien);
-        double thue = tienSauGiam * hoaDonTam.getThueVAT();
+        double thue = hoaDonTam.tinhTienVAT(tongTien);
 
         ThanhToanTienMatDialog dialog =
                 new ThanhToanTienMatDialog(SwingUtilities.getWindowAncestor(this), tongTien, chietKhau, thue);
@@ -885,9 +891,8 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
         hoaDonTam.setChietKhau(khuyenMaiDangApDung == null ? 0 : khuyenMaiDangApDung.getChietKhau());
 
         double chietKhau = hoaDonTam.tinhTienGiamGia(tongTien);
-        double tienSauGiam = hoaDonTam.tinhTienSauGiam(tongTien);
-        double thue = tienSauGiam * hoaDonTam.getThueVAT();
-        double canThanhToan = tienSauGiam + thue;
+        double thue = hoaDonTam.tinhTienVAT(tongTien);
+        double canThanhToan = hoaDonTam.tinhTongThanhToan(tongTien);
 
         int xacNhan = JOptionPane.showConfirmDialog(this,
                 "Tổng tiền dịch vụ: "

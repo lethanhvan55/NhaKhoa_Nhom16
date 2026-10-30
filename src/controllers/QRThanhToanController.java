@@ -59,10 +59,7 @@ public class QRThanhToanController {
                     } else if (newState == Worker.State.FAILED) {
                         lblTrangThai.setText("Không tải được QR.");
 
-                        Throwable loi = webQR.getEngine()
-                                .getLoadWorker()
-                                .getException();
-
+                        Throwable loi = webQR.getEngine().getLoadWorker().getException();
                         if (loi != null) {
                             loi.printStackTrace();
                         }
