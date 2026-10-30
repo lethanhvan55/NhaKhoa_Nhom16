@@ -55,6 +55,7 @@ public class TraCuuHoaDonPanel extends JPanel implements ActionListener, MouseLi
     private JButton btnInHoaDon;
     private ChiTietHoaDon_DAO chiTietHoaDonDao ;
     private NumberFormat dinhDangTien = NumberFormat.getNumberInstance(Locale.of("vi", "VN"));
+    private HoaDon hoaDonDangChon;
 
     public TraCuuHoaDonPanel() {
         hoadonDAO = new HoaDonDao();
@@ -299,7 +300,13 @@ public class TraCuuHoaDonPanel extends JPanel implements ActionListener, MouseLi
 
 
     private void xuLyInHoaDon() {
+        if (hoaDonDangChon == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn hóa đơn cần in!", "Thông báo", JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
 
+        HoaDonInPanel.previewHoaDon(hoaDonDangChon);
     }
 
     private void taiDanhSachHoaDon() {
@@ -322,6 +329,8 @@ public class TraCuuHoaDonPanel extends JPanel implements ActionListener, MouseLi
                 JOptionPane.showMessageDialog(this, "Không tìm thấy hóa đơn.");
                 return;
             }
+
+            hoaDonDangChon = hd;
 
             lblMaHoaDon.setText(hd.getMaHD());
             lblTenBenhNhan.setText(hd.getMaBenhNhan().getHoTen());
