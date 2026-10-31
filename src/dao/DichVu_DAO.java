@@ -3,16 +3,22 @@ package dao;
 import connectDB.ConnectDB;
 import model.DichVu;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.LinkedHashMap;
 import java.util.List;
-
+import java.util.Map;
 public class DichVu_DAO {
-
-    public List<DichVu> getAllDichVu() {
+	public List<DichVu> getAllDichVu() {
         List<DichVu> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM DichVu";
-        
+        String sql = "SELECT * FROM DichVu";        
         try (Connection con = ConnectDB.getConnection();
              Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -138,5 +144,67 @@ public class DichVu_DAO {
             e.printStackTrace();
         }
         return danhSach;
+    }
+    
+    public List<Map<String, Object>> getThongKeDichVu(
+            String kieuTK, String trangThai, Date ngayBatDau, Date ngayKetThuc) {
+
+        List<Map<String, Object>> danhSach = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT dv.MaDV, dv.TenDV, ")
+           .append("       COALESCE(SUM(CASE WHEN hd.MaHD IS NOT NULL THEN ct.SoLuong ELSE 0 END), 0) AS SoLuotDung, ")
+           .append("       COALESCE(SUM(CASE WHEN hd.MaHD IS NOT NULL THEN CAST(ct.SoLuong AS DECIMAL(18,2)) * ct.DonGia ELSE 0 END), 0) AS DoanhThu ")
+           .append("FROM DichVu dv ")
+           .append("LEFT JOIN ChiTietHoaDon ct ON ct.MaDV = dv.MaDV ")
+           .append("LEFT JOIN HoaDon hd ON hd.MaHD = ct.MaHD ")
+           .append("    AND hd.TrangThai = N'Đã thanh toán' ")
+           .append("    AND hd.NgayLap >= ? AND hd.NgayLap < ? ")
+           .append("WHERE 1 = 1 ");
+
+        if (trangThai != null && !trangThai.trim().isEmpty()
+                && !"Tất cả trạng thái".equals(trangThai)) {
+            sql.append("AND dv.TrangThai = ? ");
+        }
+
+        sql.append("GROUP BY dv.MaDV, dv.TenDV ")
+           .append("ORDER BY SoLuotDung DESC, DoanhThu DESC, dv.TenDV ASC");
+
+        try (Connection con = ConnectDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+            ps.setTimestamp(1, new Timestamp(ngayBatDau.getTime()));
+            ps.setTimestamp(2, new Timestamp(ngayKetThuc.getTime()));
+            if (trangThai != null && !trangThai.trim().isEmpty()
+                    && !"Tất cả trạng thái".equals(trangThai)) {
+                ps.setNString(3, trangThai);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("MaDV", rs.getString("MaDV").trim());
+                    row.put("TenDV", rs.getString("TenDV"));
+                    row.put("SoLuotDung", rs.getInt("SoLuotDung"));
+                    row.put("DoanhThu", rs.getBigDecimal("DoanhThu").doubleValue());
+                    danhSach.add(row);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Không thể truy vấn thống kê dịch vụ: " + e.getMessage(), e);
+        }
+        return danhSach;
+    }
+    public List<Map<String, Object>> getThongKeDichVu(String kieuTK, String trangThai) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date end = (Date) cal.getTime();
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        Date start = (Date) cal.getTime();
+        return getThongKeDichVu(kieuTK, trangThai,
+                new Date(((Date) end).getTime()),
+                new Date(((Date) start).getTime()));
     }
 }
