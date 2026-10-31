@@ -42,11 +42,11 @@ public class ThongKeTongQuan_DAO {
         return demSoLuong(sql);
     }
 
-    public int getHoaDonChuaThanhToan() throws SQLException {
+    public int getLichHenChoKham() throws SQLException {
         String sql = """
                 SELECT COUNT(*)
-                FROM HoaDon
-                WHERE TrangThai = N'Chưa thanh toán'
+                FROM LichHen
+                WHERE TrangThai = N'Đang chờ khám'
                 """;
 
         return demSoLuong(sql);

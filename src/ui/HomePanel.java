@@ -444,7 +444,7 @@ public class HomePanel extends JPanel implements ActionListener {
             lblTongBenhNhan.setText(String.valueOf(thongKeDAO.getTongSoBenhNhan()));
             lblLichHenHomNay.setText(String.valueOf(thongKeDAO.getLichHenHomNay()));
             lblTongKeHoach.setText(String.valueOf(thongKeDAO.getTongKeHoachDieuTri()));
-            lblHoaDonChoThu.setText(String.valueOf(thongKeDAO.getHoaDonChuaThanhToan()));
+            lblHoaDonChoThu.setText(String.valueOf(thongKeDAO.getLichHenChoKham()));
 
         } catch (Exception e) {
             e.printStackTrace();
