@@ -1,14 +1,13 @@
 package ui;
 
-import dao.HoaDonDao;
-import dao.ThongKeTongQuan_DAO;
+import dao.*;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
+import javafx.scene.chart.*;
+import model.NhanVien;
+import model.VatTu;
 import utils.JavaFXRuntime;
+import utils.PhienDangNhap;
 import utils.UIHelper;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.swing.FontIcon;
@@ -22,9 +21,13 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -34,9 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 import javax.swing.Timer;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
@@ -53,7 +54,7 @@ public class HomePanel extends JPanel implements ActionListener {
 
     private JLabel lblMaNV, lblTenNV, lblChucVu, lblCaTruc;
 
-    private JButton btnLamMoiDuLieu;
+
     private JButton btnXemTatCaThongBao;
     private JButton btnDangXuat;
     private JFXPanel pnlBieuDoDoanhThu;
@@ -62,6 +63,15 @@ public class HomePanel extends JPanel implements ActionListener {
     private JLabel lblLichHenHomNay;
     private JLabel lblTongKeHoach;
     private JLabel lblHoaDonChoThu;
+    private JFXPanel pnlBieuDoDichVu;
+    private BarChart<Number, String> bieuDoDichVu;
+    private NumberAxis trucSoLuotDung;
+    private CategoryAxis trucTenDichVu;
+    private XYChart.Series<Number, String> seriesDichVu;
+    private List<Map<String, Object>> duLieuTop5DichVu = new ArrayList<>();
+    private DefaultTableModel modelThongBao;
+    private Timer timerThongBao;
+    private JTable tblThongBao;
 
     public HomePanel() {
         setLayout(new BorderLayout(15, 15));
@@ -74,6 +84,8 @@ public class HomePanel extends JPanel implements ActionListener {
         khoiDongDongHo();
         dangKySuKien();
         loadDuLieuTongQuanTuCSDL();
+        loadThongTinNhanVien();
+        batDongBoThongBao();
     }
 
     private JPanel taoKhungDongHoVaThaoTacTop() {
@@ -206,38 +218,11 @@ public class HomePanel extends JPanel implements ActionListener {
         pnl.setOpaque(false);
 
         pnl.add(taoKhungChartDoanhThu());
-        pnl.add(taoKhungChart("Tỷ lệ Dịch vụ điều trị nhiều nhất", "pnlChartDichVu"));
+        pnl.add(taoKhungChartDichVu());
 
         return pnl;
     }
 
-    private JPanel taoKhungChart(String tenBieuDo, String nameIdentifier) {
-        JPanel pnl = createCardPanel();
-        pnl.setLayout(new BorderLayout(5, 5));
-        pnl.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(MAU_VIEN, 1, true),
-                new EmptyBorder(10, 12, 10, 12)
-        ));
-
-        JLabel lblTieuDe = new JLabel(tenBieuDo);
-        lblTieuDe.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblTieuDe.setForeground(MAU_CHU);
-
-        JPanel pnlChartContainer = new JPanel(new BorderLayout());
-        pnlChartContainer.setBackground(new Color(248, 250, 253));
-        pnlChartContainer.setBorder(new LineBorder(new Color(230, 238, 248), 1, true));
-        pnlChartContainer.setName(nameIdentifier);
-
-        JLabel lblPlaceholder = new JLabel("Chờ tích hợp thư viện biểu đồ (JFreeChart / XChart)...", SwingConstants.CENTER);
-        lblPlaceholder.setFont(new Font("Segoe UI", Font.ITALIC, 11));
-        lblPlaceholder.setForeground(new Color(110, 125, 145));
-        pnlChartContainer.add(lblPlaceholder, BorderLayout.CENTER);
-
-        pnl.add(lblTieuDe, BorderLayout.NORTH);
-        pnl.add(pnlChartContainer, BorderLayout.CENTER);
-
-        return pnl;
-    }
 
     private JPanel taoKhuVucThongBaoThuNho() {
         JPanel pnlThongBao = createCardPanel();
@@ -262,17 +247,15 @@ public class HomePanel extends JPanel implements ActionListener {
         pnlThongBao.add(pnlHeaderTB, BorderLayout.NORTH);
 
         String[] cot = {"STT", "Thời gian", "Nội dung thông báo", "Mức độ"};
-        DefaultTableModel modelTB = new DefaultTableModel(cot, 0) {
+        modelThongBao = new DefaultTableModel(cot, 0) {
             @Override
             public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
 
-        modelTB.addRow(new Object[]{"1", "08:30", "Lịch hẹn tái khám của BN Nguyễn Văn An.", "Quan trọng"});
-        modelTB.addRow(new Object[]{"2", "09:15", "Kho vật tư: Sắp hết dung dịch sát khuẩn.", "Cảnh báo"});
 
-        JTable tblThongBao = new JTable(modelTB);
+        JTable tblThongBao = new JTable(modelThongBao);
         tblThongBao.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         tblThongBao.setForeground(TEXT);
         tblThongBao.setRowHeight(22);
@@ -298,6 +281,104 @@ public class HomePanel extends JPanel implements ActionListener {
 
         return pnlThongBao;
     }
+    private void kiemTraThongBaoLichHen() {
+        try {
+            LichHenDAO lichHenDAO = new LichHenDAO();
+            List<Map<String, Object>> danhSach = lichHenDAO.getAllLichHen();
+
+            LocalDateTime hienTai = LocalDateTime.now();
+
+            for (Map<String, Object> row : danhSach) {
+                String maLichHen = String.valueOf(row.get("MaLichHen"));
+                String tenBenhNhan = String.valueOf(row.get("TenBenhNhan"));
+                LocalDate ngayHen = (LocalDate) row.get("NgayHen");
+                LocalDateTime gioHen = (LocalDateTime) row.get("GioHen");
+                String trangThai = String.valueOf(row.get("TrangThai"));
+
+                if (ngayHen == null || gioHen == null) {
+                    continue;
+                }
+
+                if (!ngayHen.equals(hienTai.toLocalDate())) {
+                    continue;
+                }
+
+                if ("Đang chờ khám".equals(trangThai)) {
+                    themThongBao(
+                            "Lịch hẹn " + maLichHen + ": Bệnh nhân " + tenBenhNhan + " đang chờ khám.",
+                            "Quan trọng"
+                    );
+                    continue;
+                }
+
+                if (!"Đã đặt".equals(trangThai)) {
+                    continue;
+                }
+
+                long soPhut = Duration.between(hienTai, gioHen).toMinutes();
+
+                if (soPhut >= 0 && soPhut <= 60) {
+                    themThongBao(
+                            "Lịch hẹn " + maLichHen + ": Bệnh nhân " + tenBenhNhan
+                                    + " sắp đến giờ khám (" + gioHen.toLocalTime().toString().substring(0, 5) + ").",
+                            "Quan trọng"
+                    );
+                } else if (soPhut < 0) {
+                    themThongBao(
+                            "Lịch hẹn " + maLichHen + ": Bệnh nhân " + tenBenhNhan
+                                    + " đã quá giờ hẹn nhưng chưa check-in.",
+                            "Cảnh báo"
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void kiemTraThongBaoVatTu() {
+        try {
+            VatTuDAO vatTuDAO = new VatTuDAO();
+            List<VatTu> danhSach = vatTuDAO.getAll();
+
+            for (VatTu vt : danhSach) {
+                int soLuongTon = vt.getSoLuongTon();
+                int soLuongToiThieu = vt.getSoLuongToiThieu();
+
+                if (soLuongTon <= 0) {
+                    themThongBao("Vật tư " + vt.getTenVatTu() + " đã hết hàng.", "Cảnh báo");
+                } else if (soLuongTon <= soLuongToiThieu) {
+                    themThongBao(
+                            "Vật tư " + vt.getTenVatTu()
+                                    + " sắp hết. Số lượng tồn: " + soLuongTon
+                                    + " " + vt.getDonViTinh() + ".",
+                            "Quan trọng"
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void themThongBao(String noiDung, String mucDo) {
+        String thoiGian = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+        int stt = modelThongBao.getRowCount() + 1;
+        modelThongBao.addRow(new Object[]{stt, thoiGian, noiDung, mucDo});
+    }
+    private void kiemTraThongBao() {
+        modelThongBao.setRowCount(0);
+
+        kiemTraThongBaoLichHen();
+        kiemTraThongBaoVatTu();
+    }
+    private void batDongBoThongBao() {
+        kiemTraThongBao();
+
+        timerThongBao = new Timer(60000, e -> {
+            kiemTraThongBao();
+        });
+
+        timerThongBao.start();
+    }
 
     private JPanel taoKhungThongTinNhanVienToHon() {
         JPanel pnlCard = createCardPanel();
@@ -311,22 +392,23 @@ public class HomePanel extends JPanel implements ActionListener {
         lblTieuDeNV.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblTieuDeNV.setForeground(MAU_CHU);
 
-        JPanel pnlDetails = new JPanel(new GridLayout(2, 2, 15, 8));
+        JPanel pnlDetails = new JPanel(new GridLayout(2, 2, 5, 4));
         pnlDetails.setOpaque(false);
 
-        lblMaNV = new JLabel("Mã NV: NV001");
+        // 💡 Bỏ thông tin viết cứng, thay bằng giá trị chờ mặc định
+        lblMaNV = new JLabel("Mã NV: ---");
         lblMaNV.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblMaNV.setForeground(TEXT);
 
-        lblTenNV = new JLabel("Họ tên: Lê Thị Kim Vui");
+        lblTenNV = new JLabel("Họ tên: ---");
         lblTenNV.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblTenNV.setForeground(TEAL);
 
-        lblChucVu = new JLabel("Chức vụ: Lễ tân / Tiếp nhận");
+        lblChucVu = new JLabel("Chức vụ: ---");
         lblChucVu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblChucVu.setForeground(TEXT);
 
-        lblCaTruc = new JLabel("Trạng thái: Đang làm việc");
+        lblCaTruc = new JLabel("Trạng thái: ---");
         lblCaTruc.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblCaTruc.setForeground(MUTED);
 
@@ -348,6 +430,82 @@ public class HomePanel extends JPanel implements ActionListener {
         pnlCard.add(pnlBottom, BorderLayout.SOUTH);
 
         return pnlCard;
+    }
+
+    private JPanel taoKhungChartDichVu() {
+        JPanel pnl = createCardPanel();
+        pnl.setLayout(new BorderLayout(5, 5));
+        pnl.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(MAU_VIEN, 1, true),
+                new EmptyBorder(10, 12, 10, 12)
+        ));
+
+        pnlBieuDoDichVu = new JFXPanel();
+
+        JavaFXRuntime.chay(() -> {
+            trucSoLuotDung = new NumberAxis();
+            trucSoLuotDung.setLabel("Số lượt sử dụng");
+            trucSoLuotDung.setForceZeroInRange(true);
+            trucSoLuotDung.setTickUnit(1);
+            trucSoLuotDung.setMinorTickVisible(false);
+
+            trucTenDichVu = new CategoryAxis();
+            trucTenDichVu.setLabel("Tên dịch vụ");
+            trucTenDichVu.setTickLabelRotation(0);
+
+            bieuDoDichVu = new BarChart<>(trucSoLuotDung, trucTenDichVu);
+            bieuDoDichVu.setTitle("TOP 5 dịch vụ được sử dụng nhiều nhất");
+            bieuDoDichVu.setLegendVisible(false);
+            bieuDoDichVu.setAnimated(false);
+            bieuDoDichVu.setCategoryGap(12);
+            bieuDoDichVu.setBarGap(3);
+
+            seriesDichVu = new XYChart.Series<>();
+            bieuDoDichVu.getData().add(seriesDichVu);
+
+            Scene scene = new Scene(bieuDoDichVu);
+            pnlBieuDoDichVu.setScene(scene);
+
+            capNhatBieuDoDichVu();
+        });
+
+        pnl.add(pnlBieuDoDichVu, BorderLayout.CENTER);
+        return pnl;
+    }
+    private void capNhatBieuDoDichVu() {
+        if (seriesDichVu == null || bieuDoDichVu == null) {
+            return;
+        }
+
+        seriesDichVu.getData().clear();
+
+        int dem = 0;
+
+        for (Map<String, Object> row : duLieuTop5DichVu) {
+            int soLuotDung = ((Number) row.get("SoLuotDung")).intValue();
+
+            if (soLuotDung <= 0) {
+                continue;
+            }
+
+            String tenDV = String.valueOf(row.get("TenDV"));
+
+            seriesDichVu.getData().add(
+                    new XYChart.Data<>(soLuotDung, tenDV)
+            );
+
+            dem++;
+
+            if (dem == 5) {
+                break;
+            }
+        }
+
+        if (dem == 0) {
+            bieuDoDichVu.setTitle("Chưa có dữ liệu sử dụng dịch vụ trong ngày");
+        } else {
+            bieuDoDichVu.setTitle("TOP 5 dịch vụ được sử dụng nhiều nhất");
+        }
     }
     private JPanel taoKhungChartDoanhThu() {
         JPanel pnl = createCardPanel();
@@ -451,6 +609,60 @@ public class HomePanel extends JPanel implements ActionListener {
             JOptionPane.showMessageDialog(
                     this,
                     "Không thể tải dữ liệu thống kê: " + e.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+        try {
+            DichVu_DAO dichVuDAO = new DichVu_DAO();
+
+            java.sql.Date ngayBatDau = java.sql.Date.valueOf(LocalDate.now());
+            java.sql.Date ngayKetThuc = java.sql.Date.valueOf(LocalDate.now().plusDays(1));
+
+            List<Map<String, Object>> danhSach = dichVuDAO.getThongKeDichVu(
+                    "Ngày",
+                    "Tất cả trạng thái",
+                    ngayBatDau,
+                    ngayKetThuc
+            );
+
+            duLieuTop5DichVu = new ArrayList<>(
+                    danhSach.subList(0, Math.min(5, danhSach.size()))
+            );
+            JavaFXRuntime.chay(() -> capNhatBieuDoDichVu());
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void loadThongTinNhanVien() {
+        try {
+            String maNV = PhienDangNhap.getMaNV();
+
+            if (maNV == null || maNV.trim().isEmpty()) {
+                lblMaNV.setText("Mã NV: Chưa xác định");
+                lblTenNV.setText("Họ tên: Chưa xác định");
+                lblChucVu.setText("Chức vụ: Chưa xác định");
+                lblCaTruc.setText("Trạng thái: Chưa xác định");
+                return;
+            }
+
+            NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
+            NhanVien nv = nhanVienDAO.getNhanVienTheoMa(maNV);
+
+            if (nv != null) {
+                lblMaNV.setText("Mã NV: " + nv.getMaNV());
+                lblTenNV.setText("Họ tên: " + nv.getHoTen());
+                lblChucVu.setText("Chức vụ: " + nv.getChucVu());
+                lblCaTruc.setText("Trạng thái: " + nv.getTrangThai());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Không thể tải thông tin nhân viên: " + e.getMessage(),
                     "Lỗi",
                     JOptionPane.ERROR_MESSAGE
             );

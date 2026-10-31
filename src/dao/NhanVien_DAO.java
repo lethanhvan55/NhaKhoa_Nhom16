@@ -192,4 +192,27 @@ public class NhanVien_DAO {
                 rs.getString("DiaChi")
         );
     }
+    public NhanVien getNhanVienTheoMa(String maNV) {
+        String sql = "SELECT MaNV, HoTen, SoDT, NgayVaoLam, GioiTinh, "
+                + "ChucVu, TrangThai, Email, DiaChi "
+                + "FROM NhanVien WHERE MaNV = ?";
+
+        Connection con = ConnectDB.getConnection();
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, maNV);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return docNhanVien(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[NhanVien_DAO] getNhanVienTheoMa lỗi: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

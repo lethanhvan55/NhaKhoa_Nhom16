@@ -38,7 +38,7 @@ public class ThongKeTongQuan_DAO {
 
     public int getTongKeHoachDieuTri() throws SQLException {
         String sql = "SELECT COUNT(*) FROM KeHoachDieuTri "
-                +"WHERE TrangThai = N'Đang thực hiện'";
+                +"WHERE TrangThai = N'Đang điều trị'";
         return demSoLuong(sql);
     }
 
