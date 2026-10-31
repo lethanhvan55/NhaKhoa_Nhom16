@@ -465,4 +465,42 @@ public class HoaDonDao {
 
         return danhSach;
     }
+    // thong ke theo ngay
+    public Map<LocalDate, Double> getDoanhThuTheoNgay() throws SQLException {
+        Map<LocalDate, Double> ketQua = new LinkedHashMap<>();
+
+        LocalDate ngayKetThuc = LocalDate.now();
+        LocalDate ngayBatDau = ngayKetThuc.minusDays(6);
+
+        for (LocalDate ngay = ngayBatDau; !ngay.isAfter(ngayKetThuc); ngay = ngay.plusDays(1)) {
+            ketQua.put(ngay, 0.0);
+        }
+
+        String sql = """
+        SELECT CAST(hd.NgayLap AS DATE) AS Ngay,
+               SUM(cthd.SoLuong * cthd.DonGia) AS DoanhThu
+        FROM HoaDon hd
+        INNER JOIN ChiTietHoaDon cthd ON hd.MaHD = cthd.MaHD
+        WHERE hd.TrangThai = N'Đã thanh toán'
+          AND hd.NgayLap >= ?
+          AND hd.NgayLap < DATEADD(DAY, 1, ?)
+        GROUP BY CAST(hd.NgayLap AS DATE)
+        ORDER BY Ngay
+        """;
+
+        try (PreparedStatement ps = ConnectDB.getConnection().prepareStatement(sql)) {
+            ps.setDate(1, java.sql.Date.valueOf(ngayBatDau));
+            ps.setDate(2, java.sql.Date.valueOf(ngayKetThuc));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    LocalDate ngay = rs.getDate("Ngay").toLocalDate();
+                    double doanhThu = rs.getDouble("DoanhThu");
+                    ketQua.put(ngay, doanhThu);
+                }
+            }
+        }
+
+        return ketQua;
+    }
 }

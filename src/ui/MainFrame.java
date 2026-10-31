@@ -29,6 +29,7 @@ public class MainFrame extends JFrame {
     private CheckInPanel pnlCheckIn;
     private HoSoBenhNhanPanel pnlHoSoBenhNhan;
     private TaoHoaDonPanel pnlTaoHoaDon;
+    private HomePanel pnlTrangChu;
 
     private String maNVHienTai;
 
@@ -65,7 +66,8 @@ public class MainFrame extends JFrame {
         pnlNoiDung.setBorder(new EmptyBorder(10, 10, 10, 10));
         pnlNoiDung.setBackground(Color.WHITE);
 
-        pnlNoiDung.add(new HomePanel(), "Trang chủ");
+        pnlTrangChu = new HomePanel();
+        pnlNoiDung.add(pnlTrangChu, "Trang chủ");
 
         pnlHoSoBenhNhan = new HoSoBenhNhanPanel(maNVHienTai);
         pnlNoiDung.add(pnlHoSoBenhNhan, "Hồ sơ bệnh nhân");
@@ -139,6 +141,11 @@ public class MainFrame extends JFrame {
         } else if ("Tạo hóa đơn".equals(tenManHinh)) {
             if (pnlTaoHoaDon != null) {
                 pnlTaoHoaDon.refreshData();
+            }
+        }
+        else if ("Trang chủ".equals(tenManHinh)) {
+            if (pnlTrangChu != null) {
+                pnlTrangChu.refreshData();
             }
         }
     }

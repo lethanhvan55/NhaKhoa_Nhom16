@@ -1,5 +1,14 @@
 package ui;
 
+import dao.HoaDonDao;
+import dao.ThongKeTongQuan_DAO;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
+import utils.JavaFXRuntime;
 import utils.UIHelper;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.swing.FontIcon;
@@ -13,7 +22,10 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -44,6 +56,12 @@ public class HomePanel extends JPanel implements ActionListener {
     private JButton btnLamMoiDuLieu;
     private JButton btnXemTatCaThongBao;
     private JButton btnDangXuat;
+    private JFXPanel pnlBieuDoDoanhThu;
+    private XYChart.Series<String, Number> seriesDoanhThu;
+    private JLabel lblTongBenhNhan;
+    private JLabel lblLichHenHomNay;
+    private JLabel lblTongKeHoach;
+    private JLabel lblHoaDonChoThu;
 
     public HomePanel() {
         setLayout(new BorderLayout(15, 15));
@@ -75,13 +93,13 @@ public class HomePanel extends JPanel implements ActionListener {
         lblDongHo.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblDongHo.setForeground(NAVY);
 
-        btnLamMoiDuLieu = new JButton("Làm mới");
-        styleButton(btnLamMoiDuLieu, true, FontAwesomeSolid.SYNC_ALT);
+    /*    btnLamMoiDuLieu = new JButton("Làm mới");
+        styleButton(btnLamMoiDuLieu, true, FontAwesomeSolid.SYNC_ALT);*/
 
         pnlRight.add(lblIconClock);
         pnlRight.add(lblDongHo);
-        pnlRight.add(new JLabel(" | "));
-        pnlRight.add(btnLamMoiDuLieu);
+    /*    pnlRight.add(new JLabel(" | "));
+        pnlRight.add(btnLamMoiDuLieu); */
 
         pnlTop.add(lblTieuDeTrang, BorderLayout.WEST);
         pnlTop.add(pnlRight, BorderLayout.EAST);
@@ -124,10 +142,10 @@ public class HomePanel extends JPanel implements ActionListener {
         JPanel pnl = new JPanel(new GridLayout(1, 4, 12, 0));
         pnl.setOpaque(false);
 
-        pnl.add(taoTheThongKe("TỔNG SỐ BỆNH NHÂN", "128", "Hồ sơ lưu trữ trên hệ thống", new Color(48, 125, 220), FontAwesomeSolid.USER_INJURED));
-        pnl.add(taoTheThongKe("LỊCH HẸN HÔM NAY", "18", "Cần tiếp nhận & khám", new Color(15, 150, 137), FontAwesomeSolid.CALENDAR_CHECK));
-        pnl.add(taoTheThongKe("KẾ HOẠCH ĐIỀU TRỊ", "12", "Đang theo dõi tiến trình", new Color(140, 95, 200), FontAwesomeSolid.PROCEDURES));
-        pnl.add(taoTheThongKe("HÓA ĐƠN CHỜ THU", "5", "Chưa hoàn tất thanh toán", new Color(230, 115, 35), FontAwesomeSolid.FILE_INVOICE_DOLLAR));
+        pnl.add(taoTheThongKe("TỔNG SỐ BỆNH NHÂN", "0", "Hồ sơ lưu trữ trên hệ thống", new Color(48, 125, 220), FontAwesomeSolid.USER_INJURED));
+        pnl.add(taoTheThongKe("LỊCH HẸN HÔM NAY", "0", "Cần tiếp nhận & khám", new Color(15, 150, 137), FontAwesomeSolid.CALENDAR_CHECK));
+        pnl.add(taoTheThongKe("KẾ HOẠCH ĐIỀU TRỊ", "0", "Kế hoạch đang thực hiện", new Color(140, 95, 200), FontAwesomeSolid.PROCEDURES));
+        pnl.add(taoTheThongKe("HÓA ĐƠN CHỜ THU", "0", "Chưa hoàn tất thanh toán", new Color(230, 115, 35), FontAwesomeSolid.FILE_INVOICE_DOLLAR));
 
         return pnl;
     }
@@ -156,6 +174,21 @@ public class HomePanel extends JPanel implements ActionListener {
         lblGiaTri.setFont(new Font("Segoe UI", Font.BOLD, 32));
         lblGiaTri.setForeground(mau);
 
+        switch (tieuDe) {
+            case "TỔNG SỐ BỆNH NHÂN":
+                lblTongBenhNhan = lblGiaTri;
+                break;
+            case "LỊCH HẸN HÔM NAY":
+                lblLichHenHomNay = lblGiaTri;
+                break;
+            case "KẾ HOẠCH ĐIỀU TRỊ":
+                lblTongKeHoach = lblGiaTri;
+                break;
+            case "HÓA ĐƠN CHỜ THU":
+                lblHoaDonChoThu = lblGiaTri;
+                break;
+        }
+
         JLabel lblMoTa = new JLabel(moTa);
         lblMoTa.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lblMoTa.setForeground(MUTED);
@@ -169,12 +202,11 @@ public class HomePanel extends JPanel implements ActionListener {
     }
 
     private JPanel taoKhuVucBieuDo() {
-        JPanel pnl = new JPanel(new GridLayout(3, 1, 0, 12));
+        JPanel pnl = new JPanel(new GridLayout(2, 1, 0, 12));
         pnl.setOpaque(false);
 
-        pnl.add(taoKhungChart("Biểu đồ Doanh thu tháng này (VNĐ)", "pnlChartDoanhThu"));
+        pnl.add(taoKhungChartDoanhThu());
         pnl.add(taoKhungChart("Tỷ lệ Dịch vụ điều trị nhiều nhất", "pnlChartDichVu"));
-        pnl.add(taoKhungChart("Biểu đồ Khách hàng mới theo tuần", "pnlChartKhachHang"));
 
         return pnl;
     }
@@ -317,9 +349,48 @@ public class HomePanel extends JPanel implements ActionListener {
 
         return pnlCard;
     }
+    private JPanel taoKhungChartDoanhThu() {
+        JPanel pnl = createCardPanel();
+        pnl.setLayout(new BorderLayout(5, 5));
+        pnl.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(MAU_VIEN, 1, true),
+                new EmptyBorder(10, 12, 10, 12)
+        ));
+
+        pnlBieuDoDoanhThu = new JFXPanel();
+
+        JavaFXRuntime.chay(() -> {
+            CategoryAxis trucNgay = new CategoryAxis();
+            trucNgay.setLabel("Ngày");
+
+            NumberAxis trucDoanhThu = new NumberAxis();
+            trucDoanhThu.setLabel("Doanh thu (VNĐ)");
+            trucDoanhThu.setForceZeroInRange(true);
+
+            BarChart<String, Number> bieuDo = new BarChart<>(trucNgay, trucDoanhThu);
+            bieuDo.setTitle("Doanh thu theo ngày");
+            bieuDo.setLegendVisible(false);
+            bieuDo.setAnimated(false);
+            bieuDo.setCategoryGap(15);
+            bieuDo.setBarGap(3);
+
+            seriesDoanhThu = new XYChart.Series<>();
+            bieuDo.getData().add(seriesDoanhThu);
+
+            Scene scene = new Scene(bieuDo);
+            pnlBieuDoDoanhThu.setScene(scene);
+        });
+
+        pnl.add(pnlBieuDoDoanhThu, BorderLayout.CENTER);
+
+        return pnl;
+    }
+    public void refreshData() {
+        xuLyLamMoiTrangChu();
+    }
 
     private void dangKySuKien() {
-        btnLamMoiDuLieu.addActionListener(this);
+    //    btnLamMoiDuLieu.addActionListener(this);
         btnXemTatCaThongBao.addActionListener(this);
         btnDangXuat.addActionListener(this);
     }
@@ -327,9 +398,7 @@ public class HomePanel extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
-        if (source.equals(btnLamMoiDuLieu)) {
-            xuLyLamMoiTrangChu();
-        } else if (source.equals(btnXemTatCaThongBao)) {
+        if (source.equals(btnXemTatCaThongBao)) {
             xuLyXemTatCaThongBao();
         } else if (source.equals(btnDangXuat)) {
             xuLyDangXuat();
@@ -338,15 +407,59 @@ public class HomePanel extends JPanel implements ActionListener {
 
     private void loadDuLieuTongQuanTuCSDL() {
         try {
-            // TODO: Viết code gọi DAO truy vấn SQL Server
+            HoaDonDao hoaDonDao = new HoaDonDao();
+            Map<LocalDate, Double> duLieu = hoaDonDao.getDoanhThuTheoNgay();
+
+            JavaFXRuntime.chay(() -> {
+                if (seriesDoanhThu == null) {
+                    return;
+                }
+
+                seriesDoanhThu.getData().clear();
+
+                DateTimeFormatter dinhDangNgay = DateTimeFormatter.ofPattern("dd/MM");
+
+                for (Map.Entry<LocalDate, Double> entry : duLieu.entrySet()) {
+                    String ngay = entry.getKey().format(dinhDangNgay);
+                    double doanhThu = entry.getValue();
+
+                    seriesDoanhThu.getData().add(
+                            new XYChart.Data<>(ngay, doanhThu)
+                    );
+                }
+            });
+
         } catch (Exception e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Không thể tải dữ liệu doanh thu: " + e.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+        try {
+            ThongKeTongQuan_DAO thongKeDAO = new ThongKeTongQuan_DAO();
+
+            lblTongBenhNhan.setText(String.valueOf(thongKeDAO.getTongSoBenhNhan()));
+            lblLichHenHomNay.setText(String.valueOf(thongKeDAO.getLichHenHomNay()));
+            lblTongKeHoach.setText(String.valueOf(thongKeDAO.getTongKeHoachDieuTri()));
+            lblHoaDonChoThu.setText(String.valueOf(thongKeDAO.getHoaDonChuaThanhToan()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Không thể tải dữ liệu thống kê: " + e.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
     private void xuLyLamMoiTrangChu() {
         loadDuLieuTongQuanTuCSDL();
-        JOptionPane.showMessageDialog(this, "Đã cập nhật dữ liệu mới nhất cho trang chủ!");
+      //  JOptionPane.showMessageDialog(this, "Đã cập nhật dữ liệu mới nhất cho trang chủ!");
     }
 
     private void xuLyXemTatCaThongBao() {
