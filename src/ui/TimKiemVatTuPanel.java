@@ -1,3 +1,4 @@
+
 package ui;
 
 import dao.VatTuDAO;
@@ -9,6 +10,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
@@ -40,7 +42,7 @@ public class TimKiemVatTuPanel extends JPanel implements ActionListener {
     private final Color BG = new Color(243, 246, 251);
     private final Color TEXT = new Color(45, 55, 68);
 
-    // Gộp mã và tên vật tư thành một ô từ khóa chung
+    // Các ô nhập liệu
     private JTextField txtTuKhoa;
     private JTextField txtGiaTu;
     private JTextField txtGiaDen;
@@ -56,277 +58,689 @@ public class TimKiemVatTuPanel extends JPanel implements ActionListener {
     private JButton btnXemChiTiet;
 
     private VatTuDAO vtDAO = new VatTuDAO();
-    private DecimalFormat currencyFormatter = new DecimalFormat("#,### VNĐ");
+    private DecimalFormat currencyFormatter =
+            new DecimalFormat("#,### VNĐ");
 
     public TimKiemVatTuPanel() {
+
         setLayout(new BorderLayout());
         setBackground(BG);
 
         JPanel pnlChinh = new JPanel(new BorderLayout());
         pnlChinh.setBackground(BG);
 
-        // Tiêu đề
+        // ================= TIÊU ĐỀ =================
+
         JPanel pnlTieuDe = new JPanel(new BorderLayout());
         pnlTieuDe.setBackground(Color.WHITE);
-        pnlTieuDe.setBorder(new EmptyBorder(17, 22, 17, 24));
+        pnlTieuDe.setBorder(
+                new EmptyBorder(17, 22, 17, 24)
+        );
 
         JLabel lblTieuDe = new JLabel("Tìm kiếm vật tư");
         lblTieuDe.setFont(new Font("Arial", Font.BOLD, 22));
         lblTieuDe.setForeground(NAVY);
-        lblTieuDe.setIcon(FontIcon.of(FontAwesomeSolid.SEARCH, 22, NAVY));
+        lblTieuDe.setIcon(
+                FontIcon.of(FontAwesomeSolid.SEARCH, 22, NAVY)
+        );
 
         pnlTieuDe.add(lblTieuDe, BorderLayout.WEST);
         pnlChinh.add(pnlTieuDe, BorderLayout.NORTH);
 
-        // Nội dung chính
-        JPanel pnlNoiDung = new JPanel(new BorderLayout(0, 18));
-        pnlNoiDung.setBackground(BG);
-        pnlNoiDung.setBorder(new EmptyBorder(18, 18, 18, 18));
+        // ================= NỘI DUNG CHÍNH =================
 
-        // Khung tìm kiếm
-        JPanel pnlTimKiem = new JPanel(new BorderLayout(0, 16));
+        JPanel pnlNoiDung = new JPanel(
+                new BorderLayout(0, 18)
+        );
+
+        pnlNoiDung.setBackground(BG);
+        pnlNoiDung.setBorder(
+                new EmptyBorder(18, 18, 18, 18)
+        );
+
+        // ================= KHUNG TÌM KIẾM =================
+
+        JPanel pnlTimKiem = new JPanel(
+                new BorderLayout(0, 16)
+        );
+
         pnlTimKiem.setBackground(Color.WHITE);
-        pnlTimKiem.setBorder(new CompoundBorder(new LineBorder(new Color(226, 231, 238)), new EmptyBorder(16, 16, 16, 16)));
+        pnlTimKiem.setBorder(
+                new CompoundBorder(
+                        new LineBorder(new Color(226, 231, 238)),
+                        new EmptyBorder(16, 16, 16, 16)
+                )
+        );
 
         JLabel lblDieuKien = new JLabel("Điều kiện tìm kiếm");
-        lblDieuKien.setFont(new Font("Arial", Font.BOLD, 17));
+        lblDieuKien.setFont(
+                new Font("Arial", Font.BOLD, 17)
+        );
         lblDieuKien.setForeground(TEXT);
+
         pnlTimKiem.add(lblDieuKien, BorderLayout.NORTH);
 
-        JPanel pnlKhungTimKiem = new JPanel(new GridLayout(2, 3, 14, 14));
+        // ================= CÁC Ô TÌM KIẾM =================
+        // Đưa toàn bộ 5 ô lên cùng một hàng
+
+        JPanel pnlKhungTimKiem = new JPanel(
+                new GridLayout(1, 5, 14, 0)
+        );
+
         pnlKhungTimKiem.setBackground(Color.WHITE);
 
-        // Khởi tạo các ô nhập liệu (Đã gộp Mã và Tên vật tư thành txtTuKhoa)
+        // Khởi tạo các ô nhập liệu
+
         txtTuKhoa = new JTextField();
-        cboDanhMuc = new JComboBox<>(new String[]{"Tất cả danh mục", "Hộp", "Cái", "Bộ", "Lọ", "Ống", "Thỏi", "Tuýp", "Gói"});
-        cboTrangThai = new JComboBox<>(new String[]{"Tất cả", "Còn hàng", "Tồn thấp", "Hết hàng"});
+
+        cboDanhMuc = new JComboBox<>(
+                new String[]{
+                        "Tất cả danh mục",
+                        "Hộp",
+                        "Cái",
+                        "Bộ",
+                        "Lọ",
+                        "Ống",
+                        "Thỏi",
+                        "Tuýp",
+                        "Gói"
+                }
+        );
+
+        cboTrangThai = new JComboBox<>(
+                new String[]{
+                        "Tất cả",
+                        "Còn hàng",
+                        "Tồn thấp",
+                        "Hết hàng"
+                }
+        );
+
         txtGiaTu = new JTextField();
         txtGiaDen = new JTextField();
+
+        // Định dạng ô nhập liệu
 
         dinhDangO(txtTuKhoa);
         dinhDangO(txtGiaTu);
         dinhDangO(txtGiaDen);
+
         dinhDangCombobox(cboDanhMuc);
         dinhDangCombobox(cboTrangThai);
 
-        pnlKhungTimKiem.add(taoPanelTruong("Mã / Tên vật tư", txtTuKhoa));
-        pnlKhungTimKiem.add(taoPanelTruong("Danh mục vật tư", cboDanhMuc));
-        pnlKhungTimKiem.add(taoPanelTruong("Trạng thái kho", cboTrangThai));
-        pnlKhungTimKiem.add(taoPanelTruong("Giá từ (VNĐ)", txtGiaTu));
-        pnlKhungTimKiem.add(taoPanelTruong("Giá đến (VNĐ)", txtGiaDen));
+        // Thêm 5 trường tìm kiếm vào cùng một hàng
 
-        // Ô trống còn lại trong lưới 2x3 để cân đối giao diện
-        pnlKhungTimKiem.add(new JLabel(""));
+        pnlKhungTimKiem.add(
+                taoPanelTruong("Mã / Tên vật tư", txtTuKhoa)
+        );
 
-        // Các nút chức năng
-        JPanel pnlNut = new JPanel(new GridLayout(1, 2, 10, 0));
+        pnlKhungTimKiem.add(
+                taoPanelTruong("Danh mục vật tư", cboDanhMuc)
+        );
+
+        pnlKhungTimKiem.add(
+                taoPanelTruong("Trạng thái kho", cboTrangThai)
+        );
+
+        pnlKhungTimKiem.add(
+                taoPanelTruong("Giá từ (VNĐ)", txtGiaTu)
+        );
+
+        pnlKhungTimKiem.add(
+                taoPanelTruong("Giá đến (VNĐ)", txtGiaDen)
+        );
+
+        // ================= CÁC NÚT CHỨC NĂNG =================
+        // Căn giữa hai nút giống giao diện tìm kiếm nhân viên
+
+        JPanel pnlNut = new JPanel(
+                new FlowLayout(FlowLayout.CENTER, 24, 0)
+        );
+
         pnlNut.setBackground(Color.WHITE);
 
+        // Nút tìm kiếm
+
         btnTimKiem = new JButton("Tìm kiếm");
-        btnTimKiem.setIcon(FontIcon.of(FontAwesomeSolid.SEARCH, 14, Color.WHITE));
-        btnTimKiem.setFont(new Font("Arial", Font.BOLD, 12));
+
+        btnTimKiem.setIcon(
+                FontIcon.of(
+                        FontAwesomeSolid.SEARCH,
+                        14,
+                        Color.WHITE
+                )
+        );
+
+        btnTimKiem.setFont(
+                new Font("Arial", Font.BOLD, 12)
+        );
+
         btnTimKiem.setForeground(Color.WHITE);
         btnTimKiem.setBackground(BLUE);
         btnTimKiem.setFocusPainted(false);
-        btnTimKiem.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnTimKiem.setBorder(new LineBorder(BLUE));
+
+        btnTimKiem.setCursor(
+                Cursor.getPredefinedCursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        btnTimKiem.setBorder(
+                new LineBorder(BLUE)
+        );
+
+        btnTimKiem.setPreferredSize(
+                new Dimension(275, 40)
+        );
+
+        // Nút làm mới
 
         btnLamMoi = new JButton("Làm mới");
-        btnLamMoi.setIcon(FontIcon.of(FontAwesomeSolid.SYNC_ALT, 14, TEXT));
-        btnLamMoi.setFont(new Font("Arial", Font.BOLD, 12));
+
+        btnLamMoi.setIcon(
+                FontIcon.of(
+                        FontAwesomeSolid.SYNC_ALT,
+                        14,
+                        TEXT
+                )
+        );
+
+        btnLamMoi.setFont(
+                new Font("Arial", Font.BOLD, 12)
+        );
+
         btnLamMoi.setForeground(TEXT);
         btnLamMoi.setBackground(Color.WHITE);
         btnLamMoi.setFocusPainted(false);
-        btnLamMoi.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnLamMoi.setBorder(new LineBorder(new Color(215, 220, 227)));
+
+        btnLamMoi.setCursor(
+                Cursor.getPredefinedCursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        btnLamMoi.setBorder(
+                new LineBorder(new Color(215, 220, 227))
+        );
+
+        btnLamMoi.setPreferredSize(
+                new Dimension(275, 40)
+        );
+
+        // Thêm nút vào panel
 
         pnlNut.add(btnTimKiem);
         pnlNut.add(btnLamMoi);
 
-        JPanel pnlNoiDungTimKiem = new JPanel(new BorderLayout(0, 14));
+        // Ghép khung tìm kiếm và các nút
+
+        JPanel pnlNoiDungTimKiem = new JPanel(
+                new BorderLayout(0, 14)
+        );
+
         pnlNoiDungTimKiem.setOpaque(false);
-        pnlNoiDungTimKiem.add(pnlKhungTimKiem, BorderLayout.CENTER);
-        pnlNoiDungTimKiem.add(pnlNut, BorderLayout.SOUTH);
 
-        pnlTimKiem.add(pnlNoiDungTimKiem, BorderLayout.CENTER);
+        pnlNoiDungTimKiem.add(
+                pnlKhungTimKiem,
+                BorderLayout.CENTER
+        );
 
-        // Khung bảng kết quả
-        JPanel pnlBang = new JPanel(new BorderLayout(0, 14));
+        pnlNoiDungTimKiem.add(
+                pnlNut,
+                BorderLayout.SOUTH
+        );
+
+        pnlTimKiem.add(
+                pnlNoiDungTimKiem,
+                BorderLayout.CENTER
+        );
+
+        // ================= KHUNG BẢNG KẾT QUẢ =================
+
+        JPanel pnlBang = new JPanel(
+                new BorderLayout(0, 14)
+        );
+
         pnlBang.setBackground(Color.WHITE);
-        pnlBang.setBorder(new CompoundBorder(new LineBorder(new Color(226, 231, 238)), new EmptyBorder(16, 16, 16, 16)));
+
+        pnlBang.setBorder(
+                new CompoundBorder(
+                        new LineBorder(new Color(226, 231, 238)),
+                        new EmptyBorder(16, 16, 16, 16)
+                )
+        );
 
         JLabel lblKetQua = new JLabel("Kết quả tìm kiếm");
-        lblKetQua.setFont(new Font("Arial", Font.BOLD, 17));
+
+        lblKetQua.setFont(
+                new Font("Arial", Font.BOLD, 17)
+        );
+
         lblKetQua.setForeground(TEXT);
+
         pnlBang.add(lblKetQua, BorderLayout.NORTH);
 
-        String[] arrCot = {"STT", "MÃ VẬT TƯ", "TÊN VẬT TƯ", "DANH MỤC", "ĐƠN VỊ TÍNH", "GIÁ BÁN (VNĐ)", "SỐ LƯỢNG TỒN", "TRẠNG THÁI"};
+        // Các cột trong bảng
+
+        String[] arrCot = {
+                "STT",
+                "MÃ VẬT TƯ",
+                "TÊN VẬT TƯ",
+                "DANH MỤC",
+                "ĐƠN VỊ TÍNH",
+                "GIÁ BÁN (VNĐ)",
+                "SỐ LƯỢNG TỒN",
+                "TRẠNG THÁI"
+        };
+
         model = new DefaultTableModel(arrCot, 0) {
+
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(
+                    int row,
+                    int column
+            ) {
                 return false;
             }
         };
 
         tblVatTu = new JTable(model);
+
         tblVatTu.setRowHeight(42);
-        tblVatTu.setFont(new Font("Arial", Font.PLAIN, 12));
+        tblVatTu.setFont(
+                new Font("Arial", Font.PLAIN, 12)
+        );
+
         tblVatTu.setForeground(TEXT);
-        tblVatTu.setGridColor(new Color(238, 241, 245));
+        tblVatTu.setGridColor(
+                new Color(238, 241, 245)
+        );
+
         tblVatTu.setShowVerticalLines(false);
-        tblVatTu.setSelectionBackground(new Color(239, 247, 255));
+
+        tblVatTu.setSelectionBackground(
+                new Color(239, 247, 255)
+        );
+
         tblVatTu.setSelectionForeground(TEXT);
 
+        // Định dạng tiêu đề bảng
+
         JTableHeader tblHeader = tblVatTu.getTableHeader();
-        tblHeader.setPreferredSize(new Dimension(0, 44));
-        tblHeader.setFont(new Font("Arial", Font.BOLD, 11));
-        tblHeader.setForeground(new Color(105, 115, 126));
-        tblHeader.setBackground(new Color(248, 249, 251));
+
+        tblHeader.setPreferredSize(
+                new Dimension(0, 44)
+        );
+
+        tblHeader.setFont(
+                new Font("Arial", Font.BOLD, 11)
+        );
+
+        tblHeader.setForeground(
+                new Color(105, 115, 126)
+        );
+
+        tblHeader.setBackground(
+                new Color(248, 249, 251)
+        );
+
+        // Thanh cuộn bảng
 
         JScrollPane scrBang = new JScrollPane(tblVatTu);
-        scrBang.setBorder(BorderFactory.createEmptyBorder());
+
+        scrBang.setBorder(
+                BorderFactory.createEmptyBorder()
+        );
+
         scrBang.getViewport().setBackground(Color.WHITE);
+
         pnlBang.add(scrBang, BorderLayout.CENTER);
 
-        // Phần cuối bảng
-        JPanel pnlCuoiBang = new JPanel(new BorderLayout());
+        // ================= PHẦN CUỐI BẢNG =================
+
+        JPanel pnlCuoiBang = new JPanel(
+                new BorderLayout()
+        );
+
         pnlCuoiBang.setBackground(Color.WHITE);
 
-        JLabel lblHuongDan = new JLabel("Vui lòng chọn một vật tư trong bảng");
-        lblHuongDan.setFont(new Font("Arial", Font.PLAIN, 12));
-        lblHuongDan.setForeground(new Color(130, 140, 150));
+        JLabel lblHuongDan = new JLabel(
+                "Vui lòng chọn một vật tư trong bảng"
+        );
+
+        lblHuongDan.setFont(
+                new Font("Arial", Font.PLAIN, 12)
+        );
+
+        lblHuongDan.setForeground(
+                new Color(130, 140, 150)
+        );
+
+        // Nút xem chi tiết
 
         btnXemChiTiet = new JButton("Xem chi tiết");
-        btnXemChiTiet.setIcon(FontIcon.of(FontAwesomeSolid.EYE, 14, Color.WHITE));
-        btnXemChiTiet.setFont(new Font("Arial", Font.BOLD, 12));
+
+        btnXemChiTiet.setIcon(
+                FontIcon.of(
+                        FontAwesomeSolid.EYE,
+                        14,
+                        Color.WHITE
+                )
+        );
+
+        btnXemChiTiet.setFont(
+                new Font("Arial", Font.BOLD, 12)
+        );
+
         btnXemChiTiet.setForeground(Color.WHITE);
         btnXemChiTiet.setBackground(BLUE);
         btnXemChiTiet.setFocusPainted(false);
-        btnXemChiTiet.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnXemChiTiet.setBorder(new LineBorder(BLUE));
 
-        pnlCuoiBang.add(lblHuongDan, BorderLayout.WEST);
-        pnlCuoiBang.add(btnXemChiTiet, BorderLayout.EAST);
-        pnlBang.add(pnlCuoiBang, BorderLayout.SOUTH);
+        btnXemChiTiet.setCursor(
+                Cursor.getPredefinedCursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
 
-        pnlNoiDung.add(pnlTimKiem, BorderLayout.NORTH);
-        pnlNoiDung.add(pnlBang, BorderLayout.CENTER);
-        pnlChinh.add(pnlNoiDung, BorderLayout.CENTER);
-        add(pnlChinh, BorderLayout.CENTER);
+        btnXemChiTiet.setBorder(
+                new LineBorder(BLUE)
+        );
 
-        // Đăng ký sự kiện
+        pnlCuoiBang.add(
+                lblHuongDan,
+                BorderLayout.WEST
+        );
+
+        pnlCuoiBang.add(
+                btnXemChiTiet,
+                BorderLayout.EAST
+        );
+
+        pnlBang.add(
+                pnlCuoiBang,
+                BorderLayout.SOUTH
+        );
+
+        // ================= GHÉP GIAO DIỆN =================
+
+        pnlNoiDung.add(
+                pnlTimKiem,
+                BorderLayout.NORTH
+        );
+
+        pnlNoiDung.add(
+                pnlBang,
+                BorderLayout.CENTER
+        );
+
+        pnlChinh.add(
+                pnlNoiDung,
+                BorderLayout.CENTER
+        );
+
+        add(
+                pnlChinh,
+                BorderLayout.CENTER
+        );
+
+        // ================= ĐĂNG KÝ SỰ KIỆN =================
+
         btnTimKiem.addActionListener(this);
         btnLamMoi.addActionListener(this);
         btnXemChiTiet.addActionListener(this);
 
-        // Load toàn bộ dữ liệu ban đầu
+        // Tải dữ liệu ban đầu
+
         taiDuLieuLenBang(null);
     }
 
+    // ================= ĐỊNH DẠNG Ô NHẬP LIỆU =================
+
     private void dinhDangO(JTextField txt) {
-        txt.setFont(new Font("Arial", Font.PLAIN, 13));
+
+        txt.setFont(
+                new Font("Arial", Font.PLAIN, 13)
+        );
+
         txt.setForeground(TEXT);
         txt.setBackground(Color.WHITE);
-        txt.setPreferredSize(new Dimension(120, 36));
-        txt.setBorder(new LineBorder(new Color(211, 217, 225)));
+
+        txt.setPreferredSize(
+                new Dimension(120, 36)
+        );
+
+        txt.setBorder(
+                new LineBorder(
+                        new Color(211, 217, 225)
+                )
+        );
     }
 
-    private void dinhDangCombobox(JComboBox<String> cbo) {
-        cbo.setFont(new Font("Arial", Font.PLAIN, 12));
+    // ================= ĐỊNH DẠNG COMBOBOX =================
+
+    private void dinhDangCombobox(
+            JComboBox<String> cbo
+    ) {
+
+        cbo.setFont(
+                new Font("Arial", Font.PLAIN, 12)
+        );
+
         cbo.setForeground(TEXT);
         cbo.setBackground(Color.WHITE);
-        cbo.setPreferredSize(new Dimension(120, 36));
-        cbo.setBorder(new LineBorder(new Color(211, 217, 225)));
+
+        cbo.setPreferredSize(
+                new Dimension(120, 36)
+        );
+
+        cbo.setBorder(
+                new LineBorder(
+                        new Color(211, 217, 225)
+                )
+        );
     }
 
-    private JPanel taoPanelTruong(String nhan, java.awt.Component comp) {
-        JPanel pnl = new JPanel(new BorderLayout(0, 6));
+    // ================= TẠO PANEL TRƯỜNG TÌM KIẾM =================
+
+    private JPanel taoPanelTruong(
+            String nhan,
+            java.awt.Component comp
+    ) {
+
+        JPanel pnl = new JPanel(
+                new BorderLayout(0, 6)
+        );
+
         pnl.setBackground(Color.WHITE);
+
         JLabel lbl = new JLabel(nhan);
-        lbl.setFont(new Font("Arial", Font.BOLD, 12));
+
+        lbl.setFont(
+                new Font("Arial", Font.BOLD, 12)
+        );
+
         lbl.setForeground(TEXT);
+
         pnl.add(lbl, BorderLayout.NORTH);
         pnl.add(comp, BorderLayout.CENTER);
+
         return pnl;
     }
 
+    // ================= TẢI DỮ LIỆU LÊN BẢNG =================
+
     private void taiDuLieuLenBang(List<VatTu> list) {
+
         model.setRowCount(0);
+
         try {
+
             if (list == null) {
                 list = vtDAO.getAll();
             }
+
             int stt = 1;
+
             for (VatTu vt : list) {
+
                 int ton = vt.getSoLuongTon();
                 int min = vt.getSoLuongToiThieu();
+
                 String trangThai = "Còn hàng";
+
                 if (ton <= 0) {
+
                     trangThai = "Hết hàng";
+
                 } else if (ton <= min) {
+
                     trangThai = "Tồn thấp";
                 }
 
                 Object[] row = {
+
                         stt++,
+
                         vt.getMaVT(),
+
                         vt.getTenVatTu(),
-                        vt.getMoTa() != null ? vt.getMoTa() : "N/A",
+
+                        vt.getMoTa() != null
+                                ? vt.getMoTa()
+                                : "N/A",
+
                         vt.getDonViTinh(),
-                        currencyFormatter.format(0), // Hoặc giá thực tế nếu có
+
+                        currencyFormatter.format(0),
+
                         ton,
+
                         trangThai
                 };
+
                 model.addRow(row);
             }
+
         } catch (SQLException e) {
+
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Lỗi khi tải dữ liệu vật tư!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Lỗi khi tải dữ liệu vật tư!",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
+    // ================= XỬ LÝ SỰ KIỆN =================
+
     @Override
     public void actionPerformed(ActionEvent e) {
+
         Object o = e.getSource();
+
+        // NÚT TÌM KIẾM
+
         if (o.equals(btnTimKiem)) {
-            // Lấy chuỗi từ ô tìm kiếm chung
+
             String tuKhoa = txtTuKhoa.getText().trim();
-            String danhMuc = cboDanhMuc.getSelectedItem().toString();
-            String trangThai = cboTrangThai.getSelectedItem().toString();
+
+            String danhMuc =
+                    cboDanhMuc.getSelectedItem().toString();
+
+            String trangThai =
+                    cboTrangThai.getSelectedItem().toString();
 
             try {
-                // Truyền chuỗi từ khóa vào cả 2 tham số mã và tên trong DAO
-                // (hoặc nếu DAO của bạn hỗ trợ truyền chung một từ khóa, bạn có thể chỉnh lại hàm timKiem cho phù hợp)
-                List<VatTu> ketQua = vtDAO.timKiem(tuKhoa, tuKhoa, danhMuc, trangThai);
+
+                List<VatTu> ketQua = vtDAO.timKiem(
+                        tuKhoa,
+                        tuKhoa,
+                        danhMuc,
+                        trangThai
+                );
+
                 taiDuLieuLenBang(ketQua);
+
                 if (ketQua.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Không tìm thấy vật tư nào phù hợp!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Không tìm thấy vật tư nào phù hợp!",
+                            "Thông báo",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 }
+
             } catch (SQLException ex) {
+
                 ex.printStackTrace();
             }
-        } else if (o.equals(btnLamMoi)) {
+
+        }
+
+        // NÚT LÀM MỚI
+
+        else if (o.equals(btnLamMoi)) {
+
             txtTuKhoa.setText("");
+
             txtGiaTu.setText("");
+
             txtGiaDen.setText("");
+
             cboDanhMuc.setSelectedIndex(0);
+
             cboTrangThai.setSelectedIndex(0);
+
             taiDuLieuLenBang(null);
-        } else if (o.equals(btnXemChiTiet)) {
+        }
+
+        // NÚT XEM CHI TIẾT
+
+        else if (o.equals(btnXemChiTiet)) {
+
             int row = tblVatTu.getSelectedRow();
+
             if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Vui lòng chọn một vật tư trong bảng để xem chi tiết!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Vui lòng chọn một vật tư trong bảng để xem chi tiết!",
+                        "Cảnh báo",
+                        JOptionPane.WARNING_MESSAGE
+                );
+
                 return;
             }
-            String maVT = model.getValueAt(row, 1).toString();
-            String tenVT = model.getValueAt(row, 2).toString();
-            String ton = model.getValueAt(row, 6).toString();
-            String tt = model.getValueAt(row, 7).toString();
 
-            JOptionPane.showMessageDialog(this,
-                    "Chi tiết vật tư:\nMã: " + maVT + "\nTên: " + tenVT + "\nTồn kho: " + ton + "\nTrạng thái: " + tt,
+            String maVT =
+                    model.getValueAt(row, 1).toString();
+
+            String tenVT =
+                    model.getValueAt(row, 2).toString();
+
+            String ton =
+                    model.getValueAt(row, 6).toString();
+
+            String tt =
+                    model.getValueAt(row, 7).toString();
+
+            JOptionPane.showMessageDialog(
+                    this,
+
+                    "Chi tiết vật tư:\n"
+                            + "Mã: " + maVT + "\n"
+                            + "Tên: " + tenVT + "\n"
+                            + "Tồn kho: " + ton + "\n"
+                            + "Trạng thái: " + tt,
+
                     "Thông tin chi tiết",
-                    JOptionPane.INFORMATION_MESSAGE);
+
+                    JOptionPane.INFORMATION_MESSAGE
+            );
         }
     }
 }
