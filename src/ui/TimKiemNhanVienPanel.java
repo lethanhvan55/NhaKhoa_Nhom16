@@ -1,11 +1,6 @@
 package ui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -72,9 +67,7 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
         JLabel lblTieuDe = new JLabel("Tìm kiếm nhân viên");
         lblTieuDe.setFont(new Font("Arial", Font.BOLD, 22));
         lblTieuDe.setForeground(NAVY);
-        lblTieuDe.setIcon(
-                FontIcon.of(FontAwesomeSolid.SEARCH, 22, NAVY)
-        );
+        lblTieuDe.setIcon(FontIcon.of(FontAwesomeSolid.SEARCH, 22, NAVY));
 
         pnlTieuDe.add(lblTieuDe, BorderLayout.WEST);
         pnlChinh.add(pnlTieuDe, BorderLayout.NORTH);
@@ -88,21 +81,17 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
         JPanel pnlTimKiem = new JPanel(new BorderLayout(0, 16));
         pnlTimKiem.setBackground(Color.WHITE);
         pnlTimKiem.setBorder(
-                new CompoundBorder(
-                        new LineBorder(new Color(226, 231, 238)),
-                        new EmptyBorder(16, 16, 16, 16)
-                )
+                new CompoundBorder(new LineBorder(new Color(226, 231, 238)), new EmptyBorder(16, 16, 16, 16))
         );
 
-        JLabel lblDieuKien = new JLabel("Điều kiện tìm kiếm");
+        JLabel lblDieuKien = new JLabel("Tìm kiếm");
         lblDieuKien.setFont(new Font("Arial", Font.BOLD, 17));
         lblDieuKien.setForeground(TEXT);
 
         pnlTimKiem.add(lblDieuKien, BorderLayout.NORTH);
 
         // Các trường tìm kiếm
-        JPanel pnlKhungTimKiem = new JPanel(
-                new GridLayout(2, 2, 14, 14)
+        JPanel pnlKhungTimKiem = new JPanel(new GridLayout(1, 2, 20, 0)
         );
         pnlKhungTimKiem.setBackground(Color.WHITE);
 
@@ -110,7 +99,7 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
         JPanel pnlTimKiemNhanVien = new JPanel(new BorderLayout(0, 6));
         pnlTimKiemNhanVien.setBackground(Color.WHITE);
 
-        JLabel lblTimKiem = new JLabel("Mã nhân viên / Họ và tên / Số điện thoại");
+        JLabel lblTimKiem = new JLabel("Nhập nội dung");
         lblTimKiem.setFont(new Font("Arial", Font.BOLD, 12));
         lblTimKiem.setForeground(TEXT);
 
@@ -133,15 +122,7 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
         lblChucVu.setForeground(TEXT);
 
         cboChucVu = new JComboBox<>(
-                new String[]{
-                        "Tất cả chức vụ",
-                        "Lễ tân",
-                        "Nha sĩ",
-                        "Quản lý"
-                }
-        );
-
-
+                new String[]{"Tất cả chức vụ", "Lễ tân", "Nha sĩ", "Quản lý"});
 
         dinhDangComboBox(cboChucVu);
 
@@ -152,7 +133,7 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
         pnlKhungTimKiem.add(pnlTimKiemNhanVien);
         pnlKhungTimKiem.add(pnlChucVu);
 
-        JPanel pnlNut = new JPanel(new GridLayout(1, 2, 10, 0));
+        JPanel pnlNut = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         pnlNut.setBackground(Color.WHITE);
 
         btnTimKiem = new JButton("Tìm kiếm");
@@ -165,6 +146,7 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
         btnTimKiem.setFocusPainted(false);
         btnTimKiem.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnTimKiem.setBorder(new LineBorder(BLUE));
+        btnTimKiem.setPreferredSize(new Dimension(220, 40));
 
         btnLamMoi = new JButton("Làm mới");
         btnLamMoi.setIcon(FontIcon.of(FontAwesomeSolid.SYNC_ALT, 14, TEXT));
@@ -174,11 +156,12 @@ public class TimKiemNhanVienPanel extends JPanel implements ActionListener, Mous
         btnLamMoi.setFocusPainted(false);
         btnLamMoi.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnLamMoi.setBorder(new LineBorder(new Color(215, 220, 227)));
+        btnLamMoi.setPreferredSize(new Dimension(220, 40));
 
         pnlNut.add(btnTimKiem);
         pnlNut.add(btnLamMoi);
 
-        JPanel pnlNoiDungTimKiem = new JPanel(new BorderLayout(0, 14));
+        JPanel pnlNoiDungTimKiem = new JPanel(new BorderLayout(0, 18));
         pnlNoiDungTimKiem.setBackground(Color.WHITE);
         pnlNoiDungTimKiem.add(pnlKhungTimKiem, BorderLayout.CENTER);
         pnlNoiDungTimKiem.add(pnlNut, BorderLayout.SOUTH);
