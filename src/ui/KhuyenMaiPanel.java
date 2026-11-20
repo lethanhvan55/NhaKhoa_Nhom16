@@ -52,14 +52,18 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
     private JButton btnLamMoi;
     private JButton btnTimKiem;
     private JButton btnInQR;
+    private JButton btnChonDichVu;
+    private JLabel lblDichVuDaChon;
 
     private JLabel lblTongSo;
 
     private final KhuyenMai_DAO km_dao = new KhuyenMai_DAO();
     private List<KhuyenMai> danhSachHienThi = new ArrayList<>();
+    private List<String> dsMaDVApDung = new ArrayList<>();
 
     private final DateTimeFormatter dinhDangNgay = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private JTextField txtTrangThai;
+    private JPanel pnlChonDichVu;
 
     public KhuyenMaiPanel() {
         setLayout(new BorderLayout(15, 15));
@@ -189,6 +193,18 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
         txtTrangThai = taoTextField();
         txtTrangThai.setEditable(false);
         txtTrangThai.setFocusable(false);
+        btnChonDichVu = taoNut("Chọn dịch vụ", mauXanh, Color.WHITE);
+        btnChonDichVu.setPreferredSize(new Dimension(120, 36));
+
+        lblDichVuDaChon = new JLabel("Chưa chọn dịch vụ");
+        lblDichVuDaChon.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblDichVuDaChon.setForeground(mauPhu);
+
+        pnlChonDichVu = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        pnlChonDichVu.setOpaque(false);
+        pnlChonDichVu.add(btnChonDichVu);
+        pnlChonDichVu.add(Box.createHorizontalStrut(10));
+        pnlChonDichVu.add(lblDichVuDaChon);
 
         int dong = 0;
         themTruong(pnlTruong, dong++, "Mã khuyến mãi", txtMaKM);
@@ -199,7 +215,8 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
         themTruong(pnlTruong, dong++, "Giá trị tối thiểu", txtGiaTriToiThieu);
         themTruong(pnlTruong, dong++, "Chiết khấu (%)", txtChietKhau);
         themTruong(pnlTruong, dong++, "Số lượng", txtSoLuong);
-        themTruong(pnlTruong, dong, "Trạng thái", txtTrangThai);
+        themTruong(pnlTruong, dong++, "Trạng thái", txtTrangThai);
+        themTruong(pnlTruong, dong++, "Dịch vụ", pnlChonDichVu);
 
         btnThem = taoNut("Thêm", mauXanh, Color.WHITE);
         btnSua = taoNut("Sửa", new Color(240, 160, 45), Color.WHITE);
@@ -231,6 +248,7 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
         btnTimKiem.addActionListener(this);
         btnInQR.addActionListener(this);
         cboLocTrangThai.addActionListener(this);
+        btnChonDichVu.addActionListener(this);
     }
 
     private void docDuLieu() {
@@ -491,7 +509,7 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
 
         try {
             int soLuongKM = Integer.parseInt(soLuong);
-            if (soLuongKM < 0) {
+            if (soLuongKM <= 0) {
                 JOptionPane.showMessageDialog(this, "Số lượng không được âm.");
                 txtSoLuong.requestFocus();
                 return false;
@@ -538,6 +556,8 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
         txtChietKhau.setText("");
         txtSoLuong.setText("");
         txtTrangThai.setText("Đang áp dụng");
+        dsMaDVApDung.clear();
+        capNhatDanhSachDichVuDaChon();
         txtMaThayThe.requestFocus();
     }
 
@@ -546,12 +566,19 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
             return;
         }
 
+        if (dsMaDVApDung.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn ít nhất một dịch vụ áp dụng.");
+            return;
+        }
+
         KhuyenMai km = layDuLieuForm();
 
-        if (km_dao.them(km)) {
+        if (km_dao.them(km, dsMaDVApDung)) {
             JOptionPane.showMessageDialog(this, "Thêm khuyến mãi thành công.");
+
             capNhatDanhSachTheoBoLoc();
             xoaTrang();
+
         } else {
             JOptionPane.showMessageDialog(this, "Thêm khuyến mãi thất bại. Vui lòng kiểm tra dữ liệu và SQL Server.");
         }
@@ -559,20 +586,21 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
 
     public void suaKhuyenMai() {
         String maKM = txtMaKM.getText().trim();
-
         if (maKM.isEmpty() || !danhSachHienThi.stream().anyMatch(km -> km.getMaKM().equals(maKM))) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn khuyến mãi cần sửa.");
             return;
         }
-
         if (!validData()) {
             return;
         }
-
+        if (dsMaDVApDung.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn ít nhất một dịch vụ áp dụng.");
+            return;
+        }
         KhuyenMai km = layDuLieuForm();
-
-        if (km_dao.sua(km)) {
+        if (km_dao.sua(km, dsMaDVApDung)) {
             JOptionPane.showMessageDialog(this, "Cập nhật khuyến mãi thành công.");
+
             capNhatDanhSachTheoBoLoc();
             xoaTrang();
         } else {
@@ -641,6 +669,9 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
                 txtChietKhau.setText(String.valueOf(km.getChietKhau()));
                 txtSoLuong.setText(String.valueOf(km.getSoLuong()));
                 txtTrangThai.setText(km.getTrangThai());
+                dsMaDVApDung = km_dao.getMaDichVuTheoMaKM(km.getMaKM());
+                capNhatDanhSachDichVuDaChon();
+
                 return;
             }
         }
@@ -671,6 +702,22 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
 
         InQR.hienThiQR(this,km.getTenKM() + " - " + km.getMaKM(), noiDung, km.getMaKM());
     }
+    private void moDialogChonDichVu() {
+        Frame parent = JOptionPane.getFrameForComponent(this);
+        Chon_DichVuDialog dialog = new Chon_DichVuDialog(parent, dsMaDVApDung);
+        dialog.setVisible(true);
+        if (dialog.isDaXacNhan()) {
+            dsMaDVApDung = dialog.getDanhSachMaDVDaChon();
+            capNhatDanhSachDichVuDaChon();
+        }
+    }
+    private void capNhatDanhSachDichVuDaChon() {
+        if (dsMaDVApDung.isEmpty()) {
+            lblDichVuDaChon.setText("Chưa chọn dịch vụ");
+        } else {
+            lblDichVuDaChon.setText("Đã chọn " + dsMaDVApDung.size() + " dịch vụ");
+        }
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -690,6 +737,8 @@ public class KhuyenMaiPanel extends JPanel implements ActionListener, MouseListe
             locTheoTrangThai();
         } else if (o == btnInQR) {
             inQR();
+        } else if(o== btnChonDichVu){
+            moDialogChonDichVu();
         }
     }
 

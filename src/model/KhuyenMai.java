@@ -116,7 +116,7 @@ public class KhuyenMai {
     }
 
     public void setSoLuong(int soLuong) {
-        if (soLuong < 0) {
+        if (soLuong <= 0) {
             throw new IllegalArgumentException("Số lượng không được âm");
         }
         this.soLuong = soLuong;

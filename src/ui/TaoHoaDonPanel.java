@@ -852,8 +852,7 @@ public class TaoHoaDonPanel extends JPanel implements ActionListener, MouseListe
         double chietKhau = hoaDonTam.tinhTienGiamGia(tongTien);
         double thue = hoaDonTam.tinhTienVAT(tongTien);
 
-        ThanhToanTienMatDialog dialog =
-                new ThanhToanTienMatDialog(SwingUtilities.getWindowAncestor(this), tongTien, chietKhau, thue);
+        ThanhToanTienMatDialog dialog = new ThanhToanTienMatDialog(SwingUtilities.getWindowAncestor(this), tongTien, chietKhau, thue);
 
         dialog.setVisible(true);
 

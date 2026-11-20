@@ -100,74 +100,103 @@ public class KhuyenMai_DAO {
         return null;
     }
 
-    public boolean them(KhuyenMai km) {
-        String sql = "INSERT INTO KhuyenMai "
-                + "(MaKM, MaThayThe, TenKM, NgayBatDau, NgayKetThuc, "
-                + "GiaTriToiThieu, ChietKhau, SoLuong, TrangThai) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public boolean them(KhuyenMai km, List<String> dsMaDV) {
+        Connection con = null;
 
         try {
-            Connection con = ConnectDB.getInstance().getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
+            con = ConnectDB.getInstance().getConnection();
+            boolean autoCommitCu = con.getAutoCommit();
+            con.setAutoCommit(false);
 
-            ps.setString(1, km.getMaKM());
-            ps.setString(2, km.getMaThayThe());
-            ps.setString(3, km.getTenKM());
-            ps.setDate(4, Date.valueOf(km.getNgayBatDau()));
-            ps.setDate(5, Date.valueOf(km.getNgayKetThuc()));
-            ps.setDouble(6, km.getGiaTriToiThieu());
-            ps.setDouble(7, km.getChietKhau());
-            ps.setInt(8, km.getSoLuong());
-            ps.setString(9, km.getTrangThai());
+            try {
+                String sql = "INSERT INTO KhuyenMai "
+                        + "(MaKM, MaThayThe, TenKM, NgayBatDau, "
+                        + "NgayKetThuc, GiaTriToiThieu, ChietKhau, "
+                        + "SoLuong, TrangThai) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-            int ketQua = ps.executeUpdate();
-            ps.close();
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setString(1, km.getMaKM());
+                    ps.setString(2, km.getMaThayThe());
+                    ps.setString(3, km.getTenKM());
+                    ps.setDate(4, Date.valueOf(km.getNgayBatDau()));
+                    ps.setDate(5, Date.valueOf(km.getNgayKetThuc()));
+                    ps.setDouble(6, km.getGiaTriToiThieu());
+                    ps.setDouble(7, km.getChietKhau());
+                    ps.setInt(8, km.getSoLuong());
+                    ps.setString(9, km.getTrangThai());
 
-            return ketQua > 0;
+                    ps.executeUpdate();
+                }
+
+                capNhatDichVuApDung(con, km.getMaKM(), dsMaDV);
+
+                con.commit();
+                return true;
+
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(autoCommitCu);
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-
-        return false;
     }
 
-    public boolean sua(KhuyenMai km) {
-        String sql = "UPDATE KhuyenMai SET "
-                + "MaThayThe = ?, "
-                + "TenKM = ?, "
-                + "NgayBatDau = ?, "
-                + "NgayKetThuc = ?, "
-                + "GiaTriToiThieu = ?, "
-                + "ChietKhau = ?, "
-                + "SoLuong = ?, "
-                + "TrangThai = ? "
-                + "WHERE MaKM = ?";
+    public boolean sua(KhuyenMai km, List<String> dsMaDV) {
+        Connection con = null;
 
         try {
-            Connection con = ConnectDB.getInstance().getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
+            con = ConnectDB.getInstance().getConnection();
 
-            ps.setString(1, km.getMaThayThe());
-            ps.setString(2, km.getTenKM());
-            ps.setDate(3, Date.valueOf(km.getNgayBatDau()));
-            ps.setDate(4, Date.valueOf(km.getNgayKetThuc()));
-            ps.setDouble(5, km.getGiaTriToiThieu());
-            ps.setDouble(6, km.getChietKhau());
-            ps.setInt(7, km.getSoLuong());
-            ps.setString(8, km.getTrangThai());
-            ps.setString(9, km.getMaKM());
+            boolean autoCommitCu = con.getAutoCommit();
+            con.setAutoCommit(false);
 
-            int ketQua = ps.executeUpdate();
-            ps.close();
+            try {
+                String sql = "UPDATE KhuyenMai SET "
+                        + "MaThayThe = ?, TenKM = ?, "
+                        + "NgayBatDau = ?, NgayKetThuc = ?, "
+                        + "GiaTriToiThieu = ?, ChietKhau = ?, "
+                        + "SoLuong = ?, TrangThai = ? "
+                        + "WHERE MaKM = ?";
 
-            return ketQua > 0;
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setString(1, km.getMaThayThe());
+                    ps.setString(2, km.getTenKM());
+                    ps.setDate(3, Date.valueOf(km.getNgayBatDau()));
+                    ps.setDate(4, Date.valueOf(km.getNgayKetThuc()));
+                    ps.setDouble(5, km.getGiaTriToiThieu());
+                    ps.setDouble(6, km.getChietKhau());
+                    ps.setInt(7, km.getSoLuong());
+                    ps.setString(8, km.getTrangThai());
+                    ps.setString(9, km.getMaKM());
+
+                    if (ps.executeUpdate() == 0) {
+                        con.rollback();
+                        return false;
+                    }
+                }
+
+                capNhatDichVuApDung(con, km.getMaKM(), dsMaDV);
+
+                con.commit();
+                return true;
+
+            } catch (SQLException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(autoCommitCu);
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-
-        return false;
     }
 
     public boolean xoa(String maKM) {
@@ -378,4 +407,74 @@ public class KhuyenMai_DAO {
 
         return null;
     }
+
+    public List<String> getMaDichVuTheoMaKM(String maKM) {
+
+        List<String> dsMaDV = new ArrayList<>();
+
+        String sql = """
+        SELECT MaDV
+        FROM ChiTietKhuyenMai
+        WHERE MaKM = ?
+        """;
+
+        try (Connection con =
+                     ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, maKM);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                dsMaDV.add(rs.getString("MaDV"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return dsMaDV;
+    }
+
+    public void capNhatDichVuApDung(
+            Connection con,
+            String maKM,
+            List<String> dsMaDV) throws SQLException {
+
+        // Xóa các dịch vụ cũ của khuyến mãi
+        String sqlXoa = """
+        DELETE FROM ChiTietKhuyenMai
+        WHERE MaKM = ?
+        """;
+
+        try (PreparedStatement ps =
+                     con.prepareStatement(sqlXoa)) {
+
+            ps.setString(1, maKM);
+            ps.executeUpdate();
+        }
+
+        // Thêm lại các dịch vụ được chọn
+        String sqlThem = """
+        INSERT INTO ChiTietKhuyenMai (MaKM, MaDV)
+        VALUES (?, ?)
+        """;
+
+        try (PreparedStatement ps =
+                     con.prepareStatement(sqlThem)) {
+
+            for (String maDV : dsMaDV) {
+
+                ps.setString(1, maKM);
+                ps.setString(2, maDV);
+
+                ps.addBatch();
+            }
+
+            ps.executeBatch();
+        }
+    }
+
+
 }

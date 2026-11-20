@@ -35,9 +35,7 @@ public class QRThanhToanController {
 
     public void setThongTin(double tongTien, String maHD) {
         lblMaHD.setText("Mã hóa đơn: " + maHD);
-        lblSoTien.setText(
-                String.format("Số tiền: %,.0f VNĐ", tongTien)
-        );
+        lblSoTien.setText(String.format("Số tiền: %,.0f VNĐ", tongTien));
 
         lblTrangThai.setText("Đang tải mã QR...");
 

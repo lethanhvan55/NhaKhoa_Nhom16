@@ -47,43 +47,24 @@ public class ThanhToanTienMatDialog extends JDialog {
         super(owner, "Thanh toán tiền mặt",
                 Dialog.ModalityType.APPLICATION_MODAL);
 
-        this.canThanhToan = Math.round(
-                Math.max(0, tongTien - chietKhau) + thue
-        );
+        this.canThanhToan = Math.round(Math.max(0, tongTien - chietKhau) + thue);
 
         setLayout(new BorderLayout(10, 10));
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-        JLabel lblTieuDe = new JLabel(
-                "THANH TOÁN TIỀN MẶT",
-                SwingConstants.CENTER
-        );
+        JLabel lblTieuDe = new JLabel("THANH TOÁN TIỀN MẶT", SwingConstants.CENTER);
         lblTieuDe.setFont(new Font("Arial", Font.BOLD, 17));
         lblTieuDe.setForeground(MAU_NAVY);
-        lblTieuDe.setBorder(
-                BorderFactory.createEmptyBorder(15, 10, 5, 10)
-        );
+        lblTieuDe.setBorder(BorderFactory.createEmptyBorder(15, 10, 5, 10));
 
-        JPanel pnlThongTin = new JPanel(
-                new GridLayout(0, 2, 10, 10)
-        );
+        JPanel pnlThongTin = new JPanel(new GridLayout(0, 2, 10, 10));
         pnlThongTin.setBackground(MAU_TRANG);
-        pnlThongTin.setBorder(
-                BorderFactory.createEmptyBorder(10, 15, 10, 15)
-        );
+        pnlThongTin.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
-        txtTongTien = taoOThongTin(
-                dinhDangTien(Math.round(tongTien))
-        );
-        txtChietKhau = taoOThongTin(
-                dinhDangTien(Math.round(chietKhau))
-        );
-        txtThue = taoOThongTin(
-                dinhDangTien(Math.round(thue))
-        );
-        txtCanThanhToan = taoOThongTin(
-                dinhDangTien(canThanhToan)
-        );
+        txtTongTien = taoOThongTin(dinhDangTien(Math.round(tongTien)));
+        txtChietKhau = taoOThongTin(dinhDangTien(Math.round(chietKhau)));
+        txtThue = taoOThongTin(dinhDangTien(Math.round(thue)));
+        txtCanThanhToan = taoOThongTin(dinhDangTien(canThanhToan));
         txtTienKhachDua = taoONhapTien();
         txtTienThua = taoOThongTin("0 VNĐ");
 

@@ -860,7 +860,7 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
 
         int xacNhan = JOptionPane.showConfirmDialog(
                 this,
-                "Bạn có chắc chắn muốn ẩn nhân viên " + maNV + " khỏi bảng không?",
+                "Bạn có chắc chắn muốn xóa nhân viên " + maNV + " khỏi bảng không?",
                 "Xác nhận",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
@@ -878,11 +878,11 @@ public class NhanVienPanel extends JPanel implements ActionListener, MouseListen
         // Xóa thông tin trên form
         clearForm();
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Đã xóa nhân viên khỏi bảng!",
-                "Thông báo",
-                JOptionPane.INFORMATION_MESSAGE);
+//        JOptionPane.showMessageDialog(
+//                this,
+//                "Đã xóa nhân viên khỏi bảng!",
+//                "Thông báo",
+//                JOptionPane.INFORMATION_MESSAGE);
     }
     private NhanVien layNhanVienTuForm() {
         LocalDate ngayVaoLam = txtNgayVaoLam.getDate().toInstant()

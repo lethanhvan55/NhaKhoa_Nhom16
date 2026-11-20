@@ -54,11 +54,9 @@ public class HoaDonInController {
 
     private final ChiTietHoaDon_DAO chiTietDAO = new ChiTietHoaDon_DAO();
 
-    private final NumberFormat tienVietNam =
-            NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+    private final NumberFormat tienVietNam = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-    private final DateTimeFormatter dinhDangNgay =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private final DateTimeFormatter dinhDangNgay = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     @FXML
     public void initialize() {

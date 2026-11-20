@@ -302,9 +302,6 @@ GO
 -- 16 Chi tiết VatTu_DichVu
 --=======================================================
 
-USE QL_NK;
-GO
-
 CREATE TABLE ChiTietVatTu_DichVu (
                                      MaVT CHAR(6) NOT NULL,
                                      MaDV CHAR(6) NOT NULL,
@@ -315,7 +312,24 @@ CREATE TABLE ChiTietVatTu_DichVu (
                                      CONSTRAINT CK_ChiTietVatTu_DichVu_SoLuong CHECK (SoLuongSuDung > 0)
 );
 GO
+--=======================================================
+-- 17 Chi tiết KhuyenMai_DichVu
+--=======================================================
 
+CREATE TABLE ChiTietKhuyenMai (
+                                  MaKM CHAR(6) NOT NULL,
+                                  MaDV CHAR(6) NOT NULL,
+
+                                  CONSTRAINT PK_ChiTietKhuyenMai
+                                      PRIMARY KEY (MaKM, MaDV),
+
+                                  CONSTRAINT FK_CTKM_KhuyenMai
+                                      FOREIGN KEY (MaKM) REFERENCES KhuyenMai(MaKM),
+
+                                  CONSTRAINT FK_CTKM_DichVu
+                                      FOREIGN KEY (MaDV) REFERENCES DichVu(MaDV)
+);
+GO
 -- ================= TRIGGER =================
 CREATE TRIGGER TRG_AUTO_NV
     ON NhanVien
