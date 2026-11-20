@@ -166,6 +166,9 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         tblHoSo.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tblHoSo.setRowHeight(28);
         tblHoSo.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        // Cố định độ rộng tương đối giữa các cột
+        tblHoSo.getColumnModel().getColumn(2).setPreferredWidth(180); // Tên nhân viên
+        tblHoSo.getColumnModel().getColumn(3).setPreferredWidth(70);  // Mã KH
         tblHoSo.setFillsViewportHeight(true);
 
         GiaoDienStyle.dinhDangBang(tblHoSo);
@@ -467,7 +470,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
 
                     hs.getMaBenhNhan() == null ? "" : hs.getMaBenhNhan().getMaBenhNhan(),
 
-                    hs.getMaNV() == null ? "" : hs.getMaNV().getMaNV(),
+                    hs.getMaNV() == null ? "" : hs.getMaNV().getHoTen(),
 
                     hs.getMaKeHoach() == null ? "" : hs.getMaKeHoach().getMaKeHoach(),
 

@@ -22,10 +22,16 @@ public class HoSoBenhNhan_DAO {
     public List<HoSoBenhNhan> getAllHoSoBenhNhan() {
         List<HoSoBenhNhan> list = new ArrayList<>();
 
-        String sql = "SELECT MaHoSo, MaBenhNhan, MaNV, MaKeHoach, NgayKham, "
-                + "TinhTrangRangMieng, ChanDoan, PhuongPhapDieuTri, "
-                + "TienSuBenh, DiUng, BenhLyNen, NguoiLienHe, SoDTNLH, GhiChu "
-                + "FROM HoSoBenhNhan ORDER BY MaHoSo";
+        String sql = "SELECT hs.MaHoSo, hs.MaBenhNhan, "
+                + "hs.MaNV, nv.HoTen AS TenNhanVien, "
+                + "hs.MaKeHoach, hs.NgayKham, "
+                + "hs.TinhTrangRangMieng, hs.ChanDoan, "
+                + "hs.PhuongPhapDieuTri, hs.TienSuBenh, "
+                + "hs.DiUng, hs.BenhLyNen, hs.NguoiLienHe, "
+                + "hs.SoDTNLH, hs.GhiChu "
+                + "FROM HoSoBenhNhan hs "
+                + "JOIN NhanVien nv ON hs.MaNV = nv.MaNV "
+                + "ORDER BY hs.MaHoSo";
 
         Connection con = ConnectDB.getConnection();
 
@@ -51,24 +57,30 @@ public class HoSoBenhNhan_DAO {
     public List<HoSoBenhNhan> timKiemHoSoBenhNhan(String keyword) {
         List<HoSoBenhNhan> list = new ArrayList<>();
 
-        String sql = "SELECT MaHoSo, MaBenhNhan, MaNV, MaKeHoach, NgayKham, "
-                + "TinhTrangRangMieng, ChanDoan, PhuongPhapDieuTri, "
-                + "TienSuBenh, DiUng, BenhLyNen, NguoiLienHe, SoDTNLH, GhiChu "
-                + "FROM HoSoBenhNhan "
-                + "WHERE MaHoSo LIKE ? "
-                + "OR MaBenhNhan LIKE ? "
-                + "OR MaNV LIKE ? "
-                + "OR MaKeHoach LIKE ? "
-                + "OR TinhTrangRangMieng LIKE ? "
-                + "OR ChanDoan LIKE ? "
-                + "OR PhuongPhapDieuTri LIKE ? "
-                + "OR TienSuBenh LIKE ? "
-                + "OR DiUng LIKE ? "
-                + "OR BenhLyNen LIKE ? "
-                + "OR NguoiLienHe LIKE ? "
-                + "OR SoDTNLH LIKE ? "
-                + "OR GhiChu LIKE ? "
-                + "ORDER BY MaHoSo";
+        String sql = "SELECT hs.MaHoSo, hs.MaBenhNhan, "
+                + "hs.MaNV, nv.HoTen AS TenNhanVien, "
+                + "hs.MaKeHoach, hs.NgayKham, "
+                + "hs.TinhTrangRangMieng, hs.ChanDoan, "
+                + "hs.PhuongPhapDieuTri, hs.TienSuBenh, "
+                + "hs.DiUng, hs.BenhLyNen, hs.NguoiLienHe, "
+                + "hs.SoDTNLH, hs.GhiChu "
+                + "FROM HoSoBenhNhan hs "
+                + "JOIN NhanVien nv ON hs.MaNV = nv.MaNV "
+                + "WHERE hs.MaHoSo LIKE ? "
+                + "OR hs.MaBenhNhan LIKE ? "
+                + "OR hs.MaNV LIKE ? "
+                + "OR nv.HoTen LIKE ? "
+                + "OR hs.MaKeHoach LIKE ? "
+                + "OR hs.TinhTrangRangMieng LIKE ? "
+                + "OR hs.ChanDoan LIKE ? "
+                + "OR hs.PhuongPhapDieuTri LIKE ? "
+                + "OR hs.TienSuBenh LIKE ? "
+                + "OR hs.DiUng LIKE ? "
+                + "OR hs.BenhLyNen LIKE ? "
+                + "OR hs.NguoiLienHe LIKE ? "
+                + "OR hs.SoDTNLH LIKE ? "
+                + "OR hs.GhiChu LIKE ? "
+                + "ORDER BY hs.MaHoSo";
 
         Connection con = ConnectDB.getConnection();
 
@@ -79,7 +91,7 @@ public class HoSoBenhNhan_DAO {
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             String kw = "%" + (keyword == null ? "" : keyword.trim()) + "%";
 
-            for (int i = 1; i <= 13; i++) {
+            for (int i = 1; i <= 14; i++) {
                 ps.setString(i, kw);
             }
 
@@ -313,12 +325,17 @@ public class HoSoBenhNhan_DAO {
     public List<HoSoBenhNhan> getHoSoTheoMaBenhNhan(String maBenhNhan) {
         List<HoSoBenhNhan> list = new ArrayList<>();
 
-        String sql = "SELECT MaHoSo, MaBenhNhan, MaNV, MaKeHoach, NgayKham, "
-                + "TinhTrangRangMieng, ChanDoan, PhuongPhapDieuTri, "
-                + "TienSuBenh, DiUng, BenhLyNen, NguoiLienHe, SoDTNLH, GhiChu "
-                + "FROM HoSoBenhNhan "
-                + "WHERE MaBenhNhan = ? "
-                + "ORDER BY NgayKham DESC";
+        String sql = "SELECT hs.MaHoSo, hs.MaBenhNhan, "
+                + "hs.MaNV, nv.HoTen AS TenNhanVien, "
+                + "hs.MaKeHoach, hs.NgayKham, "
+                + "hs.TinhTrangRangMieng, hs.ChanDoan, "
+                + "hs.PhuongPhapDieuTri, hs.TienSuBenh, "
+                + "hs.DiUng, hs.BenhLyNen, hs.NguoiLienHe, "
+                + "hs.SoDTNLH, hs.GhiChu "
+                + "FROM HoSoBenhNhan hs "
+                + "JOIN NhanVien nv ON hs.MaNV = nv.MaNV "
+                + "WHERE hs.MaBenhNhan = ? "
+                + "ORDER BY hs.NgayKham DESC";
 
         Connection con = ConnectDB.getInstance().getConnection();
 
@@ -391,8 +408,11 @@ public class HoSoBenhNhan_DAO {
         benhNhan.setMaBenhNhan(rs.getString("MaBenhNhan"));
 
         // Tạo đối tượng nhân viên từ mã trong database
+        // Lấy thông tin nhân viên giống HoaDonDao
         NhanVien nhanVien = new NhanVien();
-        nhanVien.setMaNV(rs.getString("MaNV"));
+
+        nhanVien.setMaNV(rs.getString("MaNV").trim());
+        nhanVien.setHoTen(rs.getString("TenNhanVien"));
 
         // Mã kế hoạch có thể NULL
         String maKH = rs.getString("MaKeHoach");
