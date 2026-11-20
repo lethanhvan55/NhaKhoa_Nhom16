@@ -3,6 +3,7 @@ package ui;
 import dao.BenhNhan_DAO;
 import dao.HoSoBenhNhan_DAO;
 import dao.KeHoachDieuTri_DAO;
+import dao.NhanVien_DAO;
 import model.HoSoBenhNhan;
 import model.BenhNhan;
 import model.NhanVien;
@@ -10,10 +11,7 @@ import model.KeHoachDieuTri;
 import utils.GiaoDienStyle;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -22,6 +20,7 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.JTextComponent;
 
 import com.toedter.calendar.JDateChooser;
 
@@ -53,7 +52,8 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
     private JTextField txtSoDTNLH;
     private JTextArea txtGhiChu;
 
-    private JButton btnThem;
+    private JButton btnChonBN;
+    private JButton btnThemBenhNhan;
     private JButton btnLuu;
     private JButton btnXoa;
     private JButton btnHuy;
@@ -64,15 +64,27 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
     private final HoSoBenhNhan_DAO hoSoDAO = new HoSoBenhNhan_DAO();
     private final BenhNhan_DAO benhNhanDAO = new BenhNhan_DAO();
     private final KeHoachDieuTri_DAO keHoachDAO = new KeHoachDieuTri_DAO();
+    private final NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
 
+    private String tenNVHienTai = "";
     private String maHoSoDangChon = "";
     private String maBenhNhanDangChon = "";
     private String maNhanVienDangChon = "";
     private String maKeHoachDangChon = "";
     private String maBenhNhanTuCheckIn = "";
 
+    private boolean dangThemMoi = false;
+    private boolean daHienCanhBao = false;
+
     public HoSoBenhNhanPanel(String maNVHienTai) {
         this.maNVHienTai = maNVHienTai;
+
+        NhanVien nv = nhanVienDAO.getNhanVienTheoMa(maNVHienTai);
+
+        if (nv != null) {
+            tenNVHienTai = nv.getHoTen();
+        }
+
         khoiTaoPanel();
     }
 
@@ -128,7 +140,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         String[] columns = {
                 "Mã hồ sơ",
                 "Mã BN",
-                "Mã NV",
+                "Tên Nhân Viên",
                 "Mã KH",
                 "Ngày khám",
                 "Tình trạng răng miệng",
@@ -145,6 +157,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         modelTable = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
+
                 return false;
             }
         };
@@ -194,37 +207,13 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
 
         String gioiTinh = bn.isGioiTinh() ? "Nam" : "Nữ";
 
-        String thongTinBN =
-                "THÔNG TIN BỆNH NHÂN\n"
-                        + "Mã bệnh nhân: " + bn.getMaBenhNhan() + "\n"
-                        + "Họ tên: " + bn.getHoTen() + "\n"
-                        + "Ngày sinh: " + bn.getNgaySinh() + "\n"
-                        + "Giới tính: " + gioiTinh + "\n"
-                        + "Số điện thoại: " + bn.getSoDT() + "\n"
-                        + "Email: " + bn.getEmail() + "\n"
-                        + "Địa chỉ: " + bn.getDiaChi();
+        String thongTinBN = "THÔNG TIN BỆNH NHÂN\n" + "Mã bệnh nhân: " + bn.getMaBenhNhan() + "\n" + "Họ tên: " + bn.getHoTen() + "\n" + "Ngày sinh: " + bn.getNgaySinh() + "\n" + "Giới tính: " + gioiTinh + "\n" + "Số điện thoại: " + bn.getSoDT() + "\n" + "Email: " + bn.getEmail() + "\n" + "Địa chỉ: " + bn.getDiaChi();
 
+        String thongTinHS = "\n\nTHÔNG TIN HỒ SƠ KHÁM BỆNH\n" + "Mã hồ sơ: " + layGiaTriBang(modelRow, 0) + "\n" + "Ngày khám: " + layGiaTriBang(modelRow, 4) + "\n" + "Tình trạng răng miệng: " + layGiaTriBang(modelRow, 5) + "\n" + "Chẩn đoán: " + layGiaTriBang(modelRow, 6) + "\n" + "Phương pháp điều trị: " + layGiaTriBang(modelRow, 7) + "\n" + "Tiền sử bệnh: " + layGiaTriBang(modelRow, 8) + "\n" + "Dị ứng: " + layGiaTriBang(modelRow, 9) + "\n" + "Bệnh lý nền: " + layGiaTriBang(modelRow, 10) + "\n" + "Ghi chú: " + layGiaTriBang(modelRow, 13);
 
-        String thongTinHS =
-                "\n\nTHÔNG TIN HỒ SƠ KHÁM BỆNH\n"
-                        + "Mã hồ sơ: " + layGiaTriBang(modelRow, 0) + "\n"
-                        + "Ngày khám: " + layGiaTriBang(modelRow, 4) + "\n"
-                        + "Tình trạng răng miệng: " + layGiaTriBang(modelRow, 5) + "\n"
-                        + "Chẩn đoán: " + layGiaTriBang(modelRow, 6) + "\n"
-                        + "Phương pháp điều trị: " + layGiaTriBang(modelRow, 7) + "\n"
-                        + "Tiền sử bệnh: " + layGiaTriBang(modelRow, 8) + "\n"
-                        + "Dị ứng: " + layGiaTriBang(modelRow, 9) + "\n"
-                        + "Bệnh lý nền: " + layGiaTriBang(modelRow, 10) + "\n"
-                        + "Ghi chú: " + layGiaTriBang(modelRow, 13);
+        String thongTinKH = "\n\nTHÔNG TIN KẾ HOẠCH ĐIỀU TRỊ\n" + "Mã kế hoạch: " + maKH + "\n" + "Chẩn đoán: " + layGiaTriBang(modelRow, 6);
 
-        String thongTinKH =
-                "\n\nTHÔNG TIN KẾ HOẠCH ĐIỀU TRỊ\n"
-                        + "Mã kế hoạch: " + maKH + "\n"
-                        + "Chẩn đoán: " + layGiaTriBang(modelRow, 6);
-
-        JTextArea txtChiTiet = new JTextArea(
-                thongTinBN + thongTinHS + thongTinKH
-        );
+        JTextArea txtChiTiet = new JTextArea(thongTinBN + thongTinHS + thongTinKH);
 
         txtChiTiet.setEditable(false);
         txtChiTiet.setLineWrap(true);
@@ -235,25 +224,26 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         JScrollPane scroll = new JScrollPane(txtChiTiet);
         scroll.setPreferredSize(new Dimension(550, 450));
 
-        JOptionPane.showMessageDialog(
-                this,
-                scroll,
-                "Chi tiết bệnh nhân và kế hoạch điều trị",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-    }
+        JOptionPane.showMessageDialog(this, scroll, "Chi tiết bệnh nhân và kế hoạch điều trị",JOptionPane.INFORMATION_MESSAGE);}
     public void nhanMaBenhNhanTuCheckIn(String maBN) {
         if (maBN == null || maBN.trim().isEmpty()) {
             return;
         }
-
         maBenhNhanTuCheckIn = maBN.trim();
 
         xoaForm();
         datTrangThaiBanDau();
 
         txtMaBenhNhan.setText(maBenhNhanTuCheckIn);
-    }    private JPanel taoPanelChiTiet() {
+
+        khoaForm(false);
+
+        btnChonBN.setEnabled(false);
+        btnThemBenhNhan.setEnabled(true);
+        btnLuu.setEnabled(false);
+        btnXoa.setEnabled(false);
+    }
+    private JPanel taoPanelChiTiet() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         panel.setBackground(WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -269,11 +259,11 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
 
         txtMaBenhNhan = new JTextField();
         txtMaKeHoach = new JTextField();
-        //txtMaBenhNhan.setEditable(true);
+        txtMaBenhNhan.setEditable(false);
         txtMaKeHoach.setEditable(false);
 
-        txtMaBenhNhan.setToolTipText("Nhập mã bệnh nhân đã tồn tại");
-        txtMaKeHoach.setToolTipText("Nhập mã kế hoạch điều trị đã tồn tại");
+//        txtMaBenhNhan.setToolTipText("Nhập mã bệnh nhân đã tồn tại");
+//        txtMaKeHoach.setToolTipText("Nhập mã kế hoạch điều trị đã tồn tại");
 
         dcNgayKham = new JDateChooser();
         dcNgayKham.setDateFormatString("dd/MM/yyyy");
@@ -289,13 +279,24 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         txtSoDTNLH = new JTextField();
         txtGhiChu = taoTextArea(2);
 
+        // Kiểm tra đã chọn bệnh nhân trước khi nhập
+        kiemTraTruocKhiNhap(txtTinhTrangRangMieng);
+        kiemTraTruocKhiNhap(txtChanDoan);
+        kiemTraTruocKhiNhap(txtPhuongPhapDieuTri);
+        kiemTraTruocKhiNhap(txtTienSuBenh);
+        kiemTraTruocKhiNhap(txtDiUng);
+        kiemTraTruocKhiNhap(txtBenhLyNen);
+        kiemTraTruocKhiNhap(txtNguoiLienHe);
+        kiemTraTruocKhiNhap(txtSoDTNLH);
+        kiemTraTruocKhiNhap(txtGhiChu);
+
         JPanel pnlForm = new JPanel(new GridLayout(1, 2, 15, 0));
         pnlForm.setBackground(WHITE);
 
         JPanel pnlTrai = new JPanel(new GridBagLayout());
         pnlTrai.setBackground(WHITE);
 
-        //themTruong(pnlTrai, 0, "Mã bệnh nhân:", txtMaBenhNhan);
+        themTruong(pnlTrai, 0, "Mã bệnh nhân:", txtMaBenhNhan);
         themTruong(pnlTrai, 1, "Ngày khám:", dcNgayKham);
         themTruong(pnlTrai, 2, "Tình trạng răng miệng:", taoScroll(txtTinhTrangRangMieng));
         themTruong(pnlTrai, 3, "Phương pháp điều trị:", taoScroll(txtPhuongPhapDieuTri));
@@ -320,14 +321,15 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         JPanel pnlNut = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 10, 5));
         pnlNut.setBackground(WHITE);
 
-        btnThem = GiaoDienStyle.taoNut("Thêm mới", BLUE, 13);
+        btnChonBN = GiaoDienStyle.taoNut("Chọn bệnh nhân", BLUE, 13);
+        btnThemBenhNhan = GiaoDienStyle.taoNut("Thêm bệnh nhân", GREEN, 13);
         btnLuu = GiaoDienStyle.taoNut("Lưu", GREEN, 13);
         btnXoa = GiaoDienStyle.taoNut("Xóa", RED, 13);
         btnHuy = GiaoDienStyle.taoNut("Làm mới", MUTED, 13);
         btnXemChiTiet = GiaoDienStyle.taoNut("Xem chi tiết", BLUE, 13);
 
         JButton[] dsNut = {
-                btnThem, btnLuu, btnXoa, btnHuy, btnXemChiTiet
+                btnChonBN,btnThemBenhNhan, btnLuu, btnXoa, btnHuy, btnXemChiTiet
         };
 
         for (JButton nut : dsNut) {
@@ -336,8 +338,15 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
             nut.setHorizontalAlignment(SwingConstants.CENTER);
             nut.setIcon(null);
         }
+        btnChonBN.setPreferredSize(new Dimension(130, 36));
+        btnThemBenhNhan.setPreferredSize(new Dimension(145, 36));
+        btnLuu.setPreferredSize(new Dimension(100, 36));
+        btnXoa.setPreferredSize(new Dimension(100, 36));
+        btnHuy.setPreferredSize(new Dimension(115, 36));
+        btnXemChiTiet.setPreferredSize(new Dimension(125, 36));
 
-        pnlNut.add(btnThem);
+        pnlNut.add(btnChonBN);
+        pnlNut.add(btnThemBenhNhan);
         pnlNut.add(btnLuu);
         pnlNut.add(btnXoa);
         pnlNut.add(btnHuy);
@@ -354,6 +363,28 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         textArea.setWrapStyleWord(true);
         textArea.setFont(new Font("Arial", Font.PLAIN, 13));
         return textArea;
+    }
+    private void kiemTraTruocKhiNhap(JTextComponent txt) {
+        txt.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if ((maBenhNhanTuCheckIn == null
+                        || maBenhNhanTuCheckIn.trim().isEmpty())
+                        && !daHienCanhBao) {
+
+                    daHienCanhBao = true;
+
+                    JOptionPane.showMessageDialog(
+                            HoSoBenhNhanPanel.this,
+                            "Vui lòng chọn bệnh nhân!",
+                            "Thông báo",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+
+                    btnChonBN.requestFocusInWindow();
+                }
+            }
+        });
     }
 
     private JScrollPane taoScroll(JTextArea textArea) {
@@ -384,7 +415,8 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
     }
 
     private void dangKySuKien() {
-        btnThem.addActionListener(this);
+        btnChonBN.addActionListener(this);
+        btnThemBenhNhan.addActionListener(this);
         btnXemChiTiet.addActionListener(this);
         btnLuu.addActionListener(this);
         btnXoa.addActionListener(this);
@@ -396,17 +428,22 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
-        if (source == btnThem) {
+        if (source == btnChonBN) {
+            batDauThemMoi();
+        }
+        else if (source == btnThemBenhNhan) {
             themHoSo();
+        }
+        else if (source == btnLuu) {
+            suaHoSo();
         }
         else if (source == btnXemChiTiet) {
             xemChiTiet();
         }
-        else if (source == btnLuu) {
-            suaHoSo();
-        } else if (source == btnXoa) {
+        else if (source == btnXoa) {
             xoaHoSo();
-        } else if (source == btnHuy) {
+        }
+        else if (source == btnHuy) {
             xoaForm();
             tblHoSo.clearSelection();
             datTrangThaiBanDau();
@@ -483,9 +520,12 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
 
         hienThiChiTiet(modelRow);
 
-        btnThem.setEnabled(false);
+        btnChonBN.setEnabled(false);
+        btnThemBenhNhan.setEnabled(false);
         btnLuu.setEnabled(true);
         btnXoa.setEnabled(true);
+
+        khoaForm(false);
     }
 
     @Override
@@ -509,10 +549,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
             if (!ngayKham.isEmpty()) {
                 LocalDate localDate = LocalDate.parse(ngayKham);
 
-                Date date = Date.from(
-                        localDate.atStartOfDay(ZoneId.systemDefault())
-                                .toInstant()
-                );
+                Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
                 dcNgayKham.setDate(date);
             } else {
@@ -538,7 +575,39 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         return value == null ? "" : value.toString();
     }
 
+    private void batDauThemMoi() {
+        xoaForm();
+        JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
+        Chon_ThemBNDialog dialog = new Chon_ThemBNDialog(parent);
+        dialog.setVisible(true);
+        String maBN = dialog.getMaBenhNhanChon();
+        if (maBN == null || maBN.trim().isEmpty()) {
+            datTrangThaiBanDau();
+            return;
+        }
 
+        BenhNhan bn = benhNhanDAO.getBenhNhanTheoMa(maBN);
+
+        if (bn == null) {
+            hienThiCanhBao("Không tìm thấy thông tin bệnh nhân!");
+            datTrangThaiBanDau();
+            return;
+        }
+
+        // Lưu mã bệnh nhân được chọn
+        maBenhNhanTuCheckIn = maBN;
+
+        daHienCanhBao = false;
+
+        txtMaBenhNhan.setText(maBN);
+
+        khoaForm(false);
+
+        btnThemBenhNhan.setEnabled(true);
+        btnLuu.setEnabled(false);
+        btnXoa.setEnabled(false);
+        btnChonBN.setEnabled(false);
+    }
     private void themHoSo() {
         if (!kiemTraDuLieu()) {
             return;
@@ -552,15 +621,6 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         try {
 
             String maBN = maBenhNhanTuCheckIn;
-
-            if (maBN == null || maBN.trim().isEmpty()) {
-                JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
-
-                Chon_ThemBNDialog dialog = new Chon_ThemBNDialog(parent);
-                dialog.setVisible(true);
-
-                maBN = dialog.getMaBenhNhanChon();
-            }
 
             if (maBN == null || maBN.trim().isEmpty()) {
                 return;
@@ -628,7 +688,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
                 txtMaBenhNhan.setText(maBN);
                 JOptionPane.showMessageDialog(
                         this,
-                        "Thêm bệnh nhân và hồ sơ thành công!"
+                        "Thêm hồ sơ thành công!"
                                 + "\nMã bệnh nhân: " + maBN
                                 + "\nMã hồ sơ: " + hs.getMaHoSo(),
                         "Thông báo",
@@ -638,6 +698,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
                 taiDanhSachHoSo();
                 maBenhNhanTuCheckIn = "";
                 xoaForm();
+                tblHoSo.clearSelection();
                 datTrangThaiBanDau();
 
             } else {
@@ -869,7 +930,6 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         }
     }
 
-
     private void xoaForm() {
         txtMaBenhNhan.setText("");
         txtMaKeHoach.setText("");
@@ -890,16 +950,44 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         maBenhNhanDangChon = "";
         maNhanVienDangChon = "";
         maKeHoachDangChon = "";
-    }
+        maBenhNhanTuCheckIn = "";
 
+        daHienCanhBao = false;
+    }
+    private void khoaForm(boolean khoa) {
+        dcNgayKham.setEnabled(!khoa);
+
+        txtTinhTrangRangMieng.setEditable(!khoa);
+        txtChanDoan.setEditable(!khoa);
+        txtPhuongPhapDieuTri.setEditable(!khoa);
+        txtTienSuBenh.setEditable(!khoa);
+        txtDiUng.setEditable(!khoa);
+        txtBenhLyNen.setEditable(!khoa);
+        txtNguoiLienHe.setEditable(!khoa);
+        txtSoDTNLH.setEditable(!khoa);
+        txtGhiChu.setEditable(!khoa);
+    }
     private void datTrangThaiBanDau() {
-        btnThem.setEnabled(true);
+
+        btnChonBN.setEnabled(true);
+
+        // Chưa chọn bệnh nhân thì chưa được thêm
+        btnThemBenhNhan.setEnabled(false);
+
+        // Chỉ bật Lưu khi chọn hồ sơ cần sửa
         btnLuu.setEnabled(false);
+
         btnXoa.setEnabled(false);
+
+        khoaForm(true);
 
         maHoSoDangChon = "";
         maBenhNhanDangChon = "";
         maNhanVienDangChon = "";
         maKeHoachDangChon = "";
+
+        dangThemMoi = false;
     }
+
+
 }
