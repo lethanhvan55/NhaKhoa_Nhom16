@@ -150,7 +150,78 @@ public class LichHenDAO {
             return ps.executeUpdate() > 0;
         }
     }
+    public List<Map<String, Object>> getDanhSachLichHenTheoNgay(
+            LocalDate ngayHen, String tuKhoa) throws SQLException {
 
+        List<Map<String, Object>> danhSach = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder("""
+        SELECT
+            lh.MaLichHen,
+            lh.MaBenhNhan,
+            bn.HoTen AS TenBenhNhan,
+            lh.NgayHen,
+            lh.GioHen,
+            nv.HoTen AS TenBacSi,
+            lh.TrangThai
+        FROM LichHen lh
+        LEFT JOIN BenhNhan bn ON lh.MaBenhNhan = bn.MaBenhNhan
+        LEFT JOIN NhanVien nv ON lh.MaNV = nv.MaNV
+        WHERE lh.NgayHen = ?
+        """);
+
+        if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
+            sql.append("""
+            AND (
+                lh.MaLichHen LIKE ?
+                OR lh.MaBenhNhan LIKE ?
+                OR bn.HoTen LIKE ?
+            )
+            """);
+        }
+
+        sql.append(" ORDER BY lh.GioHen ASC");
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+            int index = 1;
+            ps.setDate(index++, Date.valueOf(ngayHen));
+
+            if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
+                String keyword = "%" + tuKhoa.trim() + "%";
+
+                ps.setString(index++, keyword);
+                ps.setString(index++, keyword);
+                ps.setString(index++, keyword);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+
+                    row.put("MaLichHen", rs.getString("MaLichHen"));
+                    row.put("MaBenhNhan", rs.getString("MaBenhNhan"));
+                    row.put("TenBenhNhan", rs.getString("TenBenhNhan"));
+
+                    Date ngay = rs.getDate("NgayHen");
+                    row.put("NgayHen",
+                            ngay != null ? ngay.toLocalDate() : null);
+
+                    Timestamp gio = rs.getTimestamp("GioHen");
+                    row.put("GioHen",
+                            gio != null ? gio.toLocalDateTime() : null);
+
+                    row.put("TenBacSi", rs.getString("TenBacSi"));
+                    row.put("TrangThai", rs.getString("TrangThai"));
+
+                    danhSach.add(row);
+                }
+            }
+        }
+
+        return danhSach;
+    }
     public List<Map<String, String>> getDanhSachTatCaBenhNhan() throws SQLException {
         List<Map<String, String>> ds = new ArrayList<>();
         String sql = "SELECT MaBenhNhan, HoTen, NgaySinh, GioiTinh, SoDT, DiaChi FROM BenhNhan";

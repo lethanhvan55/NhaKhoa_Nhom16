@@ -580,10 +580,17 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
 
     private void batDauThemMoi() {
         xoaForm();
+
         JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
-        Chon_ThemBNDialog dialog = new Chon_ThemBNDialog(parent);
+
+        // Mở dialog chọn bệnh nhân theo lịch hẹn
+        LocalDate ngayHen = LocalDate.now();
+
+        ChonBenhNhanCoLichHen_Dialog dialog = new ChonBenhNhanCoLichHen_Dialog(parent, ngayHen);
         dialog.setVisible(true);
+
         String maBN = dialog.getMaBenhNhanChon();
+
         if (maBN == null || maBN.trim().isEmpty()) {
             datTrangThaiBanDau();
             return;
@@ -597,9 +604,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
             return;
         }
 
-        // Lưu mã bệnh nhân được chọn
         maBenhNhanTuCheckIn = maBN;
-
         daHienCanhBao = false;
 
         txtMaBenhNhan.setText(maBN);
