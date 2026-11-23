@@ -30,6 +30,7 @@ public class MainFrame extends JFrame {
     private HoSoBenhNhanPanel pnlHoSoBenhNhan;
     private TaoHoaDonPanel pnlTaoHoaDon;
     private HomePanel pnlTrangChu;
+    private PhanCongNhanVienPanel pnlPhanCongNhanVien;
 
     private String maNVHienTai;
 
@@ -83,13 +84,15 @@ public class MainFrame extends JFrame {
         pnlCheckIn = new CheckInPanel(this);
         pnlNoiDung.add(pnlCheckIn, "Check In");
 
+        pnlPhanCongNhanVien = new PhanCongNhanVienPanel();
+        pnlNoiDung.add(pnlPhanCongNhanVien, "Phân công nhân viên");
+
         pnlNoiDung.add(new KeHoachDieuTriPanel(), "Kế hoạch điều trị");
         pnlNoiDung.add(new DichVuPanel(), "Dịch vụ");
         pnlNoiDung.add(new PhongDieuTriPanel(), "Phòng điều trị");
         pnlNoiDung.add(new VatTuPanel(), "Vật tư");
         pnlNoiDung.add(new NhanVienPanel(), "Nhân viên");
         pnlNoiDung.add(new TaiKhoanPanel(), "Tài khoản");
-        pnlNoiDung.add(new PhanCongNhanVienPanel(), "Phân công nhân viên");
         pnlNoiDung.add(new TraCuuHoaDonPanel(), "Tra cứu hóa đơn");
         pnlNoiDung.add(new KhuyenMaiPanel(), "Khuyến mãi");
         pnlNoiDung.add(new HoTroPanel(), "Hỗ trợ");
@@ -142,10 +145,13 @@ public class MainFrame extends JFrame {
             if (pnlTaoHoaDon != null) {
                 pnlTaoHoaDon.refreshData();
             }
-        }
-        else if ("Trang chủ".equals(tenManHinh)) {
+        } else if ("Trang chủ".equals(tenManHinh)) {
             if (pnlTrangChu != null) {
                 pnlTrangChu.refreshData();
+            }
+        } else if ("Phân công nhân viên".equals(tenManHinh)) {
+            if (pnlPhanCongNhanVien != null) {
+                pnlPhanCongNhanVien.refreshData();
             }
         }
     }

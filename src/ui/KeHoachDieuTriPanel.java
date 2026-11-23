@@ -538,9 +538,9 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
             JOptionPane.showMessageDialog(this, "Đã xóa kế hoạch khỏi bảng thành công.");
         }
     }
-
     private void hienThiChiTietLenPanel(int row) {
-        lblGiaTriMaKH.setText(String.valueOf(modelKeHoach.getValueAt(row, 0)));
+        String maKH = String.valueOf(modelKeHoach.getValueAt(row, 0));
+        lblGiaTriMaKH.setText(maKH);
         String maBN = String.valueOf(modelKeHoach.getValueAt(row, 1));
         lblGiaTriMaBN.setText(maBN);
         lblGiaTriTenBN.setText(String.valueOf(modelKeHoach.getValueAt(row, 2)));
@@ -549,10 +549,10 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
         lblGiaTriNgayKT.setText(String.valueOf(modelKeHoach.getValueAt(row, 5)));
         lblGiaTriChiPhi.setText(String.valueOf(modelKeHoach.getValueAt(row, 6)) + " VNĐ");
         lblGiaTriTrangThai.setText(String.valueOf(modelKeHoach.getValueAt(row, 7)));
-        
+
         modelDichVu.setRowCount(0);
         try {
-            List<DichVu> dsDV = khDao.getDichVuTheoMaBenhNhan(maBN);
+            List<DichVu> dsDV = khDao.getDichVuTuLichHenTheoKeHoachVaHoSo(maBN, maKH);
             int stt = 1;
             for (DichVu dv : dsDV) {
                 int soLuong = 1;

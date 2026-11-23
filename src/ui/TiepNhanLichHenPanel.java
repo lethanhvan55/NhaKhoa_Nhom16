@@ -17,6 +17,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -67,6 +68,8 @@ public class TiepNhanLichHenPanel extends JPanel
         deleteBtn.addActionListener(this);
         cancelBtn.addActionListener(this);
         btnChonBenhNhan.addActionListener(this);
+
+        dateChooser.getDateEditor().addPropertyChangeListener("date", evt -> layDanhSachBacSiTuCSDL());
 
         table.addMouseListener(this);
 
@@ -317,7 +320,7 @@ public class TiepNhanLichHenPanel extends JPanel
         dateChooser.setDate(new Date());
         cboHour.setSelectedIndex(0);
         cboMinute.setSelectedIndex(0);
-        if (dentistCombo.getItemCount() > 0) dentistCombo.setSelectedIndex(0);
+        layDanhSachBacSiTuCSDL();
         if (serviceCombo.getItemCount() > 0) serviceCombo.setSelectedIndex(0);
         statusCombo.setSelectedIndex(0);
     }
@@ -350,18 +353,23 @@ public class TiepNhanLichHenPanel extends JPanel
             cboMinute.setSelectedIndex(0);
         }
 
-        setSelectedComboBoxByText(dentistCombo, String.valueOf(model.getValueAt(r, 7)));
+        String tenBacSiRow = String.valueOf(model.getValueAt(r, 7));
+        layDanhSachBacSiTuCSDL();
+        setSelectedComboBoxByText(dentistCombo, tenBacSiRow);
         setSelectedComboBoxByText(serviceCombo, String.valueOf(model.getValueAt(r, 8)));
         statusCombo.setSelectedItem(String.valueOf(model.getValueAt(r, 9)));
     }
 
     private void setSelectedComboBoxByText(JComboBox<String> combo, String text) {
+        if (text == null || text.trim().isEmpty()) return;
         for (int i = 0; i < combo.getItemCount(); i++) {
             if (combo.getItemAt(i).contains(text)) {
                 combo.setSelectedIndex(i);
                 return;
             }
         }
+        combo.addItem(text);
+        combo.setSelectedItem(text);
     }
 
     @Override
@@ -398,13 +406,32 @@ public class TiepNhanLichHenPanel extends JPanel
     @Override public void mouseExited(MouseEvent e) {}
 
     private void layDanhSachBacSiTuCSDL() {
+        if (dentistCombo == null) return;
+        Object dangChon = dentistCombo.getSelectedItem();
         dentistCombo.removeAllItems();
         dentistCombo.addItem("Chọn bác sĩ phụ trách");
         try {
-            for (Map<String, String> ns : lichHenDAO.getDanhSachNhaSi()) {
-                dentistCombo.addItem(ns.get("HoTen") + " (" + ns.get("MaNV") + ")");
+            LocalDate ngayHen = (dateChooser != null && dateChooser.getDate() != null)
+                    ? dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                    : null;
+
+            for (Map<String, String> ns : lichHenDAO.getDanhSachNhaSiTrongNgay(ngayHen)) {
+                String caLam = ns.get("CaLamViec");
+                String hienThi = ns.get("HoTen") + " (" + ns.get("MaNV") + ")"
+                        + (caLam != null && !caLam.isEmpty() ? " - " + caLam : "");
+                dentistCombo.addItem(hienThi);
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (dangChon != null) {
+            for (int i = 0; i < dentistCombo.getItemCount(); i++) {
+                if (dentistCombo.getItemAt(i).equals(dangChon.toString())) {
+                    dentistCombo.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
     }
 
     private void layDanhSachDichVuTuCSDL() {
@@ -469,11 +496,11 @@ public class TiepNhanLichHenPanel extends JPanel
                 ? dateChooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
                 : LocalDate.now();
 
-        LocalDateTime gioHen = LocalDateTime.of(
-                ngayHen.getYear(), ngayHen.getMonth(), ngayHen.getDayOfMonth(),
+        LocalTime gioChon = LocalTime.of(
                 Integer.parseInt((String) cboHour.getSelectedItem()),
                 Integer.parseInt((String) cboMinute.getSelectedItem())
         );
+        LocalDateTime gioHen = LocalDateTime.of(ngayHen, gioChon);
 
         String trangThai = statusCombo.getSelectedIndex() == 0 ? "Đã đặt" : String.valueOf(statusCombo.getSelectedItem());
 
@@ -483,6 +510,16 @@ public class TiepNhanLichHenPanel extends JPanel
         }
 
         try {
+            if (!lichHenDAO.kiemTraGioHenNamTrongCaLamSi(ngayHen, gioChon, maNV)) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Giờ hẹn không nằm trong ca làm việc của nha sĩ này, vui lòng chọn nha sĩ khác!",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
+
             boolean kq;
             if (table.getSelectedRow() >= 0) {
                 kq = lichHenDAO.capNhatLichHen(maLH, maBN, maDV, maPhong, maNV, ngayHen, gioHen, trangThai, patientField.getText());
@@ -502,10 +539,17 @@ public class TiepNhanLichHenPanel extends JPanel
     }
 
     private String extractMa(JComboBox<String> combo) {
-        if (combo.getSelectedIndex() <= 0) return "";
-        String val = String.valueOf(combo.getSelectedItem());
-        if (val.contains("(") && val.contains(")")) {
-            return val.substring(val.lastIndexOf("(") + 1, val.lastIndexOf(")")).trim();
+        if (combo == null || combo.getSelectedIndex() <= 0) return "";
+        String val = String.valueOf(combo.getSelectedItem()).trim();
+
+        // Nếu có gắn thêm " - Ca..." ở sau thì cắt bỏ phần đó trước
+        int dashIdx = val.indexOf(" - ");
+        String phanChinh = dashIdx >= 0 ? val.substring(0, dashIdx).trim() : val;
+
+        int openIdx = phanChinh.lastIndexOf("(");
+        int closeIdx = phanChinh.lastIndexOf(")");
+        if (openIdx >= 0 && closeIdx > openIdx) {
+            return phanChinh.substring(openIdx + 1, closeIdx).trim();
         }
         return "";
     }

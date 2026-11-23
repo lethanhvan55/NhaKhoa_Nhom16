@@ -1213,4 +1213,12 @@ public class PhanCongNhanVienPanel extends JPanel {
 
         tblPhanCong.clearSelection();
     }
+ // ==================== HÀM LÀM MỚI DỮ LIỆU TỰ ĐỘNG ====================
+    public void refreshData() {
+        taiDanhSachTuCSDL();
+        taiDuLieuNhanVienVaoCombo();
+        if (txtMaPhanCong != null && tblPhanCong.getSelectedRow() < 0) {
+            txtMaPhanCong.setText(taoMaPhanCongTuDong());
+        }
+    }
 }
