@@ -330,6 +330,29 @@ CREATE TABLE ChiTietKhuyenMai (
                                       FOREIGN KEY (MaDV) REFERENCES DichVu(MaDV)
 );
 GO
+
+-- =========================================================
+-- CHI TIẾT KẾ HOẠCH ĐIỀU TRỊ
+-- =========================================================
+CREATE TABLE dbo.ChiTietKeHoachDieuTri (
+    MaChiTiet INT IDENTITY(1,1) PRIMARY KEY,
+    MaKeHoach CHAR(6) NOT NULL,
+    MaDV CHAR(6) NOT NULL,
+    SoLuong INT NOT NULL DEFAULT 1,
+    DonGia DECIMAL(18,2) NOT NULL DEFAULT 0,
+    ThanhTien DECIMAL(18,2) NOT NULL DEFAULT 0,
+    TrangThai NVARCHAR(50) NOT NULL DEFAULT N'Chưa thực hiện',
+    GhiChu NVARCHAR(255) NULL,
+
+    CONSTRAINT FK_CTKHDT_KeHoachDieuTri FOREIGN KEY (MaKeHoach) REFERENCES KeHoachDieuTri(MaKeHoach),
+    CONSTRAINT FK_CTKHDT_DichVu FOREIGN KEY (MaDV) REFERENCES DichVu(MaDV),
+    CONSTRAINT CK_CTKHDT_SoLuong CHECK (SoLuong > 0),
+    CONSTRAINT CK_CTKHDT_DonGia CHECK (DonGia >= 0),
+    CONSTRAINT CK_CTKHDT_ThanhTien CHECK (ThanhTien >= 0)
+);
+GO
+
+
 -- ================= TRIGGER =================
 CREATE TRIGGER TRG_AUTO_NV
     ON NhanVien

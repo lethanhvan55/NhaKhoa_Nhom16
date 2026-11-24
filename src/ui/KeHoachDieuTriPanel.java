@@ -19,6 +19,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -236,7 +237,7 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
         for (int i = 0; i < doRong.length; i++) {
             tblKeHoach.getColumnModel().getColumn(i).setPreferredWidth(doRong[i]);
         }
-        
+
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         tblKeHoach.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
@@ -411,6 +412,7 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
     public void lamMoiDanhSachKeHoach() {
         loadDanhSachKeHoachTuCSDL();
     }
+
     private void loadDanhSachKeHoachTuCSDL() {
         modelKeHoach.setRowCount(0);
         try {
@@ -418,7 +420,7 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
             for (KeHoachDieuTri kh : ds) {
                 String ngayBDStr = kh.getNgayBatDau() != null ? kh.getNgayBatDau().format(dtf) : "";
                 String ngayKTStr = kh.getNgayKetThuc() != null ? kh.getNgayKetThuc().format(dtf) : "";
-                
+
                 String maBNStr = "";
                 String tenBNStr = "";
                 if (kh.getMaBenhNhan() != null) {
@@ -441,6 +443,8 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
             if (modelKeHoach.getRowCount() > 0) {
                 tblKeHoach.setRowSelectionInterval(0, 0);
                 hienThiChiTietLenPanel(0);
+            } else {
+                xoaTrangChiTiet();
             }
 
         } catch (Exception e) {
@@ -448,10 +452,23 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
         }
     }
 
+    private void xoaTrangChiTiet() {
+        lblGiaTriMaKH.setText("");
+        lblGiaTriMaBN.setText("");
+        lblGiaTriTenBN.setText("");
+        lblGiaTriChanDoan.setText("");
+        lblGiaTriNgayBD.setText("");
+        lblGiaTriNgayKT.setText("");
+        lblGiaTriChiPhi.setText("");
+        lblGiaTriTrangThai.setText("");
+        modelDichVu.setRowCount(0);
+        lblTongChiPhi.setText("Tổng chi phí dự kiến: 0 VNĐ  ");
+    }
+
     private void xuLyTimKiem() {
         String tuKhoa = txtTimKiem.getText().trim();
         String trangThai = cboTrangThai.getSelectedItem().toString();
-        
+
         Date tuNgayDate = dcTuNgay.getDate();
         Date denNgayDate = dcDenNgay.getDate();
 
@@ -486,6 +503,13 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
                         String.format("%,.0f", kh.getChiPhiDuKien()),
                         kh.getTrangThai()
                 });
+            }
+
+            if (modelKeHoach.getRowCount() > 0) {
+                tblKeHoach.setRowSelectionInterval(0, 0);
+                hienThiChiTietLenPanel(0);
+            } else {
+                xoaTrangChiTiet();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -525,19 +549,27 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
     private void xuLyXoaKeHoach() {
         int row = tblKeHoach.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn kế hoạch cần xóa khỏi bảng!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn kế hoạch cần xóa!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa kế hoạch này khỏi bảng hiển thị?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+
+        String maKH = String.valueOf(modelKeHoach.getValueAt(row, 0));
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc chắn muốn xóa kế hoạch " + maKH + " không?",
+                "Xác nhận xóa",
+                JOptionPane.YES_NO_OPTION
+        );
         if (confirm == JOptionPane.YES_OPTION) {
-            modelKeHoach.removeRow(row);
-            if (modelDichVu != null) {
-                modelDichVu.setRowCount(0);
+            if (khDao.xoaKeHoach(maKH)) {
+                JOptionPane.showMessageDialog(this, "Đã xóa kế hoạch thành công.");
+                loadDanhSachKeHoachTuCSDL();
+            } else {
+                JOptionPane.showMessageDialog(this, "Xóa kế hoạch thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
-            
-            JOptionPane.showMessageDialog(this, "Đã xóa kế hoạch khỏi bảng thành công.");
         }
     }
+
     private void hienThiChiTietLenPanel(int row) {
         String maKH = String.valueOf(modelKeHoach.getValueAt(row, 0));
         lblGiaTriMaKH.setText(maKH);
@@ -552,21 +584,39 @@ public class KeHoachDieuTriPanel extends JPanel implements ActionListener, Mouse
 
         modelDichVu.setRowCount(0);
         try {
-            List<DichVu> dsDV = khDao.getDichVuTuLichHenTheoKeHoachVaHoSo(maBN, maKH);
+        	List<Map<String, Object>> dsCT = khDao.getChiTietDichVuTheoMaKeHoach(maKH);
             int stt = 1;
-            for (DichVu dv : dsDV) {
-                int soLuong = 1;
-                double donGia = dv.getDonGia();
-                double thanhTien = donGia * soLuong;
+            if (dsCT != null && !dsCT.isEmpty()) {
+                for (Map<String, Object> ct : dsCT) {
+                    int soLuong = Integer.parseInt(String.valueOf(ct.get("SoLuong")));
+                    double donGia = Double.parseDouble(String.valueOf(ct.get("DonGia")));
+                    double thanhTien = Double.parseDouble(String.valueOf(ct.get("ThanhTien")));
 
-                modelDichVu.addRow(new Object[]{
-                        stt++,
-                        dv.getMaDV(),
-                        dv.getTenDV(),
-                        soLuong,
-                        String.format("%,.0f", donGia),
-                        String.format("%,.0f", thanhTien)
-                });
+                    modelDichVu.addRow(new Object[]{
+                            stt++,
+                            ct.get("MaDV"),
+                            ct.get("TenDV"),
+                            soLuong,
+                            String.format("%,.0f", donGia),
+                            String.format("%,.0f", thanhTien)
+                    });
+                }
+            } else {
+                List<DichVu> dsDV = khDao.getDichVuTuLichHenTheoKeHoachVaHoSo(maBN, maKH);
+                for (DichVu dv : dsDV) {
+                    int soLuong = 1;
+                    double donGia = dv.getDonGia();
+                    double thanhTien = donGia * soLuong;
+
+                    modelDichVu.addRow(new Object[]{
+                            stt++,
+                            dv.getMaDV(),
+                            dv.getTenDV(),
+                            soLuong,
+                            String.format("%,.0f", donGia),
+                            String.format("%,.0f", thanhTien)
+                    });
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

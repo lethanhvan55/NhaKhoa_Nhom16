@@ -239,6 +239,17 @@ VALUES
 ('KM0003', 'DV0002'),
 ('KM0003', 'DV0003');
 
+
+INSERT INTO dbo.ChiTietKeHoachDieuTri
+    (MaKeHoach, MaDV, SoLuong, DonGia, ThanhTien, TrangThai, GhiChu)
+VALUES
+    -- Kế hoạch KH0001: 250,000 + 350,000 = 600,000
+    ('KH0001', 'DV0002', 1, 250000.00, 250000.00, N'Hoàn thành', N'Cạo vôi răng'),
+    ('KH0001', 'DV0003', 1, 350000.00, 350000.00, N'Chưa thực hiện', N'Trám răng thẩm mỹ (Composite)'),
+
+    -- Kế hoạch KH0002: 1,500,000
+    ('KH0002', 'DV0005', 1, 1500000.00, 1500000.00, N'Hoàn thành', N'Nhổ răng khôn (Tiểu phẫu)');
+GO
 -- =========================================================
 -- 15. KIEM TRA DU LIEU SAU KHI THEM
 -- =========================================================
@@ -257,4 +268,5 @@ SELECT * FROM PhieuNhapHang;
 SELECT * FROM ChiTietPhieuNhap;
 SELECT * FROM HoaDon;
 SELECT * FROM ChiTietHoaDon;
+SELECT * FROM dbo.ChiTietKeHoachDieuTri;
 GO
