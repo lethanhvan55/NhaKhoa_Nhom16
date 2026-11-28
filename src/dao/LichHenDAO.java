@@ -4,6 +4,8 @@ import connectDB.ConnectDB;
 import model.BenhNhan;
 import model.DichVu;
 import model.LichHen;
+import model.NhanVien;
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -126,49 +128,94 @@ public class LichHenDAO {
             return ps.executeUpdate() > 0;
         }
     }
-    public List<Map<String, Object>> getDanhSachLichHenTheoNgay(LocalDate ngayHen, String tuKhoa) throws SQLException {
-        if (ngayHen == null) throw new IllegalArgumentException("Ngày tìm kiếm không được để trống.");
-        List<Map<String, Object>> danhSach = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("""
-            SELECT lh.MaLichHen, lh.MaBenhNhan, bn.HoTen AS TenBenhNhan,
-                   lh.NgayHen, lh.GioHen, nv.HoTen AS TenBacSi, lh.TrangThai
-            FROM LichHen lh
-            LEFT JOIN BenhNhan bn ON lh.MaBenhNhan = bn.MaBenhNhan
-            LEFT JOIN NhanVien nv ON lh.MaNV = nv.MaNV
-            WHERE lh.NgayHen = ?
-            """);
-        if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
-            sql.append(" AND (lh.MaLichHen LIKE ? OR lh.MaBenhNhan LIKE ? OR bn.HoTen LIKE ?) ");
+    public List<LichHen> getDanhSachLichHenTheoNgay(LocalDate ngayHen, String tuKhoa) {
+        List<LichHen> danhSach = new ArrayList<>();
+
+        if (ngayHen == null) {
+            throw new IllegalArgumentException("Ngày tìm kiếm không được để trống.");
         }
-        sql.append(" ORDER BY lh.GioHen ASC");
-        try (Connection con = ConnectDB.getInstance().getConnection();
-             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+        String sql = "SELECT lh.MaLichHen, lh.MaBenhNhan, "
+                + "bn.HoTen AS TenBenhNhan, "
+                + "lh.NgayHen, lh.GioHen, "
+                + "lh.MaNV, nv.HoTen AS TenBacSi, "
+                + "lh.TrangThai "
+                + "FROM LichHen lh "
+                + "LEFT JOIN BenhNhan bn ON lh.MaBenhNhan = bn.MaBenhNhan "
+                + "LEFT JOIN NhanVien nv ON lh.MaNV = nv.MaNV "
+                + "WHERE lh.NgayHen = ? ";
+
+        if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
+            sql += "AND (lh.MaLichHen LIKE ? "
+                    + "OR lh.MaBenhNhan LIKE ? "
+                    + "OR bn.HoTen LIKE ?) ";
+        }
+
+        sql += "ORDER BY lh.GioHen ASC";
+
+        Connection con = ConnectDB.getInstance().getConnection();
+
+        if (con == null) {
+            return danhSach;
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
             int index = 1;
+
             ps.setDate(index++, Date.valueOf(ngayHen));
+
             if (tuKhoa != null && !tuKhoa.trim().isEmpty()) {
                 String keyword = "%" + tuKhoa.trim() + "%";
+
                 ps.setString(index++, keyword);
                 ps.setString(index++, keyword);
                 ps.setString(index++, keyword);
             }
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("MaLichHen", trimSafe(rs.getString("MaLichHen")));
-                    row.put("MaBenhNhan", trimSafe(rs.getString("MaBenhNhan")));
-                    row.put("TenBenhNhan", trimSafe(rs.getString("TenBenhNhan")));
+                    LichHen lh = new LichHen();
+
+                    lh.setMaLichHen(rs.getString("MaLichHen"));
+
+                    // Thông tin bệnh nhân
+                    BenhNhan bn = new BenhNhan();
+                    bn.setMaBenhNhan(rs.getString("MaBenhNhan"));
+                    bn.setHoTen(rs.getString("TenBenhNhan"));
+                    lh.setMaBenhNhan(bn);
+
+                    // Thông tin ngày hẹn
                     Date ngay = rs.getDate("NgayHen");
-                    row.put("NgayHen", ngay != null ? ngay.toLocalDate() : null);
+                    if (ngay != null) {
+                        lh.setNgayHen(ngay.toLocalDate());
+                    }
+
+                    // Thông tin giờ hẹn
                     Timestamp gio = rs.getTimestamp("GioHen");
-                    row.put("GioHen", gio != null ? gio.toLocalDateTime() : null);
-                    row.put("TenBacSi", trimSafe(rs.getString("TenBacSi")));
-                    row.put("TrangThai", rs.getString("TrangThai"));
-                    danhSach.add(row);
+                    if (gio != null) {
+                        lh.setGioHen(gio.toLocalDateTime());
+                    }
+
+                    // Thông tin bác sĩ
+                    if (rs.getString("MaNV") != null) {
+                        NhanVien nv = new NhanVien();
+                        nv.setMaNV(rs.getString("MaNV"));
+                        nv.setHoTen(rs.getString("TenBacSi"));
+                        lh.setMaNV(nv);
+                    }
+
+                    lh.setTrangThai(rs.getString("TrangThai"));
+
+                    danhSach.add(lh);
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
         return danhSach;
     }
+
     public List<Map<String, String>> getDanhSachTatCaBenhNhan() throws SQLException {
         List<Map<String, String>> ds = new ArrayList<>();
         String sql = "SELECT MaBenhNhan, HoTen, NgaySinh, GioiTinh, SoDT, Email, DiaChi FROM BenhNhan";

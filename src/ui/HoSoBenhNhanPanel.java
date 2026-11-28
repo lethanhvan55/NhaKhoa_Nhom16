@@ -371,7 +371,11 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         txt.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
-                if ((maBenhNhanTuCheckIn == null
+
+                // Chỉ cảnh báo khi đang thêm hồ sơ mới
+                // và chưa chọn bệnh nhân
+                if (dangThemMoi
+                        && (maBenhNhanTuCheckIn == null
                         || maBenhNhanTuCheckIn.trim().isEmpty())
                         && !daHienCanhBao) {
 
@@ -528,6 +532,7 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         btnLuu.setEnabled(true);
         btnXoa.setEnabled(true);
 
+        dangThemMoi = false;
         khoaForm(false);
     }
 
@@ -610,6 +615,8 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
         txtMaBenhNhan.setText(maBN);
 
         khoaForm(false);
+
+        dangThemMoi = true;
 
         btnThemBenhNhan.setEnabled(true);
         btnLuu.setEnabled(false);
@@ -760,8 +767,26 @@ public class HoSoBenhNhanPanel extends JPanel implements ActionListener, MouseLi
             BenhNhan bn = new BenhNhan();
             bn.setMaBenhNhan(maBN);
 
-            NhanVien nv = new NhanVien();
-            nv.setMaNV(maNhanVienDangChon);
+            // Lấy lại hồ sơ đang chọn theo mã bệnh nhân
+            List<HoSoBenhNhan> dsHoSo =
+                    hoSoDAO.getHoSoTheoMaBenhNhan(maBenhNhanDangChon);
+
+            NhanVien nv = null;
+
+            if (dsHoSo != null) {
+                for (HoSoBenhNhan hoSo : dsHoSo) {
+                    if (maHoSoDangChon.equals(hoSo.getMaHoSo())) {
+                        nv = hoSo.getMaNV();
+                        break;
+                    }
+                }
+            }
+
+            if (nv == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Không tìm thấy thông tin nhân viên của hồ sơ!");
+                return;
+            }
 
             KeHoachDieuTri kh = new KeHoachDieuTri();
             kh.setMaKeHoach(maKH);

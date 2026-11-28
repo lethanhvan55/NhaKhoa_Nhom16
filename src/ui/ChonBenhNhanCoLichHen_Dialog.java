@@ -1,7 +1,9 @@
 package ui;
 
 import dao.LichHenDAO;
+import model.LichHen;
 import utils.UIHelper;
+
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 
 import javax.swing.*;
@@ -9,20 +11,31 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
 import java.awt.*;
-import java.sql.SQLException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 
-public class ChonBenhNhanCoLichHen_Dialog extends JDialog {
+public class ChonBenhNhanCoLichHen_Dialog extends JDialog implements ActionListener, MouseListener {
 
     private JTable tblLichHen;
     private DefaultTableModel modelLichHen;
+
     private JTextField txtTimKiem;
 
+    private JButton btnTim;
+    private JButton btnChon;
+    private JButton btnHuy;
+
     private final LichHenDAO dao = new LichHenDAO();
+
     private final LocalDate ngayHen;
 
     private String maLichHenChon;
@@ -35,72 +48,77 @@ public class ChonBenhNhanCoLichHen_Dialog extends JDialog {
     private final DateTimeFormatter dinhDangGio =
             DateTimeFormatter.ofPattern("HH:mm");
 
-    public ChonBenhNhanCoLichHen_Dialog(JFrame parent, LocalDate ngayHen) {
+    public ChonBenhNhanCoLichHen_Dialog(
+            JFrame parent, LocalDate ngayHen) {
 
-        super(parent, "Chọn bệnh nhân theo lịch hẹn", true);
+        super(parent, "Danh sách bệnh nhân", true);
 
         this.ngayHen = ngayHen;
 
-        setSize(950, 560);
+        setSize(950, 550);
         setLocationRelativeTo(parent);
-        setLayout(new BorderLayout());
-        getContentPane().setBackground(Color.WHITE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        add(createContent(), BorderLayout.CENTER);
-
+        createContent();
         loadDanhSachLichHen("");
     }
 
-    private JPanel createContent() {
+    private void createContent() {
 
-        JPanel p = new JPanel(new BorderLayout(0, 12));
-        p.setBorder(new EmptyBorder(15, 15, 15, 15));
-        p.setBackground(Color.WHITE);
+        JPanel pnlMain = new JPanel(new BorderLayout(10, 10));
+        pnlMain.setBorder(new EmptyBorder(15, 15, 15, 15));
+        pnlMain.setBackground(Color.WHITE);
 
-        // Khu vực tìm kiếm
-        JPanel pTop = new JPanel(new BorderLayout(10, 0));
-        pTop.setOpaque(false);
+        // ================= TIÊU ĐỀ =================
 
-        JLabel lblNgay = new JLabel(
-                "Danh sách lịch hẹn ngày: "
+        JLabel lblTieuDe = new JLabel(
+                "DANH SÁCH LỊCH HẸN NGÀY "
                         + ngayHen.format(dinhDangNgay)
         );
-        lblNgay.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblNgay.setForeground(UIHelper.NAVY);
 
-        JPanel pTimKiem = new JPanel(new BorderLayout(8, 0));
-        pTimKiem.setOpaque(false);
+        lblTieuDe.setFont(new Font("Arial", Font.BOLD, 20));
+        lblTieuDe.setForeground(new Color(35, 70, 110));
+
+        JPanel pnlTieuDe = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pnlTieuDe.setBackground(Color.WHITE);
+        pnlTieuDe.add(lblTieuDe);
+
+        // ================= TÌM KIẾM =================
+
+        JPanel pnlTimKiem = new JPanel(new BorderLayout(10, 0));
+        pnlTimKiem.setBackground(Color.WHITE);
 
         txtTimKiem = new JTextField();
-        txtTimKiem.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtTimKiem.setPreferredSize(new Dimension(250, 36));
-        txtTimKiem.putClientProperty(
-                "JTextField.placeholderText",
-                "Nhập mã lịch hẹn, mã BN hoặc họ tên..."
-        );
+        txtTimKiem.setFont(new Font("Arial", Font.PLAIN, 14));
+        txtTimKiem.setPreferredSize(new Dimension(300, 35));
 
-        JButton btnTim = new JButton("Tìm");
-        UIHelper.styleButton(btnTim, true, FontAwesomeSolid.SEARCH);
-        btnTim.setPreferredSize(new Dimension(90, 36));
+        btnTim = new JButton("Tìm");
+        btnTim.setFont(new Font("Arial", Font.BOLD, 13));
+        btnTim.setPreferredSize(new Dimension(90, 35));
 
-        pTimKiem.add(txtTimKiem, BorderLayout.CENTER);
-        pTimKiem.add(btnTim, BorderLayout.EAST);
+        pnlTimKiem.add(txtTimKiem, BorderLayout.CENTER);
+        pnlTimKiem.add(btnTim, BorderLayout.EAST);
 
-        pTop.add(lblNgay, BorderLayout.WEST);
-        pTop.add(pTimKiem, BorderLayout.EAST);
+        JPanel pnlTop = new JPanel(new BorderLayout(10, 10));
+        pnlTop.setBackground(Color.WHITE);
+        pnlTop.add(pnlTieuDe, BorderLayout.NORTH);
+        pnlTop.add(pnlTimKiem, BorderLayout.SOUTH);
 
-        // Bảng lịch hẹn
-        String[] cols = {
+        pnlMain.add(pnlTop, BorderLayout.NORTH);
+
+        // ================= BẢNG LỊCH HẸN =================
+
+        String[] columns = {
                 "Mã lịch hẹn",
-                "Mã BN",
-                "Họ tên bệnh nhân",
+                "Mã bệnh nhân",
+                "Tên bệnh nhân",
                 "Ngày hẹn",
                 "Giờ hẹn",
                 "Bác sĩ",
                 "Trạng thái"
         };
 
-        modelLichHen = new DefaultTableModel(cols, 0) {
+        modelLichHen = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -108,208 +126,176 @@ public class ChonBenhNhanCoLichHen_Dialog extends JDialog {
         };
 
         tblLichHen = new JTable(modelLichHen);
-        tblLichHen.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblLichHen.setForeground(UIHelper.TEXT);
-        tblLichHen.setBackground(Color.WHITE);
-        tblLichHen.setRowHeight(38);
-        tblLichHen.setGridColor(new Color(230, 240, 250));
-        tblLichHen.setShowVerticalLines(false);
-        tblLichHen.setSelectionBackground(new Color(220, 235, 252));
-        tblLichHen.setSelectionForeground(UIHelper.NAVY);
-        tblLichHen.setSelectionMode(
-                ListSelectionModel.SINGLE_SELECTION
-        );
+        tblLichHen.setFont(new Font("Arial", Font.PLAIN, 13));
+        tblLichHen.setRowHeight(32);
+        tblLichHen.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        tblLichHen.getTableHeader().setFont(
-                new Font("Segoe UI", Font.BOLD, 12)
-        );
+        tblLichHen.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
+
+        tblLichHen.getTableHeader().setBackground(new Color(35, 70, 110));
+
         tblLichHen.getTableHeader().setForeground(Color.WHITE);
-        tblLichHen.getTableHeader().setBackground(UIHelper.NAVY);
-        tblLichHen.getTableHeader().setPreferredSize(
-                new Dimension(0, 38)
-        );
-        tblLichHen.getTableHeader().setReorderingAllowed(false);
 
-        // Căn giữa các cột
-        DefaultTableCellRenderer centerRenderer =
-                new DefaultTableCellRenderer();
+        tblLichHen.setShowGrid(true);
+        tblLichHen.setGridColor(new Color(220, 220, 220));
 
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        // Căn giữa nội dung bảng
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
 
-        tblLichHen.getColumnModel().getColumn(0)
-                .setCellRenderer(centerRenderer);
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
 
-        tblLichHen.getColumnModel().getColumn(1)
-                .setCellRenderer(centerRenderer);
+        for (int i = 0; i < tblLichHen.getColumnCount(); i++) {
+            tblLichHen.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
 
-        tblLichHen.getColumnModel().getColumn(3)
-                .setCellRenderer(centerRenderer);
+        JScrollPane scrollPane = new JScrollPane(tblLichHen);
+        scrollPane.setBorder(new LineBorder(new Color(220, 220, 220)));
 
-        tblLichHen.getColumnModel().getColumn(4)
-                .setCellRenderer(centerRenderer);
+        pnlMain.add(scrollPane, BorderLayout.CENTER);
 
-        tblLichHen.getColumnModel().getColumn(6)
-                .setCellRenderer(centerRenderer);
+        // ================= NÚT CHỨC NĂNG =================
 
-        // Thiết lập độ rộng từng cột
-        tblLichHen.getColumnModel().getColumn(0).setPreferredWidth(110);
-        tblLichHen.getColumnModel().getColumn(1).setPreferredWidth(75);
-        tblLichHen.getColumnModel().getColumn(2).setPreferredWidth(180);
-        tblLichHen.getColumnModel().getColumn(3).setPreferredWidth(100);
-        tblLichHen.getColumnModel().getColumn(4).setPreferredWidth(75);
-        tblLichHen.getColumnModel().getColumn(5).setPreferredWidth(160);
-        tblLichHen.getColumnModel().getColumn(6).setPreferredWidth(110);
+        btnChon = new JButton("Chọn");
+        btnHuy = new JButton("Hủy");
 
-        tblLichHen.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        btnChon.setFont(new Font("Arial", Font.BOLD, 13));
+        btnHuy.setFont(new Font("Arial", Font.BOLD, 13));
 
-        JScrollPane scroll = new JScrollPane(tblLichHen);
-        scroll.setBorder(new LineBorder(UIHelper.BORDER, 1, true));
-        scroll.getViewport().setBackground(Color.WHITE);
+        btnChon.setPreferredSize(new Dimension(100, 35));
+        btnHuy.setPreferredSize(new Dimension(100, 35));
 
-        // Các nút chức năng
-        JPanel pBottom = new JPanel(
-                new FlowLayout(FlowLayout.RIGHT, 8, 0)
-        );
-        pBottom.setOpaque(false);
+        JPanel pnlButton = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
 
-        JButton btnChon = new JButton("Chọn");
-        JButton btnHuy = new JButton("Hủy");
+        pnlButton.setBackground(Color.WHITE);
+        pnlButton.add(btnChon);
+        pnlButton.add(btnHuy);
 
-        UIHelper.styleButton(btnChon, true, FontAwesomeSolid.CHECK);
-        UIHelper.styleButton(btnHuy, false, FontAwesomeSolid.TIMES);
+        pnlMain.add(pnlButton, BorderLayout.SOUTH);
 
-        btnHuy.setForeground(new Color(215, 38, 56));
+        btnTim.addActionListener(this);
+        btnChon.addActionListener(this);
+        btnHuy.addActionListener(this);
 
-        btnChon.setPreferredSize(new Dimension(100, 36));
-        btnHuy.setPreferredSize(new Dimension(90, 36));
+        txtTimKiem.addActionListener(this);
 
-        pBottom.add(btnChon);
-        pBottom.add(btnHuy);
+        tblLichHen.addMouseListener(this);
 
-        p.add(pTop, BorderLayout.NORTH);
-        p.add(scroll, BorderLayout.CENTER);
-        p.add(pBottom, BorderLayout.SOUTH);
-
-        // Sự kiện
-        btnTim.addActionListener(e ->
-                loadDanhSachLichHen(txtTimKiem.getText().trim())
-        );
-
-        txtTimKiem.addActionListener(e ->
-                loadDanhSachLichHen(txtTimKiem.getText().trim())
-        );
-
-        btnChon.addActionListener(e -> xuLyChonLichHen());
-        btnHuy.addActionListener(e -> dispose());
-
-        tblLichHen.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    xuLyChonLichHen();
-                }
-            }
-        });
-
-        return p;
+        setContentPane(pnlMain);
     }
 
     private void loadDanhSachLichHen(String tuKhoa) {
 
         modelLichHen.setRowCount(0);
 
-        try {
-            List<Map<String, Object>> ds =
-                    dao.getDanhSachLichHenTheoNgay(ngayHen, tuKhoa);
+        List<LichHen> ds = dao.getDanhSachLichHenTheoNgay(ngayHen, tuKhoa);
 
-            for (Map<String, Object> lh : ds) {
+        for (LichHen lh : ds) {
+            String maLichHen = lh.getMaLichHen();
 
-                String maLichHen = String.valueOf(
-                        lh.get("MaLichHen")
-                );
+            String maBN = "";
+            String tenBN = "";
 
-                String maBN = String.valueOf(
-                        lh.get("MaBenhNhan")
-                );
+            if (lh.getMaBenhNhan() != null) {
 
-                String tenBN = lh.get("TenBenhNhan") == null
-                        ? ""
-                        : lh.get("TenBenhNhan").toString();
+                maBN = lh.getMaBenhNhan().getMaBenhNhan();
 
-                LocalDate ngay = (LocalDate) lh.get("NgayHen");
-
-                String ngayHienThi = ngay == null
-                        ? ""
-                        : ngay.format(dinhDangNgay);
-
-                java.time.LocalDateTime gio =
-                        (java.time.LocalDateTime) lh.get("GioHen");
-
-                String gioHienThi = gio == null
-                        ? ""
-                        : gio.format(dinhDangGio);
-
-                String bacSi = lh.get("TenBacSi") == null
-                        ? ""
-                        : lh.get("TenBacSi").toString();
-
-                String trangThai = lh.get("TrangThai") == null
-                        ? ""
-                        : lh.get("TrangThai").toString();
-
-                modelLichHen.addRow(new Object[]{
-                        maLichHen,
-                        maBN,
-                        tenBN,
-                        ngayHienThi,
-                        gioHienThi,
-                        bacSi,
-                        trangThai
-                });
+                tenBN = lh.getMaBenhNhan().getHoTen() == null ? "" : lh.getMaBenhNhan().getHoTen();
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            LocalDate ngay = lh.getNgayHen();
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Lỗi tải danh sách lịch hẹn: " + e.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            String ngayHienThi = ngay == null ? "" : ngay.format(dinhDangNgay);
+
+            LocalDateTime gio = lh.getGioHen();
+
+            String gioHienThi = gio == null ? "" : gio.format(dinhDangGio);
+
+            String bacSi = "";
+
+            if (lh.getMaNV() != null && lh.getMaNV().getHoTen() != null) {
+
+                bacSi = lh.getMaNV().getHoTen();
+            }
+
+            String trangThai = lh.getTrangThai() == null ? "" : lh.getTrangThai();
+
+            modelLichHen.addRow(new Object[]{
+                    maLichHen,
+                    maBN,
+                    tenBN,
+                    ngayHienThi,
+                    gioHienThi,
+                    bacSi,
+                    trangThai
+            });
         }
     }
 
     private void xuLyChonLichHen() {
 
-        int selectedRow = tblLichHen.getSelectedRow();
+        int row = tblLichHen.getSelectedRow();
 
-        if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Vui lòng chọn một lịch hẹn!",
-                    "Thông báo",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một lịch hẹn.", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int row = tblLichHen.convertRowIndexToModel(selectedRow);
+        maLichHenChon = modelLichHen.getValueAt(row, 0).toString();
 
-        maLichHenChon = String.valueOf(
-                modelLichHen.getValueAt(row, 0)
-        );
+        maBenhNhanChon = modelLichHen.getValueAt(row, 1).toString();
 
-        maBenhNhanChon = String.valueOf(
-                modelLichHen.getValueAt(row, 1)
-        );
-
-        tenBenhNhanChon = String.valueOf(
-                modelLichHen.getValueAt(row, 2)
-        );
+        tenBenhNhanChon = modelLichHen.getValueAt(row, 2).toString();
 
         dispose();
     }
+
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        Object o = e.getSource();
+
+        if (o == btnTim || o == txtTimKiem) {
+
+            loadDanhSachLichHen(txtTimKiem.getText().trim());
+
+        } else if (o == btnChon) {
+
+            xuLyChonLichHen();
+
+        } else if (o == btnHuy) {
+
+            dispose();
+        }
+    }
+
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+
+        if (e.getSource() == tblLichHen
+                && e.getClickCount() == 2) {
+
+            xuLyChonLichHen();
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
+
 
     public String getMaLichHenChon() {
         return maLichHenChon;
